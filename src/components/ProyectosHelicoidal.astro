@@ -17,10 +17,10 @@ import { getCollection } from 'astro:content';
 import { Image } from 'astro:assets';
 import { getPortada } from '../lib/images';
 
-// Orden editorial: primero lo activo hoy (en proceso), después el track record
-// (terminados) y al final lo que viene (próximamente). Dentro de cada grupo,
-// por año descendente. Independiente del orden en la content collection.
-const ordenEstado = { 'en-proceso': 0, terminado: 1, proximamente: 2 } as const;
+// Orden editorial: primero lo activo hoy (en proceso), después lo que viene
+// (próximamente) y al final el track record (terminados). Dentro de cada
+// grupo, por año descendente. Independiente del orden en la content collection.
+const ordenEstado = { 'en-proceso': 0, proximamente: 1, terminado: 2 } as const;
 
 const proyectos = await getCollection('proyectos');
 proyectos.sort((a, b) => {
