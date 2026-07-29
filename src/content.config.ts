@@ -25,6 +25,12 @@ const proyectos = defineCollection({
     orden: z.number().optional(), // override manual del orden en la grilla
     portada: z.string().optional(), // override opcional del nombre de archivo
     galeria: z.array(z.string()).optional(), // override opcional
+    // Encuadre manual de la portada en las cards de "Proyectos" (helicoidal +
+    // grilla "Ver todos"): mismo `object-position` en ambas vistas, así se
+    // ajusta una vez por proyecto en vez de por vista. Opcionales: por defecto
+    // centrado sin zoom.
+    portadaFoco: z.string().optional(), // object-position, ej. "50% 20%" o "left top"
+    portadaZoom: z.number().optional(), // >=1, recorte extra sobre el foco (1 = sin zoom)
   }),
 });
 

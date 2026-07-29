@@ -8,6 +8,8 @@ barrio: Prado
 anio: 2027 # ESTIMADO: fideicomiso y memoria son de 2026; no hay fecha de entrega oficial
 unidades: 24
 # metros (área construida) PENDIENTE: la memoria solo da la superficie del predio (2.146 m²)
+portadaFoco: "50% 50%"
+portadaZoom: 1
 ---
 
 Villa Platero está en Millán 4096, en el tradicional barrio Prado, una de las

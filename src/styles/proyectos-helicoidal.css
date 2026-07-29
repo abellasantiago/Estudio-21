@@ -71,10 +71,13 @@
 /* ---------- escenario ---------- */
 .ph-stage{position:relative}
 
-/* En modo grilla el "axis" es una grilla normal de proyectos. */
+/* En modo grilla el "axis" es una grilla normal de proyectos.
+   Cards verticales (portada 4/5) → más aire entre filas que entre columnas. */
 .ph-axis{
   list-style:none;margin:0;padding:0;
-  display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(1rem,2vw,1.8rem);
+  display:grid;grid-template-columns:repeat(3,1fr);
+  gap:clamp(1.8rem,3.2vw,2.8rem) clamp(1rem,2vw,1.8rem);
+  align-items:stretch;
 }
 
 /* ---------- card de proyecto (lenguaje visual compartido) ---------- */
@@ -90,20 +93,44 @@
   background:var(--petrol);transform:scaleX(0);transform-origin:left;
   transition:transform .45s cubic-bezier(.2,.7,.3,1);
 }
+/* Portada en formato RETRATO (6/7, más suave que el 5/6 y el 4/5 probados
+   antes). Las portadas reales son casi todas cuadradas (1:1) o verticales
+   (0.75–0.80): con el 4/3 apaisado que había antes el `cover` les recortaba
+   entre un 25% y un 44% de la foto. Con 6/7 siguen entrando casi enteras y la
+   card queda con menos aire vertical (menos alargada). */
 .ph-thumb{
-  position:relative;display:block;flex:0 0 auto;aspect-ratio:4/3;
+  position:relative;display:block;flex:0 0 auto;aspect-ratio:6/7;
   background:var(--paper-deep);overflow:hidden;border-bottom:1px solid var(--line);
 }
-.ph-thumb img{width:100%;height:100%;object-fit:cover;transition:transform .5s cubic-bezier(.2,.7,.3,1)}
+/* Encuadre manual por proyecto (frontmatter `portadaFoco`/`portadaZoom`, ver
+   content.config.ts): --pf mueve el foco de recorte del `cover` (qué parte de
+   la foto se ve) y --pz agrega zoom extra centrado en ese mismo punto (mismo
+   valor en `transform-origin`, así el zoom "entra" desde el foco, no desde el
+   centro de la card). Mismo `<img>` en helicoidal y grilla → un solo ajuste
+   vale para las dos vistas. Sin overrides, foco centrado y sin zoom (defaults
+   acá, por si algún día se lee el <img> fuera de esta card sin el style inline). */
+.ph-thumb img{
+  width:100%;height:100%;object-fit:cover;object-position:var(--pf,50% 50%);
+  transform:scale(var(--pz,1));transform-origin:var(--pf,50% 50%);
+  transition:transform .5s cubic-bezier(.2,.7,.3,1);
+}
 .ph-ph{
   position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
   font-family:var(--font-mono);font-size:.62rem;letter-spacing:.08em;color:var(--concrete-soft);
   background-image:linear-gradient(var(--line-soft) 1px,transparent 1px),linear-gradient(90deg,var(--line-soft) 1px,transparent 1px);
   background-size:24px 24px;
 }
-.ph-meta{display:flex;flex-direction:column;gap:.45rem;padding:.95rem 1.05rem 1.1rem}
-.ph-name{font-family:var(--font-display);font-weight:600;font-size:1.08rem;line-height:1.12;letter-spacing:-.01em}
-.ph-sub{display:flex;flex-direction:column;gap:.45rem}
+/* Ficha: ocupa el alto sobrante de la card y empuja la línea de datos + el chip
+   de estado al pie (`margin-top:auto`) → en la grilla los estados quedan
+   alineados entre cards aunque el nombre ocupe una o dos líneas. */
+.ph-meta{display:flex;flex-direction:column;flex:1 1 auto;gap:.7rem;padding:1rem 1.1rem 1.15rem}
+.ph-name{
+  font-family:var(--font-display);font-weight:600;font-size:1.08rem;line-height:1.16;letter-spacing:-.01em;
+  display:-webkit-box;-webkit-line-clamp:2;line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+}
+.ph-sub{display:flex;flex-direction:column;gap:.5rem;margin-top:auto}
+/* el chip de estado abraza su texto (en 3D queda como estaba, a ancho de card) */
+.ph:not(.is-3d) .ph-sub{align-items:flex-start}
 .ph-loc{font-family:var(--font-mono);font-size:.66rem;letter-spacing:.06em;text-transform:uppercase;color:var(--concrete)}
 
 /* badges de estado más discretos dentro de la card (no afecta la página de
@@ -116,7 +143,9 @@
 /* hover sólo en grilla (en 3D el transform lo maneja el script) */
 .ph:not(.is-3d) .ph-link:hover{border-color:var(--ink);transform:translateY(-5px)}
 .ph:not(.is-3d) .ph-link:hover::after{transform:scaleX(1)}
-.ph:not(.is-3d) .ph-link:hover .ph-thumb img{transform:scale(1.04)}
+/* multiplica sobre el --pz manual (no lo reemplaza): con foto zoomeada, el
+   hover sigue dando su empuje extra en vez de resetear al zoom base. */
+.ph:not(.is-3d) .ph-link:hover .ph-thumb img{transform:scale(calc(var(--pz,1) * 1.04))}
 
 .ph-hint{display:none}
 
@@ -296,5 +325,5 @@
 @media(prefers-reduced-motion:reduce){
   .ph-link,.ph-link::after,.ph-thumb img{transition:none}
   .ph:not(.is-3d) .ph-link:hover{transform:none}
-  .ph:not(.is-3d) .ph-link:hover .ph-thumb img{transform:none}
+  .ph:not(.is-3d) .ph-link:hover .ph-thumb img{transform:scale(var(--pz,1))}
 }

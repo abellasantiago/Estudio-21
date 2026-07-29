@@ -243,6 +243,17 @@ leería como "ya visto" y nunca dibujaría en la primera carga).
   y se protege de clicks a mitad de transición (clase `.is-flipping`, que además libera el
   `overflow` para que las cards no se corten al volar). Con `prefers-reduced-motion` o sin JS
   el toggle no aparece (queda la grilla accesible de siempre).
+- **Card en grilla (formato retrato):** la portada va en **`aspect-ratio: 4/5`** (en el
+  cilindro el thumb es `flex:1` y queda ~0.94, casi cuadrado). Motivo: las portadas
+  reales son casi todas cuadradas (1:1) o verticales (0.75–0.80) y el 4/3 apaisado que
+  había antes les recortaba entre un 25% y un 44% de la foto. Con 4/5 las verticales
+  entran enteras y las cuadradas pierden sólo un 20% a los lados. La ficha (`.ph-meta`)
+  crece con la card y empuja ubicación + chip de estado al pie (`margin-top:auto`) → los
+  estados quedan **alineados entre cards** aunque el nombre ocupe dos líneas (clamp 2), y
+  el chip abraza su texto (en 3D sigue a ancho de card, sin cambios). Más aire entre filas
+  que entre columnas. El `sizes` de la `<Image>` declara **el mayor de las dos vistas** por
+  breakpoint (grilla 1/2/3 columnas vs. card fija de 376px del cilindro, maquetada a 2×):
+  ninguna de las dos queda blanda.
 - **Cards limpias:** sin cartelito `E21·NN`, sin nombre gigante de fondo, sin grilla
   blueprint; el fondo del panel es parallax multicapa (fantasma "21" + marcas de registro).
   El CTA "Ver proyecto" aparece **sólo en hover de la card al frente**.

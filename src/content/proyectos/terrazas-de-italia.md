@@ -8,6 +8,8 @@ barrio: La Blanqueada
 anio: 2025
 unidades: 13
 metros: 973
+portadaFoco: "50% 50%"
+portadaZoom: 1
 ---
 
 Terrazas de Italia es un edificio de viviendas en La Blanqueada, a metros de una

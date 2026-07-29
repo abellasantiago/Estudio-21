@@ -8,6 +8,8 @@ barrio: Palermo
 anio: 2021
 unidades: 8
 metros: 697
+portadaFoco: "50% 50%"
+portadaZoom: 1
 ---
 
 Patios del Vitraux está en Canelones 1632, en el barrio Palermo, una zona

@@ -8,6 +8,8 @@ barrio: La Blanqueada
 anio: 2027
 unidades: 20
 metros: 1557
+portadaFoco: "50% 50%"
+portadaZoom: 1
 ---
 
 Terrazas de Cajal se encuentra en Ramón y Cajal 2462, en una zona residencial

@@ -8,6 +8,8 @@ barrio: Palermo
 anio: 2020
 unidades: 12
 metros: 1036
+portadaFoco: "50% 78%"
+portadaZoom: 1.15
 ---
 
 Patios Maldonado está en Maldonado 1788, en el barrio Palermo, a pasos de una de

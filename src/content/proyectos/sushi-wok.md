@@ -8,6 +8,8 @@ barrio: Carrasco
 anio: 2026 # período de ejecución de obra: set/2025 a mar/2026 (memoria BPS)
 metros: 253 # área afectada a la obra (memoria BPS)
 # unidades: no aplica — es un local gastronómico, no un desarrollo de viviendas
+portadaFoco: "50% 50%"
+portadaZoom: 1
 ---
 
 Sushi WOK Perú es la nueva casa en Carrasco de la propuesta gastronómica que

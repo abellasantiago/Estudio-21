@@ -8,6 +8,8 @@ barrio: Brazo Oriental
 anio: 2025
 unidades: 9
 metros: 729
+portadaFoco: "50% 50%"
+portadaZoom: 1
 ---
 
 Patios del Regimiento es un edificio de baja altura en Regimiento 9 1761, a pasos

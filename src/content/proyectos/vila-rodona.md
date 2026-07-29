@@ -8,6 +8,8 @@ barrio: Brazo Oriental
 anio: 2027 # entrega estimada: agosto 2027 (según memoria descriptiva)
 # unidades PENDIENTE: la memoria describe las tipologías pero no da el total
 # metros PENDIENTE: no figura el área construida en la memoria
+portadaFoco: "50% 50%"
+portadaZoom: 1
 ---
 
 Vila Rodona es un edificio de baja altura en Mariano Soler 3326, en Brazo

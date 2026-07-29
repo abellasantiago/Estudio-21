@@ -36,6 +36,11 @@ const estadoLabels = {
   terminado: 'Terminado',
 } as const;
 
+// La misma <img> sirve las dos vistas: la grilla (1 / 2 / 3 columnas del wrap) y la
+// card del cilindro (376px fijos, maquetada a 2× para el supersample). Se declara el
+// MAYOR de los dos por breakpoint → ninguna de las dos queda blanda.
+const PORTADA_SIZES = '(max-width: 600px) 92vw, (max-width: 900px) 48vw, 440px';
+
 const items = proyectos.map((p) => ({ ...p.data, portada: getPortada(p.data.slug) }));
 const total = items.length;
 const pad = (n: number) => String(n).padStart(2, '0');
@@ -105,8 +110,9 @@ const pad = (n: number) => String(n).padStart(2, '0');
                       src={it.portada}
                       alt={`Portada del proyecto ${it.nombre}`}
                       widths={[400, 600, 820, 1080]}
-                      sizes="(max-width: 680px) 320px, 440px"
+                      sizes={PORTADA_SIZES}
                       quality={88}
+                      style={`--pf:${it.portadaFoco ?? '50% 50%'};--pz:${it.portadaZoom ?? 1}`}
                       loading={i < 3 ? 'eager' : 'lazy'}
                     />
                   ) : (
