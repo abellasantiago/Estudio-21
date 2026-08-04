@@ -33,6 +33,21 @@ registro), no rediseñar. Todo el copy va en **español rioplatense**.
 - Comandos: `npm install`, `npm run dev` (→ `http://localhost:4321`), `npm run build`
   (→ `dist/`), `npm run preview`, `npm run check` (astro check).
 
+## Deploy
+
+**GitHub Pages** vía Actions (`.github/workflows/deploy.yml`): cada push a `main`
+buildea y publica automáticamente en `https://abellasantiago.github.io/Estudio-21/`
+(hay que habilitar `Settings → Pages → Source: GitHub Actions` una vez, del lado de
+GitHub). `astro.config.mjs` setea `base: '/Estudio-21'` **solo** cuando
+`process.env.GITHUB_ACTIONS === 'true'`; fuera de ahí (`npm run build` local, o el
+build en el hosting del dominio real) `base` es `'/'`. Por eso **todo link o asset
+interno escrito a mano debe ir prefijado con `` `${import.meta.env.BASE_URL...}` ``**
+(patrón: `const base = import.meta.env.BASE_URL.replace(/\/$/, '')` en el frontmatter,
+`href={`${base}/algo`}`) en vez de `href="/algo"` — un absoluto hardcodeado se rompe
+en Pages porque el sitio no vive en la raíz del dominio. Las imágenes que pasan por
+`<Image>/<Picture>` de Astro ya resuelven el base solas. Cuando haya dominio propio,
+Pages queda como preview/staging gratis y no hace falta tocar nada de esto.
+
 ## Contenido y datos
 
 - **Proyectos:** content collection `proyectos` (`src/content.config.ts`, schema Zod),
