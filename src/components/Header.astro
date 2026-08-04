@@ -3,22 +3,24 @@ import { Image } from 'astro:assets';
 import '../styles/header.css';
 import banner from '../assets/marca/banner_negro.png';
 
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+
 const links = [
-  { href: '/', label: 'Inicio' },
-  { href: '/#nosotros', label: 'Nosotros' },
-  { href: '/#proyectos', label: 'Proyectos' },
-  { href: '/#estudio', label: 'Equipo' },
+  { href: `${base}/`, label: 'Inicio' },
+  { href: `${base}/#nosotros`, label: 'Nosotros' },
+  { href: `${base}/#proyectos`, label: 'Proyectos' },
+  { href: `${base}/#estudio`, label: 'Equipo' },
 ];
 ---
 
 <header id="header">
   <div class="nav">
-    <a href="/" class="brand" aria-label="Estudio 21 Arquitectos — inicio">
+    <a href={`${base}/`} class="brand" aria-label="Estudio 21 Arquitectos — inicio">
       <Image src={banner} alt="Estudio 21 Arquitectos" width={864} height={250} class="mark-img" />
     </a>
     <nav class="nav-links" id="menu" aria-label="Navegación principal">
       {links.map((l) => <a href={l.href}>{l.label}</a>)}
-      <a href="/#contacto">Contacto</a>
+      <a href={`${base}/#contacto`}>Contacto</a>
     </nav>
     <button
       class="burger"

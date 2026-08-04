@@ -36,6 +36,8 @@ const estadoLabels = {
   terminado: 'Terminado',
 } as const;
 
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+
 // La misma <img> sirve las dos vistas: la grilla (1 / 2 / 3 columnas del wrap) y la
 // card del cilindro (376px fijos, maquetada a 2× para el supersample). Se declara el
 // MAYOR de los dos por breakpoint → ninguna de las dos queda blanda.
@@ -103,7 +105,7 @@ const pad = (n: number) => String(n).padStart(2, '0');
         <ul class="ph-axis" id="phAxis">
           {items.map((it, i) => (
             <li class="ph-card" data-status={it.estado} data-index={i}>
-              <a class="ph-link" href={`/proyectos/${it.slug}/`} aria-label={`${it.nombre} — ver proyecto`}>
+              <a class="ph-link" href={`${base}/proyectos/${it.slug}/`} aria-label={`${it.nombre} — ver proyecto`}>
                 <span class="ph-thumb">
                   {it.portada ? (
                     <Image

@@ -54,6 +54,8 @@ const jsonLd = {
   },
 };
 
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+
 const ficha = [
   { k: 'Estado', v: estadoLabel, pendiente: false, loc: false },
   { k: 'Año', v: String(anio), pendiente: false, loc: false },
@@ -66,7 +68,7 @@ const ficha = [
 <BaseLayout title={title} description={description} image={ogImage} jsonLd={jsonLd}>
   <article class="proj-hero">
     <div class="wrap">
-      <a class="back-link" href="/#proyectos">Volver a proyectos</a>
+      <a class="back-link" href={`${base}/#proyectos`}>Volver a proyectos</a>
 
       <div class="proj-head">
         <div>
