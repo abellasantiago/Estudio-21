@@ -84,7 +84,6 @@ design/estudio21-home.html   diseño original (fuente de verdad visual)
    ```markdown
    ---
    nombre: Terrazas de Italia
-   codigo: "E21·14"
    slug: terrazas-de-italia
    estado: en-proceso        # en-proceso | terminado | proximamente
    ubicacion: Montevideo
@@ -128,17 +127,42 @@ src/assets/equipo/guillermo-tosi.jpg
 
 Hasta que cargues la foto, se muestra un placeholder con las iniciales.
 
+## Imagen de "Quiénes somos"
+
+La sección de presentación tiene una columna gráfica a la izquierda, hoy vacía.
+Para llenarla, tirá una imagen apaisada en:
+
+```
+src/assets/estudio/presentacion.jpg
+```
+
+Aparece sola. Ver [`src/assets/estudio/LEEME.md`](src/assets/estudio/LEEME.md).
+
+## Piezas de marca (favicon, icono de iOS, imagen para compartir)
+
+No se editan a mano: se generan del logo original con la paleta del sitio.
+
+```bash
+node scripts/generar-marca.mjs
+```
+
+Lee el artwork de `src/assets/marca/` (`banner_negro.png`, el lockup, e
+`icono-21.png`, el icono) y escribe en `public/`: `favicon.png` y
+`apple-touch-icon.png` (512×512, el icono de siempre remapeado a tinta y papel)
+y `og-default.png` (1200×630, el logo sobre papel con el "21" fantasma, las
+marcas de registro y la bajada en mono). Usa las mismas tipografías del sitio,
+convirtiendo los `.woff` de Fontsource a `.ttf` al vuelo
+(`scripts/lib/woff-a-ttf.mjs`), porque Pango no lee `woff2`. Para probar sin
+pisar nada: `node scripts/generar-marca.mjs <carpeta>`.
+
 ---
 
 ## Antes de publicar (PENDIENTE)
 
 - [ ] **Dominio:** cambiar `site` en [`astro.config.mjs`](astro.config.mjs) y la
       línea `Sitemap:` en [`public/robots.txt`](public/robots.txt) por el dominio real.
-- [ ] **Datos de proyectos:** barrio, unidades, m² y descripción de cada uno.
-- [ ] **Fotos:** portadas/galerías de proyectos y retratos del equipo.
-- [ ] **Imagen para compartir:** ya existe `public/og-default.png`; verificá que
-      sea **1200×630** y que se vea bien en WhatsApp/redes (`ogImage` en
-      [`src/data/site.ts`](src/data/site.ts) ya apunta ahí).
+- [ ] **Datos de proyectos:** unidades y m² de los cuatro proyectos nuevos.
+- [ ] **Fotos:** portada y galería de Sushi WOK Perú (es el único sin fotos).
 - [ ] **Contacto opcional:** teléfono / WhatsApp / Instagram en `src/data/site.ts`
       (si los completás, aparecen solos en la sección de contacto).
 

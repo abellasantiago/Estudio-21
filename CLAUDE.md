@@ -54,15 +54,30 @@ Pages queda como preview/staging gratis y no hace falta tocar nada de esto.
   un `.md` por proyecto en `src/content/proyectos/` (frontmatter con datos + cuerpo =
   descripción). Páginas de detalle `/proyectos/[slug]` con `getStaticPaths`.
   Estados posibles: `en-proceso` · `proximamente` · `terminado` (cada uno con su chip).
-- **Equipo:** los integrantes en `src/data/equipo.ts`. Datos del estudio (mail,
-  dirección, redes) en `src/data/site.ts` — lo que se completa aparece solo en Contacto.
+  **No hay campo `codigo`** (los viejos `E21·NN`): no se mostraban en ninguna parte
+  del sitio y cuatro eran placeholders sin confirmar, así que se sacaron del schema
+  y de los `.md`.
+- **Equipo:** los integrantes en `src/data/equipo.ts` (sólo `slug`, `nombre`, `rol`).
+  **Sin ubicación**: mostrar que dos arquitectos están en España abría la pregunta
+  "¿quién supervisa mi obra en Montevideo?" — más ruido que beneficio para un
+  inversor. Datos del estudio (mail, dirección, redes) en `src/data/site.ts` — lo que
+  se completa aparece solo en Contacto.
 - **Fotos por convención** (`src/lib/images.ts`): tirar imágenes en
-  `src/assets/proyectos/<slug>/` (`portada.*`, `galeria-*.*`) y `src/assets/equipo/<slug>.*`
+  `src/assets/proyectos/<slug>/` (`portada.*`, `galeria-*.*`), `src/assets/equipo/<slug>.*`
+  y `src/assets/estudio/presentacion.*` (la columna gráfica de "Quiénes somos")
   y aparecen solas, sin listarlas. Hasta que existan, se muestra un placeholder.
+- **Piezas de marca derivadas** (`scripts/generar-marca.mjs`): `public/favicon.png`,
+  `apple-touch-icon.png` y `og-default.png` **no se editan a mano** — se generan del
+  logo real (`src/assets/marca/banner_negro.png`) con la paleta del sitio. Ver
+  "Marca" más abajo.
 
 ## Home — secciones
 
-Orden: **Hero · Nosotros · Proyectos · Equipo · Contacto** (`src/pages/index.astro`).
+Orden: **Hero · El estudio · Cómo operamos · Proyectos · Equipo · Contacto**
+(`src/pages/index.astro`). Ojo con los anclajes: **`#nosotros` es la sección de
+presentación** (`Presentacion.astro`) — el link "Nosotros" del navbar entra por ahí,
+que es donde se dice quiénes son; la sección del modelo de trabajo
+(`Nosotros.astro`, la de las fases F01–F04) quedó con `id="como-operamos"`.
 Navbar fina (58px) con el logo `banner_negro.png` ("ESTUDIO 21 ARQUITECTOS"); links
 **Inicio · Nosotros · Proyectos · Equipo · Contacto** ("Contacto" es un link normal,
 no CTA con recuadro). El `.nav` **no** usa `.wrap` (el contenedor centrado a `--maxw`
@@ -226,6 +241,41 @@ leería como "ya visto" y nunca dibujaría en la primera carga).
   vía una custom property `--reveal`, no pisa la transición de `.reveal`) y la línea
   **"21 de Setiembre 3024"** (`.hero-dim`). El texto/marca se corren a la izquierda con
   el token `--hero-shift` (se anula en pantallas chicas).
+- **Después del hero NO va texto suelto**: se entra directo a "El estudio". El bloque
+  `.hero-intro` que había ahí (claim "De la idea a la escritura, un solo estudio" +
+  una frase de contexto + las cifras) se desarmó: repetía lo que ya decía Nosotros y
+  demoraba la llegada a los proyectos. El claim y la frase se reemplazaron por la
+  sección de presentación; las cifras pasaron a la cabecera de "Cómo operamos".
+
+### Quiénes somos — presentación (`#nosotros`)
+`src/components/sections/Presentacion.astro` + `src/styles/presentacion.css`.
+Es la primera sección después del hero: responde **qué es** Estudio 21 antes de que
+"Cómo operamos" explique el modelo de negocio. Esa división es la que evita que las
+dos secciones se pisen — **identidad acá, modelo allá**.
+- **Columna gráfica a la izquierda / texto a la derecha** (`.pres-grid`, 0.92fr 1fr).
+  El grid va con el `align-items: stretch` por defecto **a propósito**: así el hueco
+  gráfico toma exactamente el alto que marca el texto y el bloque queda parejo sin
+  fijar una proporción a mano (medido: 448px y 448px). No poner `align-items: start`.
+- **La columna gráfica está vacía por ahora.** Si aparece
+  `src/assets/estudio/presentacion.*` se usa esa imagen (auto-descubierta por
+  `getFotoEstudio()` en `src/lib/images.ts`, misma convención que equipo y proyectos);
+  si no, se dibuja un placeholder con la grilla de blueprint del sitio — el mismo
+  gesto que los retratos del equipo sin foto. Ver `src/assets/estudio/LEEME.md`.
+  Está pensado para reemplazarse entero si en vez de una foto va un gráfico.
+- **Título: "Estudio 21"** (sin "Arquitectos" — así no repite el lockup del logo del
+  navbar), con eyebrow "Quiénes somos".
+- **Los tres párrafos bajan de intensidad** (el primero en `--ink-soft`, los otros dos
+  en `--concrete`). El copy es el texto del sitio viejo de WordPress, **verbatim**
+  (decisión del 2026-08-18): no tocar la redacción sin que lo pida el estudio.
+- **Cierra con las cifras de trayectoria** (`.pres-cifras`, +10 / +15 / 06) como banda
+  horizontal de 3 columnas bajo una línea `--ink`, igual que la grilla de fases. La
+  primera celda va sin `padding-left` para que el número alinee con el borde del
+  contenido. Marcado `<dl>` con `<dt>` (etiqueta) antes de `<dd>` (cifra) para que el
+  lector de pantalla lea "Años de trayectoria: +10", y `column-reverse` para que en
+  pantalla mande la cifra. **Ojo con `justify-content: flex-end`**: en `column-reverse`
+  el eje va de abajo hacia arriba, así que eso apila contra el borde superior — sin
+  eso, una etiqueta que parte en dos líneas (pasa en mobile) empuja su cifra hacia
+  abajo y los tres números quedan a distinta altura.
 
 ### Proyectos — carrusel helicoidal 3D
 `src/components/ProyectosHelicoidal.astro` + `src/styles/proyectos-helicoidal.css`.
@@ -236,6 +286,29 @@ leería como "ya visto" y nunca dibujaría en la primera carga).
   **supersampling 2×** (card maquetada al doble y reducida ÷2 → nítida), sin snap.
 - **Header (título) fuera del sticky:** scrollea con la página. En modo 3D la **barra de
   filtros + contador** se relocaliza al panel sticky (pineada mientras se recorre).
+- **Dónde queda la barra de filtros en 3D — depende del ancho, y el corte es
+  geométrico, no estético:**
+  - **≥1700px** → **riel vertical** a la izquierda, tipo leyenda de plano.
+  - **<1700px** → **barra horizontal arriba** del cilindro.
+
+  El motivo: el cilindro tiene radio 540 y las cards laterales, proyectadas, llegan
+  hasta ~550px a la izquierda del centro (medido a −45°/−60°, con opacidad 0,3–0,5 →
+  bien visibles), mientras que el riel termina a ~246px del borde. Recién con ~1700px
+  de ancho el centro queda lo bastante lejos como para que no lo crucen; por debajo de
+  eso les pasaban por encima a los botones.
+
+  La barra horizontal **no va pineada con un velo encima del escenario**: eso no
+  alcanzaba, porque en ventanas bajas la card frontal (la más grande y opaca) se metía
+  ~64px en los botones. Va como **primer ítem de la columna del panel**
+  (`.ph-sticky{flex-direction:column}` + `.ph-bar{order:-1;position:static}`, porque el
+  script la `appendChild`ea al final), así el escenario recibe **sólo el alto sobrante**
+  y el cilindro no puede alcanzarla por más baja que sea la ventana. El toggle
+  "Ver todos" queda pineado en esa misma línea a la derecha; `--ph-toolbar-top` los
+  mantiene alineados y el `padding-right` de la barra le reserva el lugar.
+
+  Como la barra se come ~120px de la franja de arriba, el umbral de card chica subió
+  de `max-height:680px` a **820px** (con un escalón extra a 660px): con la card grande
+  la frontal quedaba recortada arriba y abajo en ventanas no maximizadas.
 - **El giro arranca sólo cuando el panel se fija.** `headOffset` (= `sticky.offsetTop`,
   alto del header; recalculado en `layout()`) marca cuánto scrollea la sección antes de
   pinearse. `updateTarget` deja el progreso en **0** en ese tramo (1ª card centrada) y lo
@@ -277,9 +350,12 @@ leería como "ya visto" y nunca dibujaría en la primera carga).
   sólo capa de presentación. `rAF` activo sólo con la sección visible
   (`IntersectionObserver`); sólo se tocan `transform`/`opacity`.
 
-### Nosotros / Equipo / Contacto
-- **Nosotros** (`Nosotros.astro` / `nosotros.css`, ancla `/#nosotros`): bloques F01–F04.
-- **Equipo** ("Nuestro equipo"): fotos optimizadas, `alt` con nombre + rol.
+### Cómo operamos / Equipo / Contacto
+- **Cómo operamos** (`Nosotros.astro` / `nosotros.css`, ancla `/#como-operamos`):
+  cabecera simple (eyebrow + título + lead) y los bloques F01–F04. Las cifras de
+  trayectoria **no** van acá: viven al pie de la sección de presentación.
+- **Equipo** ("Nuestro equipo"): fotos optimizadas, `alt` con nombre + rol. Cada
+  ficha muestra nombre y rol, sin ubicación.
 - **Contacto:** mail real `estudiodearquitectos21@gmail.com` en texto + JSON-LD.
 
 ## Interacciones globales y SEO
@@ -290,8 +366,45 @@ leería como "ya visto" y nunca dibujaría en la primera carga).
   `scrollTo(0,0)` si no hay ancla (respeta `/#seccion`).
 - **SEO/accesibilidad:** `BaseHead` (meta únicos, canonical, OG/Twitter, JSON-LD),
   sitemap, robots.txt; skip-link, focus-visible, `alt`, y todo respeta
-  `prefers-reduced-motion`. Marca: favicon/navbar con el "21"; OG home (banner) y OG por
-  proyecto (su portada).
+  `prefers-reduced-motion`. OG: la home usa `og-default.png`; cada proyecto con
+  portada usa la suya (ver `ProjectLayout`).
+
+## Marca — piezas derivadas del logo
+
+El logo del estudio es `src/assets/marca/banner_negro.png` ("ESTUDIO 21
+ARQUITECTOS", tipografía condensada, con el "21" **calado** dentro de un recuadro
+sólido — no pintado de blanco, por eso funciona sobre cualquier fondo). Es la marca
+institucional y **se usa tal cual en el navbar**: cambiarla es una decisión de
+identidad del estudio, no algo a resolver de rebote desde el sitio.
+
+Lo que sí está unificado a la paleta del sitio son las **piezas derivadas**, que se
+generan con `node scripts/generar-marca.mjs` (pasarle una carpeta como argumento
+para previsualizar sin pisar `public/`):
+
+- **`favicon.png` / `apple-touch-icon.png`** (512×512): salen de
+  `src/assets/marca/icono-21.png`, que es **el favicon histórico tal cual** (el "21"
+  blanco sobre negro, con su encuadre propio). El script sólo **remapea la escala de
+  grises** — negro a `--ink`, blanco a `--paper`, interpolando por luminancia para no
+  perder el antialias. La composición no se toca: es el mismo icono de siempre, con
+  los colores del sitio.
+- **`og-default.png`** (1200×630, antes 1920×1080 en blanco y negro con otro
+  tagline): logo en `--ink` sobre `--paper`, con la "luz de estudio" del hero, el
+  "21" fantasma en `--paper-deep`, las marcas de registro del sitio y la bajada
+  "ARQUITECTURA Y DESARROLLO · MONTEVIDEO, URUGUAY" en mono, con la regla petróleo
+  del `.eyebrow`.
+
+Las **fuentes** son `src/assets/marca/banner_negro.png` (el lockup) e
+`icono-21.png` (el icono): son artwork, no se generan — si hay que rehacer una
+pieza se toca el script, no el PNG de salida.
+
+Dos detalles que hay que respetar si se toca el script:
+- **Las tipografías salen de los `.woff` de Fontsource convertidos a `.ttf` al vuelo**
+  (`scripts/lib/woff-a-ttf.mjs`, WOFF1 = sfnt con cada tabla en zlib). Pango **no lee
+  `woff2`** y falla en silencio cayendo a Arial, así que si se cambia a `woff2` las
+  piezas salen con otra tipografía sin avisar.
+- El artwork viene con alpha ~254, no 255: al quedarse con el calado hay que aplicar
+  una rampa (`repintar(..., { calado:true })`), si no queda un velo de 1/255 y se ve
+  un rectángulo fantasma alrededor del "21".
 
 ## Notas técnicas / convenciones
 
@@ -301,11 +414,12 @@ leería como "ya visto" y nunca dibujaría en la primera carga).
 
 ## Pendientes antes de publicar
 
-- **Dominio real** en `site` (`astro.config.mjs`) + `public/robots.txt` — de ahí salen canonical, sitemap y URLs absolutas de OG.
-- **Imagen para compartir:** reemplazar `public/og-default.svg` por un PNG/JPG 1200×630 (WhatsApp no renderiza SVG) y actualizar `ogImage` en `src/data/site.ts`.
-- **Portadas y galerías de los 10 proyectos** (faltan): tirarlas en `src/assets/proyectos/<slug>/` (≥640px, ~4:3, para que la nitidez del helicoidal rinda).
-- **Códigos `E21·NN` reales** de los 4 proyectos nuevos (hoy placeholders 15–18, marcados con `# PENDIENTE` en su `.md`).
-- **Años estimados** de Villa Platero y Chana I; m² (área construida) de varios proyectos nuevos.
-- Vila Rodona: confirmar mix de dormitorios y total de unidades. Sushi WOK: ficha muestra "Unidades: Pendiente" por ser comercial.
-- m² de Cavas de Haedo es **estimado** (no oficial).
-- El **README** tiene partes desactualizadas (menciona la grilla vieja, `ProjectCard.astro`, la sección "Modelo"): conviene ponerlo al día en algún momento.
+- **Dominio real** en `site` (`astro.config.mjs`) + `public/robots.txt` — de ahí salen canonical, sitemap y URLs absolutas de OG. Hoy es el placeholder `estudio21arq.com`.
+- **Fotos de Sushi WOK Perú**: es el **único** proyecto sin portada ni galería (los otros 9 ya tienen). Van en `src/assets/proyectos/sushi-wok/`.
+- **Imagen (o gráfico) de la columna izquierda de "Quiénes somos"**: hoy es un placeholder de blueprint. Una foto va en `src/assets/estudio/presentacion.*` y aparece sola; si va otra cosa (un plano, un SVG), hay que reemplazar esa columna en `Presentacion.astro`.
+- **"Quince proyectos, una misma manera de hacer"** (título de la sección Proyectos, `ProyectosHelicoidal.astro`): hay **10** cargados. O se suman los que faltan o se ajusta el número.
+- **Años estimados** de Villa Platero, Vila Rodona y Chana I; m² (área construida) de esos tres. m² de Cavas de Haedo también es **estimado** (no oficial).
+- Vila Rodona: confirmar mix de dormitorios y total de unidades.
+- Sushi WOK: la ficha muestra "Unidades: Pendiente" por ser un local gastronómico — debería decir **"No aplica"**, que no es lo mismo que un dato que falta.
+- **Teléfono e Instagram** en `src/data/site.ts` (hoy `null`): si se completan, aparecen solos en Contacto.
+- Sección de **cómo invertir**: por ahora **no se hace** (decisión del 2026-08-18). La apuesta es que el impacto visual lleve al inversor a escribir; se puede retomar más adelante.
