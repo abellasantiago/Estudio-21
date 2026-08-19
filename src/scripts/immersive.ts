@@ -140,6 +140,10 @@ export function initImmersive(): void {
         introProgress =
           range > 0 ? clamp(-intro.getBoundingClientRect().top / range, 0, 1) : 0;
       }
+      // mismo desvanecido que el título (0.65→1 del tramo del hero): el corredor
+      // de marcos lo comparte para no quedar creciendo de fondo, molestando la
+      // lectura, una vez que "Estudio 21" ya se integró al espacio.
+      const heroFadeOut = clamp(1 - (introProgress - 0.65) / 0.35, 0, 1);
 
       // progreso del "descenso" completo hero → cards (helicoidal)
       let descent = 0;
@@ -180,13 +184,19 @@ export function initImmersive(): void {
         // se mantiene bien visible girando y recién se desvanece al final del
         // tramo (introProgress 0.65 → 1), cuando se integra al fondo/espacio.
         if (titleFade) {
-          titleFade.style.opacity = clamp(1 - (introProgress - 0.65) / 0.35, 0, 1).toFixed(3);
+          titleFade.style.opacity = heroFadeOut.toFixed(3);
         }
       }
 
-      // corredor de marcos: avanza hacia la cámara durante todo el descenso
+      // corredor de marcos: avanza hacia la cámara (crece por perspectiva)
+      // durante todo el descenso, pero se desvanece junto con el título — sin
+      // esto seguía viéndose (y agrandándose) sobre "Quiénes somos" y el resto,
+      // compitiendo con la lectura. ×0.6: conserva la opacidad base tenue del
+      // corredor (definida en immersive.css) en vez de pisarla a 1 mientras
+      // heroFadeOut vale 1 al principio del hero.
       if (corridor) {
         corridor.style.transform = `translateZ(${(descent * CORRIDOR_DEPTH).toFixed(1)}px)`;
+        corridor.style.opacity = (0.6 * heroFadeOut).toFixed(3);
       }
 
       // las anotaciones mono del fondo se desvanecen al dejar el hero (para no
@@ -269,7 +279,10 @@ export function initImmersive(): void {
     if (titleFade) titleFade.style.opacity = '';
     // no se limpia --wf-reveal: si el motor se re-habilita (resize) el wireframe
     // debe seguir revelado, no volver a 0.
-    if (corridor) corridor.style.transform = '';
+    if (corridor) {
+      corridor.style.transform = '';
+      corridor.style.opacity = '';
+    }
     for (const p of parallax) p.el.style.transform = '';
     if (scrollHint) scrollHint.style.opacity = '';
     if (railFill) railFill.style.transform = '';
