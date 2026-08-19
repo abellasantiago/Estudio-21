@@ -22,6 +22,11 @@ const equipoFiles = import.meta.glob<{ default: ImageMetadata }>(
   { eager: true },
 );
 
+const estudioFiles = import.meta.glob<{ default: ImageMetadata }>(
+  '/src/assets/estudio/*.{jpg,jpeg,png,webp,avif}',
+  { eager: true },
+);
+
 const isPortada = (path: string) => /\/portada\.[^/]+$/i.test(path);
 // Sólo se considera "galería" lo que respeta la convención `galeria-NN.ext`
 // (ver LEEME.md). Así, si en la carpeta queda un archivo suelto o mal nombrado
@@ -53,6 +58,17 @@ export function getGaleria(slug: string): ImageMetadata[] {
   return filesDeProyecto(slug)
     .filter(([path]) => isGaleria(path) && !isPortada(path))
     .map(([, img]) => img);
+}
+
+/**
+ * Imagen de la sección "quiénes somos" (`src/assets/estudio/presentacion.*`).
+ * Mientras no exista, la sección muestra un placeholder.
+ */
+export function getFotoEstudio(): ImageMetadata | undefined {
+  const entry = Object.entries(estudioFiles).find(([path]) =>
+    /\/estudio\/presentacion\.[^/]+$/i.test(path),
+  );
+  return entry?.[1].default;
 }
 
 /** Retrato de un integrante del equipo por slug. */

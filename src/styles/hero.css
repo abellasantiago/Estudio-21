@@ -290,60 +290,6 @@
   }
 }
 
-/* ---- bloque de contenido (claim + lead + stats) ---- */
-.hero-intro {
-  padding-block: clamp(2.5rem, 6vw, 5rem) clamp(3.5rem, 8vw, 6.5rem);
-}
-.hero-claim {
-  font-family: var(--font-display);
-  font-weight: 500;
-  font-size: clamp(1.8rem, 4.4vw, 3.4rem);
-  line-height: 1.05;
-  letter-spacing: -0.025em;
-  max-width: 16ch;
-}
-.hero-claim em {
-  font-style: normal;
-  color: var(--petrol);
-}
-.hero-lead {
-  font-size: clamp(1rem, 1.3vw, 1.22rem);
-  color: var(--ink-soft);
-  max-width: 46ch;
-  margin-top: 1.6rem;
-}
-
-/* ---- stats (legend) ---- */
-.legend {
-  margin-top: clamp(2.6rem, 5vw, 4rem);
-  border-top: 1px solid var(--ink);
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-}
-.legend .cell {
-  padding: 1.5rem 1.6rem;
-  border-right: 1px solid var(--line);
-  position: relative;
-}
-.legend .cell:last-child {
-  border-right: 0;
-}
-.legend .num {
-  font-family: var(--font-display);
-  font-weight: 500;
-  font-size: clamp(2.6rem, 5vw, 4.2rem);
-  line-height: 0.9;
-  letter-spacing: -0.02em;
-}
-.legend .lab {
-  font-family: var(--font-mono);
-  font-size: 0.74rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--concrete);
-  margin-top: 0.7rem;
-}
-
 /* ============================================================
    MODO INMERSIVO — el escenario se fija y el título gira con el scroll
    ============================================================ */
@@ -367,21 +313,6 @@ html.is-immersive .hero-title {
      (0.72 + 0.28·|cos 0°| = 1) → sin blink de opacidad al cargar. El inline
      que setea el motor después pisa este valor. */
   --shadow-pulse: 1;
-}
-
-/* ---- responsive ---- */
-@media (max-width: 900px) {
-  .legend {
-    grid-template-columns: 1fr;
-  }
-  .legend .cell {
-    border-right: 0;
-    border-bottom: 1px solid var(--line);
-    padding: 1.3rem 0;
-  }
-  .legend .cell:last-child {
-    border-bottom: 0;
-  }
 }
 
 /* ---- reduced-motion: sin la animación del indicador de scroll ni el giro ---- */

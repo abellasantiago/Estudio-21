@@ -1,0 +1,82 @@
+---
+/*
+ * Presentación — "quiénes somos". Es lo primero que se lee después del hero:
+ * responde qué es Estudio 21 antes de que "Cómo operamos" explique el modelo.
+ *
+ * Estructura: columna gráfica a la izquierda / texto a la derecha, y las cifras
+ * de trayectoria como banda horizontal al pie, cerrando la sección.
+ *
+ * La columna gráfica está vacía por ahora: si aparece
+ * `src/assets/estudio/presentacion.*` se usa esa imagen; si no, va un
+ * placeholder con la grilla de blueprint (ver assets/estudio/LEEME.md).
+ */
+import { Picture } from 'astro:assets';
+import '../../styles/presentacion.css';
+import { getFotoEstudio } from '../../lib/images';
+
+const foto = getFotoEstudio();
+
+const trayectoria = [
+  { valor: '+10', label: 'Años de trayectoria' },
+  { valor: '+15', label: 'Proyectos ejecutados' },
+  { valor: '06', label: 'Profesionales' },
+];
+---
+
+<section class="block presentacion" id="nosotros">
+  <span class="marks" aria-hidden="true" data-depth="0.2">
+    <span class="tl"></span><span class="tr"></span><span class="bl"></span><span class="br"></span>
+  </span>
+
+  <div class="wrap">
+    <div class="pres-grid">
+      <div class="pres-visual reveal">
+        {foto ? (
+          <Picture
+            src={foto}
+            formats={['avif', 'webp']}
+            alt="Estudio 21 Arquitectos"
+            widths={[600, 900, 1200]}
+            sizes="(max-width: 900px) 100vw, 46vw"
+            loading="lazy"
+          />
+        ) : (
+          <span class="pres-visual-ph" aria-hidden="true"></span>
+        )}
+      </div>
+
+      <div class="pres-texto">
+        <span class="eyebrow reveal">Quiénes somos</span>
+        <h2 class="pres-titulo reveal" data-d="1">Estudio 21</h2>
+
+        <div class="pres-cuerpo reveal" data-d="2">
+          <p>
+            Situado en Montevideo, Estudio 21 es un estudio de arquitectura
+            dedicado al diseño, construcción y remodelación de espacios
+            residenciales, comerciales e industriales.
+          </p>
+          <p>
+            Nuestro enfoque combina funcionalidad y estética, buscando
+            soluciones que se adapten a las necesidades de la comunidad.
+            Valoramos especialmente la colaboración con nuestros clientes y
+            trabajamos en conjunto para transformar sus ideas en realidades.
+          </p>
+          <p>
+            Nuestro compromiso es diseñar espacios que no solo sean
+            habitables, sino que también enriquezcan la vida de quienes los
+            utilizan.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <dl class="pres-cifras reveal" data-d="3" aria-label="Trayectoria del estudio">
+      {trayectoria.map((c) => (
+        <div class="pres-cifra">
+          <dt>{c.label}</dt>
+          <dd>{c.valor}</dd>
+        </div>
+      ))}
+    </dl>
+  </div>
+</section>

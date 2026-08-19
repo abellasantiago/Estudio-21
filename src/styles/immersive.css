@@ -236,17 +236,19 @@ html.is-immersive #header:not(.past-hero) .nav-links a {
 
 /* ---------- secciones del inicio transparentes → fondo continuo ---------- */
 html.is-immersive #nosotros,
+html.is-immersive #como-operamos,
 html.is-immersive #proyectos.ph {
   background: transparent;
 }
 /* el fondo vivo ya aporta fantasma + marcas: evitamos duplicar los internos */
 html.is-immersive #nosotros > .marks,
+html.is-immersive #como-operamos > .marks,
 html.is-immersive #proyectos .ph-sticky > .ghost21,
 html.is-immersive #proyectos .ph-sticky > .marks {
   display: none;
 }
 /* el punto que corta la línea de las fases: sobre el espacio, no sobre paper-2 */
-html.is-immersive #nosotros .phase .dot {
+html.is-immersive #como-operamos .phase .dot {
   background: var(--paper);
 }
 
