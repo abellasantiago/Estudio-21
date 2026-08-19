@@ -1,6 +1,5 @@
 ---
 nombre: Terrazas de Italia
-codigo: "E21·14"
 slug: terrazas-de-italia
 estado: terminado
 ubicacion: Montevideo

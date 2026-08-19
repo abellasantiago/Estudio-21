@@ -1,6 +1,5 @@
 ---
 nombre: Sushi WOK Perú
-codigo: "E21·15" # PENDIENTE: confirmar código real del proyecto
 slug: sushi-wok
 estado: en-proceso
 ubicacion: Montevideo

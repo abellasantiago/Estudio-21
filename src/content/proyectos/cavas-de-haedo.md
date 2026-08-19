@@ -1,6 +1,5 @@
 ---
 nombre: Cavas de Haedo
-codigo: "E21·09"
 slug: cavas-de-haedo
 estado: terminado
 ubicacion: Montevideo

@@ -14,7 +14,6 @@ const proyectos = defineCollection({
   loader: glob({ pattern: '**/*.md', base: './src/content/proyectos' }),
   schema: z.object({
     nombre: z.string(),
-    codigo: z.string(), // ej. "E21·14"
     slug: z.string(),
     estado: z.enum(['proximamente', 'en-proceso', 'terminado']),
     ubicacion: z.string(),

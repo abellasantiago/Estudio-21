@@ -30,8 +30,6 @@
 }
 .person .pname{font-family:var(--font-display);font-weight:500;font-size:1.18rem;letter-spacing:-.01em}
 .person .prole{font-size:.92rem;color:var(--concrete)}
-.person .ploc{font-family:var(--font-mono);font-size:.68rem;letter-spacing:.08em;text-transform:uppercase;color:var(--petrol);margin-top:.5rem;display:flex;align-items:center;gap:.45rem}
-.person .ploc::before{content:"";width:5px;height:5px;border-radius:50%;background:var(--petrol)}
 
 @media(max-width:900px){
   .team-grid{grid-template-columns:1fr 1fr}

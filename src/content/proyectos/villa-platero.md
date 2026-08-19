@@ -1,6 +1,5 @@
 ---
 nombre: Villa Platero
-codigo: "E21·16" # PENDIENTE: confirmar código real del proyecto
 slug: villa-platero
 estado: proximamente
 ubicacion: Montevideo

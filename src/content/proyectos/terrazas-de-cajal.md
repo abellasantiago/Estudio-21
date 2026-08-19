@@ -1,6 +1,5 @@
 ---
 nombre: Terrazas de Cajal
-codigo: "E21·13"
 slug: terrazas-de-cajal
 estado: en-proceso
 ubicacion: Montevideo

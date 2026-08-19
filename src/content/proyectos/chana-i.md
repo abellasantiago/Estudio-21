@@ -1,6 +1,5 @@
 ---
 nombre: Chana I
-codigo: "E21·18" # PENDIENTE: confirmar código real del proyecto
 slug: chana-i
 estado: proximamente
 ubicacion: Montevideo

@@ -1,6 +1,5 @@
 ---
 nombre: Vila Rodona
-codigo: "E21·17" # PENDIENTE: confirmar código real del proyecto
 slug: vila-rodona
 estado: proximamente
 ubicacion: Montevideo

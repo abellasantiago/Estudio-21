@@ -1,6 +1,5 @@
 ---
 nombre: Patios del Vitraux
-codigo: "E21·08"
 slug: patios-del-vitraux
 estado: terminado
 ubicacion: Montevideo

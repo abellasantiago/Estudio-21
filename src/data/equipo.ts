@@ -3,7 +3,6 @@ export interface Integrante {
   slug: string;
   nombre: string;
   rol: string;
-  ubicacion: string;
 }
 
 /**
@@ -13,10 +12,10 @@ export interface Integrante {
  * y aparece sola. Mientras tanto se muestra un placeholder con las iniciales.
  */
 export const equipo: Integrante[] = [
-  { slug: 'gustavo-abella', nombre: 'Gustavo Abella', rol: 'Socio · Arquitecto', ubicacion: 'Montevideo' },
-  { slug: 'guillermo-tosi', nombre: 'Guillermo Tosi', rol: 'Socio · Arquitecto', ubicacion: 'Montevideo' },
-  { slug: 'lucia-arrieta', nombre: 'Lucía Arrieta', rol: 'Arquitecta', ubicacion: 'Montevideo' },
-  { slug: 'santiago-abella', nombre: 'Santiago Abella', rol: 'Dirección de Empresas', ubicacion: 'Montevideo' },
-  { slug: 'sofia-tosi', nombre: 'Sofía Tosi', rol: 'Arquitecta', ubicacion: 'España' },
-  { slug: 'federico-cardozo', nombre: 'Federico Cardozo', rol: 'Arquitecto', ubicacion: 'España' },
+  { slug: 'gustavo-abella', nombre: 'Gustavo Abella', rol: 'Socio · Arquitecto' },
+  { slug: 'guillermo-tosi', nombre: 'Guillermo Tosi', rol: 'Socio · Arquitecto' },
+  { slug: 'lucia-arrieta', nombre: 'Lucía Arrieta', rol: 'Arquitecta' },
+  { slug: 'santiago-abella', nombre: 'Santiago Abella', rol: 'Dirección de Empresas' },
+  { slug: 'sofia-tosi', nombre: 'Sofía Tosi', rol: 'Arquitecta' },
+  { slug: 'federico-cardozo', nombre: 'Federico Cardozo', rol: 'Arquitecto' },
 ];

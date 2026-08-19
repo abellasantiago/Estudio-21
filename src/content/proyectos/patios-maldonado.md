@@ -1,6 +1,5 @@
 ---
 nombre: Patios Maldonado
-codigo: "E21·07"
 slug: patios-maldonado
 estado: terminado
 ubicacion: Montevideo

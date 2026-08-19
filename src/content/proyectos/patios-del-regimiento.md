@@ -1,6 +1,5 @@
 ---
 nombre: Patios del Regimiento
-codigo: "E21·11"
 slug: patios-del-regimiento
 estado: terminado
 ubicacion: Montevideo
