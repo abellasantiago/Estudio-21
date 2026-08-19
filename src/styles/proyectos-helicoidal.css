@@ -233,11 +233,20 @@
    (Pinearla con un velo de papel no alcanzaba: en ventanas bajas la card
    frontal —opacidad 1, la más grande— llegaba a meterse 64px en los botones.)
    El toggle "Ver todos" queda pineado en esa MISMA línea, a la derecha:
-   `--ph-toolbar-top` mantiene los dos alineados. */
-.ph.is-3d{--ph-toolbar-top:calc(74px + .5rem)}
+   `--ph-toolbar-top` mantiene los dos alineados.
+   El valor despeja el navbar fijo (58px) con un respiro de .8rem; ajustado a esa
+   altura real (antes reservaba 74px, o sea ~15px de aire de más entre el título
+   y los botones). */
+.ph.is-3d{--ph-toolbar-top:calc(58px + .8rem)}
 
 @media(max-width:1700px){
   .ph.is-3d .ph-sticky{flex-direction:column}
+  /* Con la barra ya FUERA del header, el cierre del header quedaba sobrando: el
+     título y los botones de filtro se separaban ~108px. Se recorta el aire de
+     abajo del header (y el margen del sec-head, que ya no tiene nada debajo)
+     → ~66px, que es lo que se lee como una sola unidad título + controles. */
+  .ph.is-3d .ph-head{padding-bottom:clamp(.7rem,1.8vh,1.2rem)}
+  .ph.is-3d .ph-sechead{margin-bottom:0}
   .ph.is-3d .ph-shell{
     height:auto;flex:1 1 auto;min-height:0;
     padding-top:clamp(.4rem,1.5vh,1rem);
@@ -263,8 +272,8 @@
 
 @media(max-width:680px){
   /* el toggle se va abajo (ver más adelante) → la barra usa todo el ancho y
-     los filtros se centran */
-  .ph.is-3d{--ph-toolbar-top:calc(64px + .5rem)}
+     los filtros se centran (--ph-toolbar-top se hereda: el navbar mide 58px
+     en todos los anchos) */
   .ph.is-3d .ph-bar{
     justify-content:center;
     padding-right:clamp(1rem,4vw,3.4rem);padding-bottom:.7rem;

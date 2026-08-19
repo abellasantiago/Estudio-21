@@ -52,7 +52,7 @@ const pad = (n: number) => String(n).padStart(2, '0');
   <div class="wrap ph-head">
     <div class="ph-head-top">
       <div class="sec-head ph-sechead">
-        <span class="eyebrow reveal">Obra construida</span>
+        <span class="eyebrow reveal">Proyectos</span>
         <h2 id="ph-title" class="section-title reveal" data-d="1">
           Quince proyectos, una misma manera de hacer.
         </h2>
@@ -161,6 +161,7 @@ const pad = (n: number) => String(n).padStart(2, '0');
     // grilla/fallback se queda en el header. Guardamos su lugar original.
     const bar = section.querySelector<HTMLElement>('.ph-bar');
     const sticky = section.querySelector<HTMLElement>('.ph-sticky');
+    const head = section.querySelector<HTMLElement>('.ph-head');
     const barHome = bar?.parentElement ?? null;
     // toggle de vista (cilindro ⇄ grilla). Su "casa" es el header; en 3D el
     // script lo relocaliza dentro del panel sticky (queda pineado).
@@ -187,6 +188,13 @@ const pad = (n: number) => String(n).padStart(2, '0');
     // header con el título). Hasta ese punto el scroll mueve la página, no el
     // helicoidal: el progreso queda en 0 y la 1ª card se mantiene centrada.
     let headOffset = 0;
+    // ⚠ Se mide sobre `.ph-head` (flujo normal), NO sobre `sticky.offsetTop`: el
+    // `offsetTop` de un elemento `position:sticky` devuelve su posición YA PEGADA,
+    // así que crece con el scroll. Como layout() se llama en cada `resize` y en
+    // cada filtro, medirlo ahí con el panel pegado envenenaba headOffset (p.ej.
+    // 2156 en vez de 279) → `range` quedaba chico o negativo y el progreso se
+    // clavaba en 0: al achicar la ventana el cilindro dejaba de recorrerse.
+    const measureHead = () => (head ? head.offsetTop + head.offsetHeight : 0);
 
     const cards: CardRef[] = cardEls.map((el) => ({
       el,
@@ -221,10 +229,10 @@ const pad = (n: number) => String(n).padStart(2, '0');
     function layout() {
       RADIUS = calcRadius();
       N = active.length;
-      // El panel sticky (top:0) se fija cuando su borde superior —en flujo normal,
-      // a `sticky.offsetTop` px del tope de la sección— llega al tope del viewport.
-      // No depende de N; sí del alto del header (responsive) → se recalcula acá.
-      headOffset = sticky ? sticky.offsetTop : 0;
+      // El panel sticky (top:0) se fija cuando su borde superior —a `headOffset`
+      // px del tope de la sección— llega al tope del viewport. No depende de N;
+      // sí del alto del header (responsive) → se recalcula acá.
+      headOffset = measureHead();
       // ° entre cards: 360/N reparte en todo el cilindro, pero con pocos
       // proyectos (al filtrar) eso los deja ralos → lo topamos a MAX_STEP para
       // que queden juntos en un arco frontal en vez de desperdigados.
@@ -512,8 +520,7 @@ const pad = (n: number) => String(n).padStart(2, '0');
       section!.classList.remove('is-grid');
       section!.classList.add('is-3d', 'is-flipping');
       dockControls(true);
-      layout();
-      headOffset = sticky ? sticky.offsetTop : 0;
+      layout(); // ya deja headOffset medido sobre `.ph-head`
       scroll = 0;
       targetScroll = 0;
       lastActiveIdx = -1;
@@ -585,6 +592,9 @@ const pad = (n: number) => String(n).padStart(2, '0');
         if (!is3d() || transitioning) return;
         layout();
         updateTarget();
+        // Snap (no lerp): el resize es un evento discreto y, arrastrando el borde
+        // de la ventana, dispara sin parar — interpolando se vería rezagado.
+        scroll = targetScroll;
         render();
       },
       { passive: true },
