@@ -180,11 +180,20 @@
 .ph.is-3d .ph-sechead{margin-bottom:clamp(1rem,2.2vh,1.6rem)}
 .ph.is-3d .ph-counter{display:flex}
 
-/* ---- Filtros pineados como riel (modo 3D) ---------------------------------
+/* ---- Filtros pineados (modo 3D) -------------------------------------------
    En 3D el header (eyebrow + título) scrollea y se va; el <script> relocaliza
-   los filtros DENTRO del panel sticky, donde quedan fijos como un riel vertical
-   a la izquierda —tipo leyenda de plano— para poder clickearlos sin mover la
-   cámara. En mobile no entra un riel lateral → barra horizontal fija arriba. */
+   los filtros DENTRO del panel sticky, donde quedan fijos para poder
+   clickearlos sin mover la cámara.
+
+   Dos disposiciones según el ancho (ver el @media de abajo):
+   · ≥1700px  → riel VERTICAL a la izquierda, tipo leyenda de plano.
+   · <1700px  → barra HORIZONTAL arriba del cilindro.
+   El corte no es estético sino geométrico: el cilindro tiene radio 540 y las
+   cards laterales, proyectadas, llegan hasta ~550px a la izquierda del centro
+   (medido: a −45° y −60°, con opacidad 0.3–0.5, o sea bien visibles). El riel
+   termina a ~246px del borde. Recién con ~1700px de ancho el centro queda lo
+   bastante lejos como para que las cards no crucen el riel; por debajo de eso
+   le pasan por encima a los botones. */
 .ph.is-3d .ph-bar{
   position:absolute;top:50%;left:clamp(1rem,4vw,3.4rem);
   transform:translateY(-50%);z-index:6;
@@ -217,17 +226,50 @@
 .ph.is-flipping{overflow:visible}
 .ph.is-flipping .ph-card{will-change:transform,opacity}
 
-@media(max-width:680px){
+/* ---- Ventana no maximizada → filtros como barra horizontal arriba ----------
+   La barra deja de estar PINEADA ENCIMA del escenario y pasa a ser el primer
+   ítem de la columna del panel sticky: así el escenario recibe sólo el alto
+   SOBRANTE y el cilindro no puede alcanzarla, por más baja que sea la ventana.
+   (Pinearla con un velo de papel no alcanzaba: en ventanas bajas la card
+   frontal —opacidad 1, la más grande— llegaba a meterse 64px en los botones.)
+   El toggle "Ver todos" queda pineado en esa MISMA línea, a la derecha:
+   `--ph-toolbar-top` mantiene los dos alineados. */
+.ph.is-3d{--ph-toolbar-top:calc(74px + .5rem)}
+
+@media(max-width:1700px){
+  .ph.is-3d .ph-sticky{flex-direction:column}
+  .ph.is-3d .ph-shell{
+    height:auto;flex:1 1 auto;min-height:0;
+    padding-top:clamp(.4rem,1.5vh,1rem);
+  }
   .ph.is-3d .ph-bar{
-    top:calc(64px + .5rem);left:0;right:0;
-    transform:none;width:auto;
-    flex-direction:row;flex-wrap:wrap;align-items:center;justify-content:center;
-    gap:.45rem;padding:.7rem 1rem;border-left:0;
-    background:linear-gradient(var(--paper) 62%,transparent);
+    order:-1;flex:0 0 auto;              /* el script la appendea al final */
+    position:static;transform:none;width:auto;
+    flex-direction:row;align-items:center;justify-content:flex-start;
+    gap:.5rem 1.1rem;margin:0;border-left:0;
+    /* arriba: despeja el navbar fijo · derecha: reserva el lugar del toggle
+       (sin eso los filtros, al envolver, se meten abajo del botón) */
+    padding:var(--ph-toolbar-top) clamp(10rem,15vw,13rem) .9rem clamp(1rem,4vw,3.4rem);
   }
   .ph.is-3d .ph-bar::before{display:none}
-  .ph.is-3d .filters{flex-direction:row;flex-wrap:wrap;justify-content:center;gap:.4rem}
+  .ph.is-3d .filters{flex-direction:row;flex-wrap:wrap;align-items:center;gap:.45rem}
   .ph.is-3d .filters button{width:auto;text-align:center}
+  .ph.is-3d .ph-counter{justify-content:flex-start;margin-top:0}
+  .ph.is-3d .ph-sticky > .ph-viewtoggle{
+    top:var(--ph-toolbar-top);
+    right:clamp(1rem,4vw,3.4rem);
+  }
+}
+
+@media(max-width:680px){
+  /* el toggle se va abajo (ver más adelante) → la barra usa todo el ancho y
+     los filtros se centran */
+  .ph.is-3d{--ph-toolbar-top:calc(64px + .5rem)}
+  .ph.is-3d .ph-bar{
+    justify-content:center;
+    padding-right:clamp(1rem,4vw,3.4rem);padding-bottom:.7rem;
+  }
+  .ph.is-3d .filters{justify-content:center;gap:.4rem}
   .ph.is-3d .ph-counter{display:none}
 }
 
@@ -313,9 +355,15 @@
     font-size:.68rem;padding:.5rem .75rem;
   }
 }
-/* pantallas bajas: card más chica para que entre completa en el viewport */
-@media(max-height:680px){
+/* Pantallas bajas: card más chica para que entre completa en el viewport.
+   El umbral es 820px (y no 680) porque con la barra de filtros ocupando la
+   franja de arriba, el escenario pierde ~120px: con la card grande la frontal
+   quedaba recortada arriba y abajo en ventanas no maximizadas. */
+@media(max-height:820px){
   .ph.is-3d .ph-card{--cw:320px;--ch:444px}
+}
+@media(max-height:660px){
+  .ph.is-3d .ph-card{--cw:290px;--ch:404px}
 }
 
 /* ============================================================
