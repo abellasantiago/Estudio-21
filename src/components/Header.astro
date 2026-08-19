@@ -1,16 +1,32 @@
 ---
 import { Image } from 'astro:assets';
+import { getCollection } from 'astro:content';
 import '../styles/header.css';
 import banner from '../assets/marca/banner_negro.png';
 
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 
-const links = [
-  { href: `${base}/`, label: 'Inicio' },
-  { href: `${base}/#nosotros`, label: 'Nosotros' },
-  { href: `${base}/#proyectos`, label: 'Proyectos' },
-  { href: `${base}/#estudio`, label: 'Equipo' },
-];
+/*
+ * "Proyectos" abre un desplegable con los tres estados y, dentro de cada uno, la
+ * lista de sus proyectos (submenú anidado) para entrar directo a la ficha.
+ * Mismo orden editorial que la sección de proyectos: primero lo activo hoy,
+ * después lo que viene y al final el track record; dentro de cada grupo, por año
+ * descendente.
+ */
+const proyectos = await getCollection('proyectos');
+const grupos = (
+  [
+    { estado: 'en-proceso', label: 'En proceso' },
+    { estado: 'proximamente', label: 'Próximamente' },
+    { estado: 'terminado', label: 'Terminados' },
+  ] as const
+).map((g) => ({
+  ...g,
+  items: proyectos
+    .filter((p) => p.data.estado === g.estado)
+    .sort((a, b) => b.data.anio - a.data.anio)
+    .map((p) => p.data),
+}));
 ---
 
 <header id="header">
@@ -19,7 +35,49 @@ const links = [
       <Image src={banner} alt="Estudio 21 Arquitectos" width={864} height={250} class="mark-img" />
     </a>
     <nav class="nav-links" id="menu" aria-label="Navegación principal">
-      {links.map((l) => <a href={l.href}>{l.label}</a>)}
+      <a href={`${base}/`}>Inicio</a>
+      <a href={`${base}/#nosotros`}>Nosotros</a>
+
+      <div class="nav-item" data-nav-menu>
+        <a href={`${base}/#proyectos`} class="nav-trigger" aria-haspopup="true" aria-expanded="false">
+          Proyectos
+          <svg class="nav-caret" viewBox="0 0 10 6" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M1 1.4 5 5 9 1.4" />
+          </svg>
+        </a>
+
+        <div class="nav-menu">
+          <ul class="nav-menu-list">
+            {grupos.map((g) => (
+              <li class="nav-sub" data-nav-sub>
+                <button type="button" class="nav-sub-btn" aria-expanded="false" disabled={g.items.length === 0}>
+                  <span class="nav-sub-label">{g.label}</span>
+                  <svg class="nav-caret nav-caret-side" viewBox="0 0 6 10" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M1.4 1 5 5l-3.6 4" />
+                  </svg>
+                </button>
+
+                {g.items.length > 0 && (
+                  <div class="nav-flyout">
+                    <ul>
+                      {g.items.map((p) => (
+                        <li>
+                          <a href={`${base}/proyectos/${p.slug}/`}>
+                            <span class="nav-proj-name">{p.nombre}</span>
+                            <span class="nav-proj-anio">{p.anio}</span>
+                          </a>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+
+      <a href={`${base}/#estudio`}>Equipo</a>
       <a href={`${base}/#contacto`}>Contacto</a>
     </nav>
     <button
@@ -33,3 +91,128 @@ const links = [
     </button>
   </div>
 </header>
+
+<script>
+  /*
+   * Capa de mejora del desplegable de "Proyectos".
+   * Sin JS ya funciona: la CSS lo abre con :hover y con :focus-within (o sea que
+   * también se recorre con el teclado). Acá se agrega lo que la CSS no puede:
+   *   · modo tap (mobile / punteros gruesos): el link no navega, despliega.
+   *   · de qué lado abre el submenú, según el lugar que quede en pantalla.
+   *   · Escape y click afuera para cerrar; aria-expanded siempre sincronizado.
+   */
+  const items = Array.from(document.querySelectorAll<HTMLElement>('[data-nav-menu]'));
+
+  for (const item of items) {
+    const trigger = item.querySelector<HTMLAnchorElement>('.nav-trigger');
+    const menu = item.querySelector<HTMLElement>('.nav-menu');
+    const subs = Array.from(item.querySelectorAll<HTMLElement>('[data-nav-sub]'));
+    if (!trigger || !menu) continue;
+
+    // punteros sin hover (o el menú hamburguesa) → el desplegable abre con tap
+    const tapMode = () => window.matchMedia('(max-width: 760px), (hover: none)').matches;
+    const setExpanded = (v: boolean) => trigger.setAttribute('aria-expanded', String(v));
+
+    function closeSubs() {
+      for (const s of subs) {
+        s.classList.remove('is-open');
+        s.querySelector('.nav-sub-btn')?.setAttribute('aria-expanded', 'false');
+      }
+    }
+    function close() {
+      item.classList.remove('is-open');
+      setExpanded(false);
+      closeSubs();
+    }
+
+    /* El submenú abre a la DERECHA del panel salvo que no entre en pantalla: como
+       "Proyectos" cae en la mitad derecha del navbar, en ventanas angostas se
+       saldría de cuadro. Se mide con el panel todavía oculto (visibility:hidden
+       conserva la caja, así que el rect es real). */
+    function placeFlyout() {
+      if (tapMode()) {
+        item.classList.remove('flyout-left');
+        return;
+      }
+      const fly = item.querySelector<HTMLElement>('.nav-flyout');
+      if (!fly) return;
+      item.classList.remove('flyout-left');
+      const derecha = menu!.getBoundingClientRect().right;
+      if (derecha + fly.offsetWidth > window.innerWidth - 12) item.classList.add('flyout-left');
+    }
+
+    // --- abrir/cerrar ---------------------------------------------------------
+    trigger.addEventListener('click', (e) => {
+      if (!tapMode()) return; // en desktop ya abrió por hover: el link navega
+      e.preventDefault();
+      if (item.classList.contains('is-open')) close();
+      else {
+        item.classList.add('is-open');
+        setExpanded(true);
+      }
+    });
+
+    for (const sub of subs) {
+      const btn = sub.querySelector<HTMLButtonElement>('.nav-sub-btn');
+      if (!btn || btn.disabled) continue;
+      btn.addEventListener('click', () => {
+        const abierto = sub.classList.contains('is-open');
+        closeSubs();
+        if (!abierto) {
+          sub.classList.add('is-open');
+          btn.setAttribute('aria-expanded', 'true');
+        }
+      });
+    }
+
+    // --- sincronizar aria + lado del submenú con lo que hace la CSS -----------
+    item.addEventListener('pointerenter', () => {
+      if (tapMode()) return;
+      placeFlyout();
+      setExpanded(true);
+    });
+    item.addEventListener('pointerleave', () => {
+      if (tapMode() || item.classList.contains('is-open')) return;
+      setExpanded(false);
+    });
+    item.addEventListener('focusin', () => {
+      placeFlyout();
+      setExpanded(true);
+    });
+    item.addEventListener('focusout', (e) => {
+      if (item.contains(e.relatedTarget as Node)) return;
+      close();
+    });
+
+    item.addEventListener('keydown', (e) => {
+      if (e.key !== 'Escape') return;
+      close();
+      trigger.focus();
+    });
+
+    window.addEventListener(
+      'resize',
+      () => {
+        placeFlyout();
+        if (!tapMode()) close(); // pasar de menú hamburguesa a navbar: arrancar limpio
+      },
+      { passive: true },
+    );
+
+    placeFlyout();
+  }
+
+  // click afuera → cerrar (los handlers de arriba ya corrieron: si el click fue
+  // adentro, el item lo contiene y no se toca)
+  document.addEventListener('click', (e) => {
+    for (const item of items) {
+      if (item.contains(e.target as Node)) continue;
+      item.classList.remove('is-open');
+      item.querySelector('.nav-trigger')?.setAttribute('aria-expanded', 'false');
+      item.querySelectorAll('[data-nav-sub].is-open').forEach((s) => {
+        s.classList.remove('is-open');
+        s.querySelector('.nav-sub-btn')?.setAttribute('aria-expanded', 'false');
+      });
+    }
+  });
+</script>

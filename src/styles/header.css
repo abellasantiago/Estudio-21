@@ -24,7 +24,11 @@ header.scrolled{border-bottom-color:var(--line);background:color-mix(in srgb, va
 }
 /* logotipo "Estudio 21 Arquitectos" en el navbar */
 .brand .mark-img{display:block;height:2rem;width:auto}
-.nav-links{display:flex;align-items:center;gap:2.2rem}
+/* `align-self:stretch` → la fila de links toma los 58px del navbar (sus propios
+   links siguen centrados). Sin eso mide sólo lo que ocupa el texto (~30px) y el
+   panel de "Proyectos", que cuelga de `top:100%`, arrancaba 14px ARRIBA del
+   borde de abajo del navbar, montado sobre él. */
+.nav-links{display:flex;align-items:center;align-self:stretch;gap:2.2rem}
 .nav-links a{
   font-family:var(--font-mono);font-size:.78rem;letter-spacing:.06em;text-transform:uppercase;
   color:var(--concrete);position:relative;padding:.3rem 0;transition:color .25s ease;
@@ -32,6 +36,88 @@ header.scrolled{border-bottom-color:var(--line);background:color-mix(in srgb, va
 .nav-links a::after{content:"";position:absolute;left:0;bottom:-1px;width:0;height:1px;background:var(--ink);transition:width .28s ease}
 .nav-links a:hover{color:var(--ink)}
 .nav-links a:hover::after{width:100%}
+/* ---------- desplegable de "Proyectos" (submenú anidado) ----------
+   Abre con :hover y con :focus-within → funciona sin JS y se recorre con el
+   teclado. El script sólo agrega el modo tap, el Escape y decide de qué lado
+   sale el submenú. `.nav-item` se estira a los 58px del navbar para que el panel
+   (top:100%) arranque pegado al borde de abajo: sin hueco que cruzar con el
+   mouse, el hover no se corta al bajar. */
+.nav-item{position:relative;display:flex;align-items:center;align-self:stretch}
+.nav-links .nav-trigger{display:inline-flex;align-items:center;gap:.42rem}
+.nav-caret{width:9px;height:6px;flex:0 0 auto;color:var(--concrete-soft);transition:transform .25s ease,color .25s ease}
+.nav-item:hover .nav-trigger .nav-caret,
+.nav-item:focus-within .nav-trigger .nav-caret,
+.nav-item.is-open .nav-trigger .nav-caret{color:var(--ink);transform:rotate(180deg)}
+
+.nav-menu{
+  /* +1px: arranca DEBAJO del borde inferior del header, sin taparlo */
+  position:absolute;top:calc(100% + 1px);left:0;z-index:70;min-width:15.5rem;
+  background:color-mix(in srgb, var(--paper-2) 97%, transparent);
+  backdrop-filter:saturate(120%) blur(8px);
+  border:1px solid var(--line);border-radius:2px;
+  box-shadow:0 26px 48px -32px rgba(26,25,22,.6);
+  padding:.35rem;
+  opacity:0;visibility:hidden;transform:translateY(-6px);
+  transition:opacity .22s ease, transform .22s ease, visibility .22s;
+}
+.nav-item:hover > .nav-menu,
+.nav-item:focus-within > .nav-menu,
+.nav-item.is-open > .nav-menu{opacity:1;visibility:visible;transform:none}
+
+.nav-menu-list,.nav-flyout ul{list-style:none;margin:0;padding:0}
+.nav-sub{position:relative}
+.nav-sub-btn{
+  display:flex;align-items:center;gap:.7rem;width:100%;text-align:left;
+  background:none;border:0;border-radius:2px;cursor:pointer;padding:.6rem .7rem;
+  font-family:var(--font-mono);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--concrete);transition:background .2s ease,color .2s ease;
+}
+.nav-sub-label{flex:1 1 auto}
+.nav-caret-side{width:6px;height:9px}
+.nav-sub:hover > .nav-sub-btn,
+.nav-sub:focus-within > .nav-sub-btn,
+.nav-sub.is-open > .nav-sub-btn{background:var(--paper-deep);color:var(--ink)}
+.nav-sub:hover > .nav-sub-btn .nav-caret,
+.nav-sub:focus-within > .nav-sub-btn .nav-caret,
+.nav-sub.is-open > .nav-sub-btn .nav-caret{color:var(--ink)}
+.nav-sub-btn[disabled]{opacity:.42;cursor:default}
+
+/* Submenú pegado al panel: los bordes se funden en vez de dejar un hueco, así el
+   mouse pasa de un nivel al otro sin salirse (si hubiera aire, el submenú se
+   cerraría a mitad de camino). El margen compensa el padding del panel (.35rem):
+   `left:100%` se mide desde la FILA, que está metida dentro de ese padding, y sin
+   compensar el submenú quedaba 7px adentro del panel en vez de al ras. */
+.nav-flyout{
+  position:absolute;top:-.35rem;left:100%;z-index:71;min-width:15rem;margin-left:.35rem;
+  background:color-mix(in srgb, var(--paper-2) 97%, transparent);
+  backdrop-filter:saturate(120%) blur(8px);
+  border:1px solid var(--line);border-radius:2px;
+  box-shadow:0 26px 48px -32px rgba(26,25,22,.6);
+  padding:.35rem;
+  opacity:0;visibility:hidden;transform:translateX(-6px);
+  transition:opacity .2s ease, transform .2s ease, visibility .2s;
+}
+.nav-sub:hover > .nav-flyout,
+.nav-sub:focus-within > .nav-flyout,
+.nav-sub.is-open > .nav-flyout{opacity:1;visibility:visible;transform:none}
+/* sin lugar a la derecha (el script lo mide) → sale hacia la izquierda */
+.nav-item.flyout-left .nav-flyout{left:auto;right:100%;margin-left:0;margin-right:.35rem;transform:translateX(6px)}
+.nav-item.flyout-left .nav-sub:hover > .nav-flyout,
+.nav-item.flyout-left .nav-sub:focus-within > .nav-flyout,
+.nav-item.flyout-left .nav-sub.is-open > .nav-flyout{transform:none}
+
+/* los proyectos se leen como lista de contenido, no como links de navegación:
+   pisan el tratamiento mono/uppercase + subrayado de `.nav-links a` */
+.nav-links .nav-flyout a{
+  display:flex;align-items:baseline;justify-content:space-between;gap:1.2rem;
+  font-family:var(--font-body);font-size:.86rem;letter-spacing:0;text-transform:none;
+  color:var(--ink-soft);padding:.48rem .7rem;border-radius:2px;
+  transition:background .2s ease,color .2s ease;
+}
+.nav-links .nav-flyout a::after{display:none}
+.nav-links .nav-flyout a:hover{background:var(--paper-deep);color:var(--ink)}
+.nav-proj-anio{font-family:var(--font-mono);font-size:.66rem;color:var(--concrete-soft);flex:0 0 auto}
+
 .burger{display:none;background:none;border:0;cursor:pointer;width:30px;height:24px;position:relative}
 .burger span{position:absolute;left:0;width:100%;height:1.5px;background:var(--ink);transition:.3s}
 .burger span:nth-child(1){top:3px}
@@ -49,9 +135,39 @@ body.menu-open .burger span:nth-child(3){top:11px;transform:rotate(-45deg)}
     position:fixed;inset:58px 0 auto 0;flex-direction:column;align-items:flex-start;
     gap:0;background:var(--paper);border-bottom:1px solid var(--line);padding:1rem var(--gutter) 1.6rem;
     transform:translateY(-120%);transition:transform .4s cubic-bezier(.2,.7,.3,1);z-index:55;
+    /* con el acordeón de proyectos abierto la lista puede pasar el alto de la
+       pantalla: que scrollee sola en vez de dejar links fuera de alcance */
+    max-height:calc(100dvh - 58px);overflow-y:auto;overscroll-behavior:contain;
   }
   body.menu-open .nav-links{transform:translateY(0)}
   .nav-links a{padding:.85rem 0;font-size:.95rem;width:100%;border-bottom:1px solid var(--line-soft)}
   .nav-links a::after{display:none}
   .burger{display:block}
+
+  /* En el menú hamburguesa no hay hover: el desplegable pasa a acordeón y se
+     abre SÓLO con tap (`.is-open`, lo pone el script). Los paneles dejan de ser
+     flotantes y entran en el flujo de la columna, indentados. */
+  .nav-item{display:block;align-self:auto;width:100%}
+  .nav-links .nav-trigger{justify-content:space-between;width:100%}
+  .nav-item.is-open .nav-trigger .nav-caret{transform:rotate(180deg)}
+  .nav-menu,
+  .nav-flyout{
+    display:none;position:static;opacity:1;visibility:visible;transform:none;transition:none;
+    min-width:0;width:100%;margin:0;padding:0;
+    background:none;backdrop-filter:none;-webkit-backdrop-filter:none;
+    border:0;box-shadow:none;
+  }
+  .nav-item.is-open > .nav-menu{display:block}
+  .nav-sub.is-open > .nav-flyout{display:block}
+  .nav-menu-list{padding-left:.9rem}
+  .nav-sub-btn{
+    padding:.8rem 0;font-size:.8rem;border-bottom:1px solid var(--line-soft);
+    background:none;
+  }
+  .nav-sub.is-open > .nav-sub-btn .nav-caret-side{transform:rotate(90deg)}
+  .nav-links .nav-flyout a{
+    padding:.7rem 0 .7rem .9rem;font-size:.92rem;
+    border-bottom:1px solid var(--line-soft);background:none;
+  }
+  .nav-flyout ul li:last-child a{border-bottom:0}
 }
