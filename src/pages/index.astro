@@ -21,7 +21,14 @@ const description = site.descripcion;
 
   <Hero />
   <Presentacion />
+  {/* En la home inmersiva las dos secciones son transparentes (el fondo vivo se
+      ve a través de las dos), así que sin esto "Quiénes somos" y "Cómo operamos"
+      se leen como un solo bloque continuo. La regla las delimita sin agregar
+      contenido: va entre las dos, o sea centrada en el aire que dejan sus
+      padding-block. */}
+  <div class="wrap"><hr class="section-rule" /></div>
   <Nosotros />
+  <div class="wrap"><hr class="section-rule" /></div>
   <ProyectosHelicoidal />
   <Estudio />
   <Contacto />

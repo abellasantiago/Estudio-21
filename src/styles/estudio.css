@@ -31,6 +31,33 @@
 .person .pname{font-family:var(--font-display);font-weight:500;font-size:1.18rem;letter-spacing:-.01em}
 .person .prole{font-size:.92rem;color:var(--concrete)}
 
+/* ---- hover: el retrato se despega del papel y hace un zoom leve -------------
+   Mismo gesto que la card de proyecto en la grilla (elevación + zoom 1.04 de la
+   foto), pero aplicado al RETRATO y no a `.person`: la ficha es una celda de la
+   grilla y sus bordes SON las líneas del cuadro — moverla entera correría esas
+   líneas y se rompería la retícula. El nombre y el rol acompañan la mitad del
+   recorrido, así la foto se lee despegándose del texto en vez de viajar todo
+   junto en bloque. */
+.person .portrait{
+  transition:transform .45s cubic-bezier(.2,.7,.3,1),
+             border-color .3s ease,
+             box-shadow .45s cubic-bezier(.2,.7,.3,1);
+}
+.person .portrait img{transition:transform .55s cubic-bezier(.2,.7,.3,1)}
+.person .pname,
+.person .prole{transition:transform .45s cubic-bezier(.2,.7,.3,1)}
+
+@media(hover:hover){
+  .person:hover .portrait{
+    transform:translateY(-6px);
+    border-color:var(--ink);
+    box-shadow:0 20px 38px -26px rgba(26,25,22,.6);
+  }
+  .person:hover .portrait img{transform:scale(1.05)}
+  .person:hover .pname,
+  .person:hover .prole{transform:translateY(-3px)}
+}
+
 @media(max-width:900px){
   .team-grid{grid-template-columns:1fr 1fr}
   .team-grid .person:nth-child(3n){border-right:1px solid var(--line)}
@@ -39,4 +66,15 @@
 @media(max-width:600px){
   .team-grid{grid-template-columns:1fr}
   .team-grid .person{border-right:0!important}
+}
+
+@media(prefers-reduced-motion:reduce){
+  .person .portrait,
+  .person .portrait img,
+  .person .pname,
+  .person .prole{transition:none}
+  .person:hover .portrait,
+  .person:hover .portrait img,
+  .person:hover .pname,
+  .person:hover .prole{transform:none}
 }
