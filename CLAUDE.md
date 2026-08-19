@@ -52,7 +52,8 @@ Pages queda como preview/staging gratis y no hace falta tocar nada de esto.
 
 - **Proyectos:** content collection `proyectos` (`src/content.config.ts`, schema Zod),
   un `.md` por proyecto en `src/content/proyectos/` (frontmatter con datos + cuerpo =
-  descripción). Páginas de detalle `/proyectos/[slug]` con `getStaticPaths`.
+  descripción). Páginas de detalle `/proyectos/[slug]` con `getStaticPaths` — ver
+  "Página de proyecto" más abajo.
   Estados posibles: `en-proceso` · `proximamente` · `terminado` (cada uno con su chip).
   **No hay campo `codigo`** (los viejos `E21·NN`): no se mostraban en ninguna parte
   del sitio y cuatro eran placeholders sin confirmar, así que se sacaron del schema
@@ -178,6 +179,15 @@ leería como "ya visto" y nunca dibujaría en la primera carga).
 - El "Estudio 21" gira en 3D (rotateY continuo + extra atado al scroll del hero,
   retrocede en Z y se desvanece integrándose al fondo), parallax de mouse en las capas
   `[data-depth]`, corredor de marcos que avanza en Z, rail de progreso.
+- **Corredor de marcos** (`.depth-frame`, los cuadrados de registro en
+  `LivingBackground.astro`): avanzan hacia la cámara con el scroll durante todo el
+  descenso hero→cards (crecen por perspectiva) pero **se desvanecen con el mismo
+  fade que el título** (`heroFadeOut`, tramo 0.65→1 del scroll del hero) — sin eso
+  seguían creciendo y quedaban visibles sobre "Quiénes somos" y el resto,
+  compitiendo con la lectura. El motor multiplica por 0.6 (`corridor.style.opacity
+  = 0.6 * heroFadeOut`) para conservar la opacidad base tenue del corredor
+  (definida en `immersive.css`) en vez de pisarla a 1 mientras el fade vale 1 al
+  principio del hero.
 - **Arranque en continuidad (sin flash al cargar/recargar):** dos causas cubiertas.
   (a) Fuentes: preload + `font-display: block` en `BaseLayout` (ver Stack) — el primer
   paint nunca muestra un "21" en fuente fallback. (b) Motor: el primer frame del motor
@@ -395,6 +405,57 @@ dos secciones se pisen — **identidad acá, modelo allá**.
   una celda del cuadro y **sus bordes son las líneas de la retícula** — moverla
   entera correría esas líneas y se rompería la grilla.
 - **Contacto:** mail real `estudiodearquitectos21@gmail.com` en texto + JSON-LD.
+
+## Página de proyecto (`/proyectos/<slug>`)
+
+`ProjectLayout.astro` + `project-page.css`, con la galería en su propio
+componente (`Galeria.astro` + `galeria.css`).
+
+Orden de la página: **título · (portada | descripción) · ficha técnica · galería**.
+
+- **Título arriba de todo** (`.proj-head`), con el chip de estado a la derecha.
+- **Portada a la izquierda, descripción al costado** (`.proj-top`). La columna de
+  la foto está **topada en 480px**: con el 6/7 fijo, más ancho que eso da una
+  portada de +560px de alto y la descripción —de 77 a 151 palabras según el
+  proyecto— queda colgando en el aire. Lo que sobra va al texto, topado en 62ch.
+  En ≤900px se apila (portada centrada, `min(100%, 440px)`).
+- **La portada va SIEMPRE en 6/7** (vertical suave, más ancha que un 4/5), igual
+  en todos los proyectos. Las fotos reales van de 0.75 a 1.50, así que cada una
+  se encuadra a mano desde el frontmatter: **`portadaFoco`** (`--pf`, qué parte
+  se conserva) y **`portadaZoom`** (`--pz`, acerca desde ese mismo punto). Son
+  los mismos campos que usa la card del helicoidal → un solo ajuste sirve para
+  las dos vistas. Cuánto se recorta con el 6/7: las verticales entre 7% y 13%
+  (antes con el 4/5 casi no perdían nada — el trade-off de ensanchar la caja),
+  las cuadradas ~14%, Cavas de Haedo (1.03) ~17% y las tres apaisadas entre 36%
+  y 43% (en las tres el edificio está centrado, así que el foco al centro las
+  toma bien).
+  - ⚠ **El `widths`/`sizes` de la portada NO es el ancho de la caja.** Con
+    `object-fit:cover` en una caja 6/7, una foto apaisada se agranda hasta que su
+    **alto** llena la caja → termina rasterizando `alto × proporción` de ancho.
+    Villa Platero (1.50) necesita **840px**, no 480: pidiéndole 480 el navegador
+    la estiraba y salía blanda. Lo calcula `coverRender` en el layout
+    (`480 × max(1, ar/COVER_AR) × portadaZoom`, con `COVER_AR = 6/7` — tiene que
+    coincidir con el `aspect-ratio` de `.proj-cover` en project-page.css).
+- **Ficha técnica**: banda horizontal de 5 columnas al pie del bloque, con
+  `border-top` en `--ink` (marcado `<dl>` con `<dt>`/`<dd>`).
+- **Galería = tira de contactos + visor.** Todas las miniaturas al **mismo alto**
+  (`--gal-h`) y con el **ancho que les da su proporción real** → tira horizontal
+  scrolleable, sin recortar ninguna (los ratios de la galería van de 0.56 a 1.95:
+  cualquier caja fija recortaría fuerte a la mitad del material). El script
+  agrega arrastrar con el mouse (umbral de 5px para no comerse el click), las
+  **flechitas sobre las miniaturas de los extremos** (`.gal-arrow`, desplazan 3/4
+  de lo que se ve) y los degradés de borde. Flechas y degradés sólo aparecen del
+  lado donde queda algo por ver (`has-overflow` / `at-start` / `at-end`); las
+  flechas usan `visibility` y no `display` para salir también del tabulado.
+- **Visor**: velo de **papel translúcido + blur**, no negro — el sitio se sigue
+  viendo detrás. Anterior/siguiente en un cajetín bajo la foto, **en ciclo**
+  (de la última vuelve a la primera), flechas del teclado, Escape, click en el
+  velo, foco atrapado mientras está abierto y precarga de las dos vecinas.
+  La miniatura de la foto abierta queda marcada y se trae a la vista.
+- **Sin JS sigue sirviendo**: cada miniatura es un `<a>` a la foto grande (la
+  versión de 1800px que genera `getImage` en build), que es también la que
+  levanta el visor. El `<img>` del visor arranca sin `src` → no se descarga
+  ninguna foto grande hasta que se abre.
 
 ## Interacciones globales y SEO
 

@@ -111,6 +111,16 @@ design/estudio21-home.html   diseño original (fuente de verdad visual)
    Aparecen solas (no hay que listarlas). Formatos: `jpg`, `png`, `webp`, `avif`.
    Astro genera AVIF/WebP, varios tamaños y agrega `width`/`height`.
 
+   **La portada se muestra siempre en 4/5** (vertical suave). Si el encuadre no
+   te convence, ajustalo en el frontmatter del proyecto sin tocar el archivo:
+   `portadaFoco: "50% 30%"` mueve qué parte de la foto se conserva y
+   `portadaZoom: 1.15` acerca desde ese mismo punto.
+
+   **Las fotos de galería no hace falta recortarlas a ningún formato**: se
+   muestran en una tira horizontal donde todas van al mismo alto y cada una con
+   el ancho que le corresponde por su proporción. Al clickear una se abre grande,
+   con flechas para pasar a la anterior o la siguiente.
+
 El proyecto aparece automáticamente en la grilla de la home (respeta el filtro
 Todos / En proceso / Terminados) y genera su página de detalle.
 
