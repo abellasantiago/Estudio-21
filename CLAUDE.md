@@ -78,9 +78,37 @@ Orden: **Hero · El estudio · Cómo operamos · Proyectos · Equipo · Contacto
 presentación** (`Presentacion.astro`) — el link "Nosotros" del navbar entra por ahí,
 que es donde se dice quiénes son; la sección del modelo de trabajo
 (`Nosotros.astro`, la de las fases F01–F04) quedó con `id="como-operamos"`.
+Entre **Quiénes somos / Cómo operamos** y entre **Cómo operamos / Proyectos** van
+**reglas divisorias** (`hr.section-rule`, sueltas en `index.astro` entre los
+`<section>`): en la home inmersiva las secciones son transparentes y sin eso se leían
+como un bloque continuo. Al ir sueltas entre medio quedan centradas en el aire que
+dejan los `padding-block` y, dentro de un `.wrap`, alineadas con la línea de las cifras
+y la del cuadro del equipo.
+
 Navbar fina (58px) con el logo `banner_negro.png` ("ESTUDIO 21 ARQUITECTOS"); links
 **Inicio · Nosotros · Proyectos · Equipo · Contacto** ("Contacto" es un link normal,
-no CTA con recuadro). El `.nav` **no** usa `.wrap` (el contenedor centrado a `--maxw`
+no CTA con recuadro). **"Proyectos" abre un desplegable anidado** (`Header.astro` +
+`header.css`): panel con los tres estados —En proceso · Próximamente · Terminados— y,
+dentro de cada uno, un **submenú con sus proyectos** (nombre + año) que linkea directo
+a la ficha. Los datos salen de la content collection, con el
+mismo orden editorial que la sección de proyectos. Detalles a respetar:
+- Abre con **`:hover` y `:focus-within`** → funciona sin JS y se recorre con el
+  teclado. El script sólo agrega el **modo tap** (mobile / `hover:none`: el link no
+  navega, despliega), el Escape, el click afuera y el `aria-expanded`.
+- `.nav-links` lleva **`align-self:stretch`** para tomar los 58px del navbar: si no,
+  mide sólo el alto del texto (~30px) y el panel, que cuelga de `top:100%`, arrancaba
+  montado sobre el navbar.
+- El submenú va **pegado al panel** (el margen compensa el `padding` del panel, porque
+  `left:100%` se mide desde la fila y no desde el borde): con aire en el medio, el
+  mouse "se sale" al pasar de un nivel al otro y se cierra a mitad de camino.
+- Sale **hacia la izquierda** cuando no entra a la derecha (`.flyout-left`, lo mide el
+  script al abrir y en cada resize). Como el navbar está alineado a la derecha, en la
+  práctica casi siempre cae de ese lado.
+- En **mobile** (≤760px) no hay hover: el desplegable pasa a **acordeón** dentro del
+  menú hamburguesa (los paneles entran en el flujo, indentados) y `.nav-links` scrollea
+  solo (`max-height` + `overflow-y`) por si la lista abierta pasa el alto de pantalla.
+
+El `.nav` **no** usa `.wrap` (el contenedor centrado a `--maxw`
 del resto del sitio): con esa centrado el margen crece mucho más rápido que el ancho
 de pantalla y en monitores anchos (1920+) el logo quedaba lejos del borde. En su
 lugar `padding-inline: 9vw 8vw` — mismo tipo de unidad que las anotaciones mono del
@@ -304,13 +332,19 @@ dos secciones se pisen — **identidad acá, modelo allá**.
   script la `appendChild`ea al final), así el escenario recibe **sólo el alto sobrante**
   y el cilindro no puede alcanzarla por más baja que sea la ventana. El toggle
   "Ver todos" queda pineado en esa misma línea a la derecha; `--ph-toolbar-top` los
-  mantiene alineados y el `padding-right` de la barra le reserva el lugar.
+  mantiene alineados y el `padding-right` de la barra le reserva el lugar. Ese token
+  está calculado sobre la **altura real del navbar (58px)** más un respiro: reservaba
+  74px y eso, sumado al cierre del header, dejaba ~108px entre el título y los botones.
+  Ajustado el token + recortados el `padding-bottom` del header y el margen del
+  `sec-head` (los dos **sólo en <1700px**, donde la barra ya no vive en el header), el
+  título y los controles quedan a ~65px, o sea leyéndose como una sola unidad.
 
   Como la barra se come ~120px de la franja de arriba, el umbral de card chica subió
   de `max-height:680px` a **820px** (con un escalón extra a 660px): con la card grande
   la frontal quedaba recortada arriba y abajo en ventanas no maximizadas.
-- **El giro arranca sólo cuando el panel se fija.** `headOffset` (= `sticky.offsetTop`,
-  alto del header; recalculado en `layout()`) marca cuánto scrollea la sección antes de
+- **El giro arranca sólo cuando el panel se fija.** `headOffset` (alto del header,
+  medido sobre **`.ph-head`** —ver la nota de `offsetTop` + sticky en "Notas técnicas";
+  recalculado en `layout()`) marca cuánto scrollea la sección antes de
   pinearse. `updateTarget` deja el progreso en **0** en ese tramo (1ª card centrada) y lo
   mapea 0→1 sólo en el tramo pineado `[headOffset .. offsetHeight-innerHeight]`.
   `scrollToIndex` (foco por teclado) usa el mismo modelo.
@@ -355,7 +389,11 @@ dos secciones se pisen — **identidad acá, modelo allá**.
   cabecera simple (eyebrow + título + lead) y los bloques F01–F04. Las cifras de
   trayectoria **no** van acá: viven al pie de la sección de presentación.
 - **Equipo** ("Nuestro equipo"): fotos optimizadas, `alt` con nombre + rol. Cada
-  ficha muestra nombre y rol, sin ubicación.
+  ficha muestra nombre y rol, sin ubicación. **Hover**: el retrato se despega del
+  papel (−6px + sombra + borde a `--ink`) y la foto hace zoom 1.05; el nombre y el
+  rol acompañan la mitad (−3px). Se anima el **retrato**, no `.person`: la ficha es
+  una celda del cuadro y **sus bordes son las líneas de la retícula** — moverla
+  entera correría esas líneas y se rompería la grilla.
 - **Contacto:** mail real `estudiodearquitectos21@gmail.com` en texto + JSON-LD.
 
 ## Interacciones globales y SEO
@@ -411,6 +449,14 @@ Dos detalles que hay que respetar si se toca el script:
 - **`window.scrollTo` instantáneo:** el `<html>` tiene `scroll-behavior: smooth`, y
   `behavior:'auto'` **respeta** ese valor (anima). Para saltos secos (p.ej. rebobinar el
   helicoidal al filtrar) usar **`behavior:'instant'`**, no `'auto'`.
+- **`offsetTop` de un elemento `position:sticky` devuelve su posición YA PEGADA**, o
+  sea que crece con el scroll. Por eso `headOffset` (lo que scrollea la sección de
+  proyectos antes de que el panel se fije) se mide sobre **`.ph-head`**, que está en
+  flujo normal, y NO sobre `.ph-sticky`. Medirlo mal era el bug de "al achicar la
+  ventana el helicoidal deja de recorrerse": `layout()` corre en cada `resize` y en
+  cada filtro, y con el panel pegado leía p.ej. 4032 en vez de 247 → `range` quedaba
+  en ~0 y el progreso clavado en 0. Si se agrega otro cálculo de layout ahí, medirlo
+  siempre contra un elemento que no sea sticky.
 
 ## Pendientes antes de publicar
 
