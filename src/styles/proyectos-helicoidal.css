@@ -140,12 +140,16 @@
 /* CTA "Ver proyecto" — oculto salvo en la card al frente del cilindro (.is-3d) */
 .ph-cta{display:none}
 
-/* hover sólo en grilla (en 3D el transform lo maneja el script) */
-.ph:not(.is-3d) .ph-link:hover{border-color:var(--ink);transform:translateY(-5px)}
-.ph:not(.is-3d) .ph-link:hover::after{transform:scaleX(1)}
-/* multiplica sobre el --pz manual (no lo reemplaza): con foto zoomeada, el
-   hover sigue dando su empuje extra en vez de resetear al zoom base. */
-.ph:not(.is-3d) .ph-link:hover .ph-thumb img{transform:scale(calc(var(--pz,1) * 1.04))}
+/* hover sólo en grilla (en 3D el transform lo maneja el script) y sólo con
+   puntero que pueda salirse: en touch el :hover queda pegado después del tap y
+   la card se quedaba levantada. */
+@media(hover:hover){
+  .ph:not(.is-3d) .ph-link:hover{border-color:var(--ink);transform:translateY(-5px)}
+  .ph:not(.is-3d) .ph-link:hover::after{transform:scaleX(1)}
+  /* multiplica sobre el --pz manual (no lo reemplaza): con foto zoomeada, el
+     hover sigue dando su empuje extra en vez de resetear al zoom base. */
+  .ph:not(.is-3d) .ph-link:hover .ph-thumb img{transform:scale(calc(var(--pz,1) * 1.04))}
+}
 
 .ph-hint{display:none}
 
@@ -168,9 +172,19 @@
   padding-top:calc(74px + clamp(1rem,4vh,2.2rem));
   padding-bottom:clamp(1.4rem,4vh,2.6rem);
 }
+/* `svh` = viewport CHICO (con la barra del navegador desplegada). En iPad/Android
+   `100vh` es el viewport GRANDE, así que el panel quedaba ~90px más alto que lo
+   que se ve y el cilindro se cortaba contra el borde de abajo. `dvh` no sirve
+   acá: cambiaría de alto en pleno scroll, justo mientras el recorrido está atado
+   al scroll. La línea en `vh` queda de fallback para navegadores sin svh. */
 .ph.is-3d .ph-sticky{
-  position:sticky;top:0;height:100vh;overflow:hidden;display:flex;
+  position:sticky;top:0;height:100vh;height:100svh;overflow:hidden;display:flex;
 }
+/* En grilla el panel NO recorta (el recorte vive en .is-3d), así que el "21"
+   fantasma —que sangra a propósito por el borde derecho— le sumaba ancho al
+   documento. `clip` recorta sin convertirlo en contenedor de scroll; `hidden`
+   forzaría `overflow-y:auto` y rompería el sticky del modo 3D. */
+.ph:not(.is-3d) .ph-sticky{overflow-x:clip}
 /* el panel sticky sólo contiene el escenario 3D, centrado en el viewport */
 .ph.is-3d .ph-shell{
   width:100%;height:100%;
@@ -216,6 +230,7 @@
 .ph.is-3d .ph-sticky > .ph-viewtoggle{
   position:absolute;z-index:7;
   top:clamp(4.8rem,11vh,7rem);right:clamp(1rem,4vw,3.4rem);
+  background:var(--paper);
   background:color-mix(in srgb,var(--paper) 84%,transparent);
   backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);
 }
@@ -334,6 +349,7 @@
   padding:1rem 1.2rem;
   font-family:var(--font-mono);font-size:1.16rem;letter-spacing:.16em;text-transform:uppercase;
   color:var(--paper-2);
+  background:linear-gradient(to top,rgba(26,25,22,.82),transparent);
   background:linear-gradient(to top,color-mix(in srgb,var(--ink) 82%,transparent),transparent);
   opacity:0;transform:translateY(-16px);
   transition:opacity .4s ease,transform .4s ease;

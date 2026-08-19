@@ -54,7 +54,7 @@ const pad = (n: number) => String(n).padStart(2, '0');
       <div class="sec-head ph-sechead">
         <span class="eyebrow reveal">Proyectos</span>
         <h2 id="ph-title" class="section-title reveal" data-d="1">
-          Quince proyectos, una misma manera de hacer.
+          Distintos proyectos, una misma manera de hacer.
         </h2>
       </div>
 
@@ -170,6 +170,17 @@ const pad = (n: number) => String(n).padStart(2, '0');
     const toggleHome = toggleBtn?.parentElement ?? null;
     const header = document.getElementById('header');
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+    // El cilindro necesita LUGAR, y el corte es geométrico igual que el de los
+    // 1700px del riel de filtros. Por debajo de ~760px de ancho la barra de
+    // filtros pasa a dos filas y la card frontal —que va a 1.70×— le monta
+    // encima; por debajo de ~620px de alto (un celular acostado, o una ventana
+    // muy baja) la card no entra entera y se corta contra el borde de abajo.
+    // Sumado a eso, en un teléfono el recorrido son ~3800px de scroll para diez
+    // proyectos. En esos tamaños queda la GRILLA, que no es un premio consuelo:
+    // es la misma vista que da el toggle "Ver todos" y el fallback accesible
+    // del componente.
+    const roomMq = window.matchMedia('(min-width: 760px) and (min-height: 620px)');
+    const canSpin = () => !reduce.matches && roomMq.matches;
 
     // ---- parámetros ----
     const VERT_STEP = 64; // descenso vertical por proyecto (px) — aire entre cards
@@ -615,8 +626,9 @@ const pad = (n: number) => String(n).padStart(2, '0');
       else goCilindro();
     });
 
-    // ---- arranque: 3D si hay motion permitido; si no, grilla accesible sin toggle ----
-    if (!reduce.matches) {
+    // ---- arranque: 3D si hay motion permitido y lugar; si no, grilla accesible ----
+    let capable3d = canSpin();
+    if (capable3d) {
       section.classList.add('is-toggleable');
       viewMode = 'cilindro';
       syncToggle();
@@ -625,13 +637,21 @@ const pad = (n: number) => String(n).padStart(2, '0');
       viewMode = 'grilla';
     }
 
-    // Responder si la preferencia de movimiento cambia en runtime.
-    reduce.addEventListener?.('change', (e) => {
+    // Responder si cambia la preferencia de movimiento O el lugar disponible
+    // (girar el teléfono, arrastrar el borde de la ventana): el cilindro se
+    // monta y se desmonta en runtime, no sólo en la carga. Se compara contra el
+    // estado anterior para no pisar una elección manual del toggle: un resize
+    // que no cruza el umbral no vuelve a armar el cilindro si el visitante se
+    // pasó a la grilla a propósito.
+    const onCapabilityChange = () => {
+      const ahora = canSpin();
+      if (ahora === capable3d) return;
+      capable3d = ahora;
       clearTimeout(flipTimer);
       transitioning = false;
       section!.classList.remove('is-flipping');
-      if (e.matches) {
-        // ahora pide menos movimiento → grilla fija, sin toggle
+      if (!ahora) {
+        // menos movimiento, o ya no entra → grilla fija, sin toggle
         stop();
         section!.classList.remove('is-toggleable', 'is-3d', 'is-scrolling');
         section!.classList.add('is-grid');
@@ -639,12 +659,20 @@ const pad = (n: number) => String(n).padStart(2, '0');
         clearCylinderStyles();
         viewMode = 'grilla';
       } else {
-        // vuelve a permitir movimiento → reactivar cilindro y toggle
+        // vuelve a haber lugar y movimiento → reactivar cilindro y toggle
         section!.classList.add('is-toggleable');
         viewMode = 'cilindro';
         syncToggle();
         enter3DInitial();
       }
-    });
+    };
+    reduce.addEventListener?.('change', onCapabilityChange);
+    roomMq.addEventListener?.('change', onCapabilityChange);
+    // Igual que en immersive.ts: el `resize` es el salvavidas para los entornos
+    // donde el `change` de matchMedia no llega. Corta solo si la capacidad no
+    // cambió, así que no cuesta nada. Va aparte del otro listener de resize,
+    // que arranca con `if (!is3d()) return` y por lo tanto nunca correría
+    // estando en grilla — justo el caso en que hay que volver al cilindro.
+    window.addEventListener('resize', onCapabilityChange, { passive: true });
   }
 </script>

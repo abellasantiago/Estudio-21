@@ -91,10 +91,19 @@
      para lectores/copia va en .sr-only): imposible de seleccionar o arrastrar */
   -webkit-user-select: none;
   user-select: none;
-  /* Modo base (mobile / sin-JS): el "Estudio 21" gira horizontalmente
-     de forma constante e infinita. En modo inmersivo lo maneja el motor
-     JS (rotateY por scroll + este mismo giro continuo); ver override abajo. */
-  animation: hero-spin-y 18s linear infinite;
+  /* Modo base (sin-JS / sin motor): el "Estudio 21" gira horizontalmente de
+     forma constante e infinita. En modo inmersivo lo maneja el motor JS
+     (rotateY por scroll + este mismo giro continuo); ver override abajo.
+     El giro se activa recién en ≥900px (ver más abajo): a tamaño de celular el
+     "21" mide ~123px y, de canto, las 16 capas del extruido se separan y se leen
+     como un peine — la marca queda ilegible la mayor parte del ciclo. Ahí el
+     título va quieto, de frente, que es como se lee mejor (y no gasta batería
+     animando 3D a 60fps de fondo). */
+}
+@media (min-width: 900px) {
+  .hero-title {
+    animation: hero-spin-y 18s linear infinite;
+  }
 }
 /* giro horizontal continuo del bloque 3D "Estudio 21" */
 @keyframes hero-spin-y {
@@ -313,6 +322,18 @@ html.is-immersive .hero-title {
      (0.72 + 0.28·|cos 0°| = 1) → sin blink de opacidad al cargar. El inline
      que setea el motor después pisa este valor. */
   --shadow-pulse: 1;
+}
+
+/* ---- viewport bajo (celular acostado, ventana corta) ----------------------
+   Con poco alto el escenario deja de medir 80vh y pasa a medir lo que ocupa el
+   contenido; el "SCROLL", que va absoluto contra el piso del escenario, se le
+   montaba encima a la línea "21 de Setiembre 3024" (medido a 844×390: 16px de
+   solape). Se le reserva la banda que necesita — 58px de indicador + su offset
+   de 2.8rem — abajo del contenido. */
+@media (max-height: 620px) {
+  .hero-stage {
+    padding-bottom: 6rem;
+  }
 }
 
 /* ---- reduced-motion: sin la animación del indicador de scroll ni el giro ---- */

@@ -15,10 +15,12 @@
   box-shadow:0 14px 30px -12px rgba(26,25,22,.5), 0 3px 8px -4px rgba(26,25,22,.4);
   transition:transform .28s cubic-bezier(.2,.7,.3,1), background .28s ease, box-shadow .28s ease;
 }
-.wa-float:hover{
-  background:var(--petrol-bright);
-  transform:translateY(-3px);
-  box-shadow:0 22px 42px -14px rgba(26,25,22,.55), 0 4px 10px -4px rgba(26,25,22,.4);
+@media(hover:hover){
+  .wa-float:hover{
+    background:var(--petrol-bright);
+    transform:translateY(-3px);
+    box-shadow:0 22px 42px -14px rgba(26,25,22,.55), 0 4px 10px -4px rgba(26,25,22,.4);
+  }
 }
 .wa-float:focus-visible{outline:2px solid var(--petrol);outline-offset:3px}
 .wa-ico{display:block}

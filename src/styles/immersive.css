@@ -19,6 +19,13 @@
 }
 .living-bg > * {
   position: absolute;
+}
+/* `will-change` sólo cuando el motor está andando: es un pedido de capa de
+   compositing y, sin motor (celular, tablet, reduced-motion), promovía una
+   docena de capas que no se mueven nunca — memoria de GPU regalada en el
+   equipo que menos tiene. Con el motor puesto ya está `html.is-immersive
+   [data-depth]`, esto cubre además las capas sin data-depth (grano, marcas). */
+html.is-immersive .living-bg > * {
   will-change: transform;
 }
 .lbg-ghost {
@@ -27,6 +34,7 @@
   letter-spacing: -0.04em;
   line-height: 0.8;
   color: var(--paper-deep);
+  -webkit-user-select: none;
   user-select: none;
 }
 .lbg-ghost-1 {
@@ -58,6 +66,16 @@
 .lbg-note-2 {
   bottom: 20%;
   right: 8%;
+}
+/* Son anotaciones de fondo con `white-space: nowrap`: "EST·21 — ARQUITECTURA Y
+   DESARROLLO" mide ~305px en mono 0.72rem con el tracking de 0.18em, así que por
+   debajo de ~760px se salía de pantalla (se cortaba la "E" contra el borde
+   izquierdo) y encima cruzaba el indicador de scroll del hero. En esos anchos el
+   hero necesita el aire más que la anotación. */
+@media (max-width: 760px) {
+  .lbg-note {
+    display: none;
+  }
 }
 /* marcas de registro a pantalla completa (mismo lenguaje que .marks) */
 .lbg-marks {
@@ -207,12 +225,14 @@ html.is-immersive #header {
   right: 0;
   transition:
     background 0.45s ease,
+    -webkit-backdrop-filter 0.45s ease,
     backdrop-filter 0.45s ease,
     border-color 0.35s ease;
 }
 /* estado "desnudo" sobre el hero (mientras no se pasó el hero) */
 html.is-immersive #header:not(.past-hero) {
   background: transparent;
+  -webkit-backdrop-filter: none;
   backdrop-filter: none;
   border-bottom-color: transparent;
   /* el panel transparente no capta clics (pasan al hero); los links sí (abajo) */
@@ -247,11 +267,6 @@ html.is-immersive #proyectos .ph-sticky > .ghost21,
 html.is-immersive #proyectos .ph-sticky > .marks {
   display: none;
 }
-/* el punto que corta la línea de las fases: sobre el espacio, no sobre paper-2 */
-html.is-immersive #como-operamos .phase .dot {
-  background: var(--paper);
-}
-
 /* ---------- capas [data-depth]: base para el paralaje ---------- */
 /* el motor les setea transform inline; acá sólo el hint de compositing */
 html.is-immersive [data-depth] {

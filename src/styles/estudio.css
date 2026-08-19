@@ -1,14 +1,22 @@
 /* ---------- ESTUDIO / TEAM ---------- */
 .team-grid{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--ink)}
 .person{
-  padding:1.8rem 1.6rem 2rem;border-right:1px solid var(--line);border-bottom:1px solid var(--line);
-  display:flex;flex-direction:column;gap:.45rem;
+  padding:1.6rem 1.5rem 1.8rem;border-right:1px solid var(--line);border-bottom:1px solid var(--line);
+  display:flex;flex-direction:column;gap:.4rem;
 }
 .team-grid .person:nth-child(3n){border-right:0}
 
-/* retrato (foto optimizada o placeholder) */
+/* retrato (foto optimizada o placeholder)
+   ---------------------------------------------------------------------------
+   El retrato NO va a ancho de celda: se topa en `--team-portrait`. A ancho
+   completo (≈330×410 en desktop) las fichas dominaban la página y se leían
+   invasivas; topado, la celda sigue siendo la misma unidad de la retícula
+   —sus bordes son las líneas del cuadro— pero la ficha baja de altura y la foto
+   queda del tamaño de un retrato de fichero, no de un póster. El tope también
+   ordena el caso de 1 columna en mobile, donde el retrato se iba a ~500px. */
 .person .portrait{
-  position:relative;aspect-ratio:4/5;margin-bottom:1.1rem;overflow:hidden;
+  position:relative;aspect-ratio:4/5;width:100%;max-width:var(--team-portrait);
+  margin-bottom:.95rem;overflow:hidden;
   background:var(--paper-deep);border:1px solid var(--line);
 }
 .person .portrait picture,
@@ -21,15 +29,15 @@
 }
 .person .portrait .initials{
   position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
-  font-family:var(--font-display);font-weight:500;font-size:2.2rem;letter-spacing:.02em;
+  font-family:var(--font-display);font-weight:500;font-size:1.9rem;letter-spacing:.02em;
   color:var(--concrete-soft);
 }
 .person .portrait .ptag{
   position:absolute;left:10px;bottom:9px;font-family:var(--font-mono);font-size:.6rem;
   letter-spacing:.08em;text-transform:uppercase;color:var(--concrete-soft);opacity:.85;
 }
-.person .pname{font-family:var(--font-display);font-weight:500;font-size:1.18rem;letter-spacing:-.01em}
-.person .prole{font-size:.92rem;color:var(--concrete)}
+.person .pname{font-family:var(--font-display);font-weight:500;font-size:1.06rem;letter-spacing:-.01em}
+.person .prole{font-size:.875rem;color:var(--concrete)}
 
 /* ---- hover: el retrato se despega del papel y hace un zoom leve -------------
    Mismo gesto que la card de proyecto en la grilla (elevación + zoom 1.04 de la
@@ -65,7 +73,11 @@
 }
 @media(max-width:600px){
   .team-grid{grid-template-columns:1fr}
-  .team-grid .person{border-right:0!important}
+  /* Una sola columna: la celda ES el ancho de la página, así que su padding
+     lateral ya no separa nada de nada — sólo mete el retrato 24px adentro del
+     título y del texto de la sección, y la sangría se lee como un error de
+     alineación. Mismo criterio que `.phase` en nosotros.css. */
+  .team-grid .person{border-right:0!important;padding-inline:0}
 }
 
 @media(prefers-reduced-motion:reduce){

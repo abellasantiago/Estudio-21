@@ -23,10 +23,27 @@
   --font-mono:"IBM Plex Mono", ui-monospace, monospace;
   --maxw:1240px;
   --gutter:clamp(1.25rem, 4vw, 3.5rem);
+  /* Aire vertical de las secciones. Es ASIMÉTRICO a propósito: el techo es más
+     bajo que el piso para que cada sección "suba" y su título quede más cerca
+     de la regla divisoria (hr.section-rule) sin mover la regla, que sigue
+     centrada respecto del bloque de arriba. */
+  --sec-pad-top:clamp(3.4rem, 7vw, 6.2rem);
+  --sec-pad-bottom:clamp(4.5rem, 9vw, 8rem);
+  /* tope del retrato del equipo (ver estudio.css) */
+  --team-portrait:16.5rem;
 }
 
 *{box-sizing:border-box;margin:0;padding:0}
-html{scroll-behavior:smooth}
+html{
+  scroll-behavior:smooth;
+  /* iOS Safari infla el cuerpo de texto al girar a horizontal si no se fija.
+     `100%` = respetar el tamaño que manda la hoja de estilos. */
+  -webkit-text-size-adjust:100%;
+  text-size-adjust:100%;
+  /* el flash gris/azul del tap en Android/iOS choca con la paleta; el feedback
+     de los links ya lo dan :hover/:active y el foco visible. */
+  -webkit-tap-highlight-color:transparent;
+}
 body{
   font-family:var(--font-body);
   background:var(--paper);
@@ -92,11 +109,11 @@ h2.section-title{
   font-family:var(--font-display);font-weight:700;
   font-size:min(46vw,42rem);line-height:.8;
   color:var(--paper-deep);
-  user-select:none;pointer-events:none;letter-spacing:-.04em;
+  -webkit-user-select:none;user-select:none;pointer-events:none;letter-spacing:-.04em;
 }
 
 /* ---- marco de secciones ---- */
-section.block{padding-block:clamp(4.5rem,9vw,8rem);position:relative}
+section.block{padding-block:var(--sec-pad-top) var(--sec-pad-bottom);position:relative}
 section.alt{background:var(--paper-2)}
 .sec-head{margin-bottom:clamp(2.8rem,5vw,4.5rem)}
 

@@ -11,6 +11,11 @@ interface Props {
 
 const { persona, d = 1 } = Astro.props;
 const foto = getFotoEquipo(persona.slug);
+
+// El retrato está topado en `--team-portrait` (16.5rem ≈ 264px) en TODOS los
+// breakpoints, así que el slot mide siempre lo mismo: se piden ese ancho y sus
+// múltiplos para pantallas 1.5× y 2×.
+const RETRATO_SIZES = '264px';
 ---
 
 <div class="person reveal" data-d={d}>
@@ -20,8 +25,8 @@ const foto = getFotoEquipo(persona.slug);
         src={foto}
         formats={['avif', 'webp']}
         alt={`Retrato de ${persona.nombre}, ${persona.rol}`}
-        widths={[240, 360, 480]}
-        sizes="(max-width: 600px) 100vw, (max-width: 900px) 50vw, 360px"
+        widths={[264, 396, 528]}
+        sizes={RETRATO_SIZES}
         loading="lazy"
       />
     </div>

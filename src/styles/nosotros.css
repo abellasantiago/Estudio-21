@@ -1,5 +1,5 @@
 /* ---------- MODELO / PHASES ---------- */
-.phases{display:grid;grid-template-columns:repeat(4,1fr);gap:0;border-top:1px solid var(--ink)}
+.phases{display:grid;grid-template-columns:repeat(4,1fr);gap:0;border-top:1px solid var(--concrete)}
 .phase{
   padding:2.2rem 1.6rem 2.4rem 1.6rem;border-right:1px solid var(--line);position:relative;
 }
@@ -7,9 +7,6 @@
 .phase .pf{font-family:var(--font-mono);font-size:.74rem;letter-spacing:.1em;color:var(--petrol);text-transform:uppercase}
 .phase h3{font-family:var(--font-display);font-weight:500;font-size:1.32rem;letter-spacing:-.01em;margin-top:1.4rem;line-height:1.1}
 .phase p{color:var(--concrete);font-size:.96rem;margin-top:.7rem;max-width:24ch}
-/* La sección Nosotros es "alt": el punto va sobre el fondo paper-2 */
-.phase .dot{position:absolute;top:-5px;left:1.6rem;width:9px;height:9px;background:var(--paper-2);border:1px solid var(--ink);border-radius:50%}
-
 @media(max-width:900px){
   .phases{grid-template-columns:1fr 1fr}
   .phase{border-bottom:1px solid var(--line)}
@@ -20,5 +17,4 @@
 @media(max-width:600px){
   .phases{grid-template-columns:1fr}
   .phase{border-right:0!important;padding-left:0;padding-right:0!important;border-bottom:1px solid var(--line)}
-  .phase .dot{left:0}
 }

@@ -302,6 +302,13 @@ export function initImmersive(): void {
   window.addEventListener(
     'resize',
     () => {
+      // `evaluate()` también acá y no sólo en el listener de las media queries:
+      // enable/disable cortan solos si ya están en el estado que corresponde, así
+      // que repetirlo no cuesta nada, y cubre los navegadores/entornos donde el
+      // evento `change` de matchMedia no llega al redimensionar. Sin esto, achicar
+      // la ventana por debajo de los 900px podía dejar `is-immersive` puesto con
+      // el motor apagado: hero sticky de 240vh, quieto, sin nada que lo mueva.
+      evaluate();
       if (enabled) collect();
     },
     { passive: true },

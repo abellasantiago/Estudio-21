@@ -1,12 +1,16 @@
 /* ---------- HEADER ---------- */
 header{
   position:sticky;top:0;z-index:60;
+  /* el `background` plano es el fallback: color-mix es Safari 16.2+/Chrome 111+,
+     y sin él la barra quedaría transparente en un navegador viejo. */
+  background:var(--paper);
   background:color-mix(in srgb, var(--paper) 86%, transparent);
+  -webkit-backdrop-filter:saturate(120%) blur(8px);
   backdrop-filter:saturate(120%) blur(8px);
   border-bottom:1px solid transparent;
   transition:border-color .35s ease, background .35s ease;
 }
-header.scrolled{border-bottom-color:var(--line);background:color-mix(in srgb, var(--paper) 94%, transparent)}
+header.scrolled{border-bottom-color:var(--line);background:var(--paper);background:color-mix(in srgb, var(--paper) 94%, transparent)}
 /* el nav NO usa `.wrap` (centrado a --maxw con margin:auto): ese centrado deja
    un margen que crece mucho más rápido que el ancho de pantalla, así que en
    monitores anchos (1920+) el logo terminaba muy lejos del borde. Con
@@ -52,7 +56,9 @@ header.scrolled{border-bottom-color:var(--line);background:color-mix(in srgb, va
 .nav-menu{
   /* +1px: arranca DEBAJO del borde inferior del header, sin taparlo */
   position:absolute;top:calc(100% + 1px);left:0;z-index:70;min-width:15.5rem;
+  background:var(--paper-2);
   background:color-mix(in srgb, var(--paper-2) 97%, transparent);
+  -webkit-backdrop-filter:saturate(120%) blur(8px);
   backdrop-filter:saturate(120%) blur(8px);
   border:1px solid var(--line);border-radius:2px;
   box-shadow:0 26px 48px -32px rgba(26,25,22,.6);
@@ -89,7 +95,9 @@ header.scrolled{border-bottom-color:var(--line);background:color-mix(in srgb, va
    compensar el submenú quedaba 7px adentro del panel en vez de al ras. */
 .nav-flyout{
   position:absolute;top:-.35rem;left:100%;z-index:71;min-width:15rem;margin-left:.35rem;
+  background:var(--paper-2);
   background:color-mix(in srgb, var(--paper-2) 97%, transparent);
+  -webkit-backdrop-filter:saturate(120%) blur(8px);
   backdrop-filter:saturate(120%) blur(8px);
   border:1px solid var(--line);border-radius:2px;
   box-shadow:0 26px 48px -32px rgba(26,25,22,.6);
@@ -118,14 +126,22 @@ header.scrolled{border-bottom-color:var(--line);background:color-mix(in srgb, va
 .nav-links .nav-flyout a:hover{background:var(--paper-deep);color:var(--ink)}
 .nav-proj-anio{font-family:var(--font-mono);font-size:.66rem;color:var(--concrete-soft);flex:0 0 auto}
 
-.burger{display:none;background:none;border:0;cursor:pointer;width:30px;height:24px;position:relative}
-.burger span{position:absolute;left:0;width:100%;height:1.5px;background:var(--ink);transition:.3s}
-.burger span:nth-child(1){top:3px}
-.burger span:nth-child(2){top:11px}
-.burger span:nth-child(3){top:19px}
-body.menu-open .burger span:nth-child(1){top:11px;transform:rotate(45deg)}
+/* El botón mide 44×44 (el mínimo cómodo para un dedo) aunque el dibujo siga
+   siendo el de 30×24: las barras van centradas adentro y el margen negativo
+   compensa el ancho de más, así el ícono queda ópticamente donde estaba
+   respecto del borde derecho del nav. Antes el área tocable era de 24px de
+   alto y en un teléfono había que apuntarle. */
+.burger{
+  display:none;background:none;border:0;cursor:pointer;
+  width:44px;height:44px;margin-right:-7px;position:relative;
+}
+.burger span{position:absolute;left:7px;width:30px;height:1.5px;background:var(--ink);transition:.3s}
+.burger span:nth-child(1){top:13px}
+.burger span:nth-child(2){top:21px}
+.burger span:nth-child(3){top:29px}
+body.menu-open .burger span:nth-child(1){top:21px;transform:rotate(45deg)}
 body.menu-open .burger span:nth-child(2){opacity:0}
-body.menu-open .burger span:nth-child(3){top:11px;transform:rotate(-45deg)}
+body.menu-open .burger span:nth-child(3){top:21px;transform:rotate(-45deg)}
 
 /* El wordmark (~111px) + los 5 links (~446px) necesitan ~557px de contenido;
    por debajo de ~760px el nav horizontal se apretuja o se solapa con el logo, así
@@ -137,7 +153,8 @@ body.menu-open .burger span:nth-child(3){top:11px;transform:rotate(-45deg)}
     transform:translateY(-120%);transition:transform .4s cubic-bezier(.2,.7,.3,1);z-index:55;
     /* con el acordeón de proyectos abierto la lista puede pasar el alto de la
        pantalla: que scrollee sola en vez de dejar links fuera de alcance */
-    max-height:calc(100dvh - 58px);overflow-y:auto;overscroll-behavior:contain;
+    max-height:calc(100vh - 58px);max-height:calc(100dvh - 58px);
+    overflow-y:auto;overscroll-behavior:contain;
   }
   body.menu-open .nav-links{transform:translateY(0)}
   .nav-links a{padding:.85rem 0;font-size:.95rem;width:100%;border-bottom:1px solid var(--line-soft)}

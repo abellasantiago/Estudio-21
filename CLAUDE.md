@@ -82,9 +82,16 @@ que es donde se dice quiénes son; la sección del modelo de trabajo
 Entre **Quiénes somos / Cómo operamos** y entre **Cómo operamos / Proyectos** van
 **reglas divisorias** (`hr.section-rule`, sueltas en `index.astro` entre los
 `<section>`): en la home inmersiva las secciones son transparentes y sin eso se leían
-como un bloque continuo. Al ir sueltas entre medio quedan centradas en el aire que
-dejan los `padding-block` y, dentro de un `.wrap`, alineadas con la línea de las cifras
-y la del cuadro del equipo.
+como un bloque continuo. Al ir sueltas entre medio quedan en el aire que dejan los
+`padding-block` y, dentro de un `.wrap`, alineadas con la línea de las cifras y la del
+cuadro del equipo.
+
+El aire vertical de las secciones es **asimétrico a propósito** (tokens
+`--sec-pad-top` / `--sec-pad-bottom` en `global.css`, usados por `section.block` y por
+`.contact`): el techo mide ~78% del piso. Así cada sección "sube" y su título queda
+más cerca de la regla divisoria, **sin mover la regla** — que sigue a la misma
+distancia del bloque de arriba. Si se vuelven a igualar, el título se despega otra
+vez de la línea.
 
 Navbar fina (58px) con el logo `banner_negro.png` ("ESTUDIO 21 ARQUITECTOS"); links
 **Inicio · Nosotros · Proyectos · Equipo · Contacto** ("Contacto" es un link normal,
@@ -389,6 +396,17 @@ dos secciones se pisen — **identidad acá, modelo allá**.
 - **Cards limpias:** sin cartelito `E21·NN`, sin nombre gigante de fondo, sin grilla
   blueprint; el fondo del panel es parallax multicapa (fantasma "21" + marcas de registro).
   El CTA "Ver proyecto" aparece **sólo en hover de la card al frente**.
+- **El cilindro pide LUGAR: `(min-width: 760px) and (min-height: 620px)`.** Por debajo
+  de eso el componente arranca —y vuelve— a la **grilla**. El corte es geométrico, como
+  el de los 1700px del riel: con menos de 760px la barra de filtros pasa a dos filas y
+  la card frontal (que va a 1,70×) le monta encima; con menos de 620px de alto (un
+  celular acostado, una ventana corta) la card no entra entera y se corta contra el
+  borde de abajo. Sumado a eso, en un teléfono el recorrido eran ~3800px de scroll para
+  diez proyectos. La grilla no es un premio consuelo: es la misma vista que da el toggle
+  "Ver todos". El cambio es **en runtime** (girar el teléfono, arrastrar el borde de la
+  ventana): se compara contra el estado anterior para no pisar una elección manual del
+  toggle, y se engancha tanto al `change` de la media query como al `resize` —
+  salvavidas para los entornos donde el `change` no llega.
 - **Fallback:** el markup base es una lista semántica accesible (links navegables por
   teclado). Sin JS o con `prefers-reduced-motion` → grilla estática accesible; el 3D es
   sólo capa de presentación. `rAF` activo sólo con la sección visible
@@ -398,12 +416,26 @@ dos secciones se pisen — **identidad acá, modelo allá**.
 - **Cómo operamos** (`Nosotros.astro` / `nosotros.css`, ancla `/#como-operamos`):
   cabecera simple (eyebrow + título + lead) y los bloques F01–F04. Las cifras de
   trayectoria **no** van acá: viven al pie de la sección de presentación.
+  La línea que corona las fases va en **`--concrete`**, no en `--ink` como la de las
+  cifras y la del equipo: es la única de las tres que tiene cuatro columnas colgando,
+  y en tinta plena pesaba de más. **No lleva los puntitos** que tenía sobre cada
+  fase (`.dot`, sacados).
 - **Equipo** ("Nuestro equipo"): fotos optimizadas, `alt` con nombre + rol. Cada
-  ficha muestra nombre y rol, sin ubicación. **Hover**: el retrato se despega del
-  papel (−6px + sombra + borde a `--ink`) y la foto hace zoom 1.05; el nombre y el
-  rol acompañan la mitad (−3px). Se anima el **retrato**, no `.person`: la ficha es
-  una celda del cuadro y **sus bordes son las líneas de la retícula** — moverla
-  entera correría esas líneas y se rompería la grilla.
+  ficha muestra nombre y rol, sin ubicación. El **retrato NO va a ancho de celda**:
+  se topa en **`--team-portrait`** (16,5rem ≈ 264px, token en `global.css`), así que
+  mide 264×330 en vez de los ~330×410 que daba el ancho completo. A ancho de celda
+  las fichas dominaban la página; topado, la celda sigue siendo la misma unidad de la
+  retícula pero la ficha baja de alto (464 contra 559px) y la foto se lee como
+  retrato de fichero, no como póster. El tope también ordena mobile, donde en una
+  columna el retrato se iba a ~500px. Como el slot mide lo mismo en todos los
+  breakpoints, el `sizes` de la `<Image>` es fijo (`264px`, con widths 264/396/528
+  para 1,5× y 2×). En ≤600px la ficha va **sin padding lateral**: en una columna esa
+  sangría no separa de nada y desalineaba el retrato respecto del título.
+  **Hover**: el retrato se despega del papel (−6px + sombra + borde a `--ink`) y la
+  foto hace zoom 1.05; el nombre y el rol acompañan la mitad (−3px). Se anima el
+  **retrato**, no `.person`: la ficha es una celda del cuadro y **sus bordes son las
+  líneas de la retícula** — moverla entera correría esas líneas y se rompería la
+  grilla.
 - **Contacto:** mail real `estudiodearquitectos21@gmail.com` en texto + JSON-LD.
 
 ## Página de proyecto (`/proyectos/<slug>`)
@@ -505,6 +537,69 @@ Dos detalles que hay que respetar si se toca el script:
   una rampa (`repintar(..., { calado:true })`), si no queda un velo de 1/255 y se ve
   un rectángulo fantasma alrededor del "21".
 
+## Responsive y compatibilidad
+
+Lo que hay que respetar para que el sitio siga entrando en cualquier pantalla y
+cualquier navegador. Todo esto está verificado midiendo el layout de 320px a 2560px
+de ancho (y en alturas de 390 a 1440), en la home y en la ficha de proyecto.
+
+**Los tres cortes que mandan** (no son estéticos, cada uno tiene su geometría):
+- **900px** → capa inmersiva (`immersive.ts`: además pide `pointer: fine` y no
+  `prefers-reduced-motion`). Debajo, el hero es estático y el `<html>` no lleva
+  `is-immersive`.
+- **760px** → navbar horizontal ⇄ menú hamburguesa (`header.css`), y piso de ancho
+  del cilindro helicoidal. Es el mismo número por casualidad: el del navbar sale del
+  ancho del wordmark + los 5 links, el del cilindro del radio de las cards.
+- **620px de ALTO** → piso del cilindro. El único corte del sitio que mira la altura
+  además de las reglas de card chica del helicoidal (`max-height` 820/660).
+
+**Cosas que ya se rompieron una vez y no hay que volver a romper:**
+- **El "Estudio 21" del hero gira sólo en ≥900px.** El giro constante
+  (`hero-spin-y`, modo base sin motor) a tamaño de celular era ilegible: el "21" mide
+  ~123px y, de canto, las 16 capas del extruido se separan y se leen como un peine.
+  Debajo de 900px el título va quieto, de frente (y no gasta batería animando 3D).
+- **Las notas mono del fondo vivo (`.lbg-note`) se ocultan en ≤760px.** Van con
+  `white-space: nowrap` y "EST·21 — ARQUITECTURA Y DESARROLLO" mide ~305px: en un
+  teléfono se salía de pantalla por la izquierda y cruzaba el indicador de scroll.
+- **`.hero-stage` reserva 6rem abajo en `max-height: 620px`.** Con poco alto el
+  escenario mide lo que ocupa el contenido (no 80vh) y el "SCROLL", que va absoluto
+  contra el piso, se le montaba a la línea "21 de Setiembre 3024".
+- **El panel sticky del helicoidal va en `svh`** (`100vh` primero, de fallback). En
+  iPad/Android `100vh` es el viewport GRANDE: el panel quedaba ~90px más alto que lo
+  visible y el cilindro se cortaba abajo. **`dvh` no sirve acá** — cambiaría de alto
+  en pleno scroll, justo mientras el recorrido está atado al scroll.
+- **En grilla, `.ph-sticky` lleva `overflow-x: clip`.** El recorte vive en `.is-3d`,
+  así que sin esto el "21" fantasma —que sangra a propósito— le sumaba ancho al
+  documento. `clip` y no `hidden`: `hidden` forzaría `overflow-y: auto` y rompería el
+  sticky del modo 3D.
+- **Los hovers que mueven o elevan algo van detrás de `@media(hover:hover)`** (card
+  de proyecto en grilla, miniatura de galería, flecha de contacto, botón de
+  WhatsApp; el equipo ya lo hacía). En touch el `:hover` queda pegado después del tap
+  y la card se quedaba levantada.
+- **El burger mide 44×44** aunque el dibujo siga siendo de 30×24 (barras centradas +
+  margen negativo que compensa). Antes el área tocable eran 24px de alto.
+- **`will-change` en `.living-bg > *` sólo bajo `is-immersive`.** Sin motor promovía
+  una docena de capas que no se mueven nunca — memoria de GPU regalada justo en el
+  equipo que menos tiene.
+
+**Compatibilidad (Safari/iOS es el que marca el piso):**
+- `-webkit-backdrop-filter` **siempre** al lado de `backdrop-filter` (Safari <18 lo
+  necesita): header, panel y submenú del nav, visor de galería, toggle del
+  helicoidal.
+- Cada `color-mix()` lleva **una declaración plana antes** como fallback. Si el
+  navegador no lo soporta, la declaración entera se descarta y el panel queda
+  transparente encima del contenido — justo donde importa la legibilidad.
+- `-webkit-user-select` al lado de `user-select`; `-webkit-text-size-adjust: 100%` en
+  `html` (iOS infla el texto al girar a horizontal) y `-webkit-tap-highlight-color:
+  transparent` (el flash gris del tap choca con la paleta).
+- `svh`/`dvh` van siempre con una línea en `vh` antes, de fallback.
+- El arrastre de la tira de galería está limitado a `pointerType === 'mouse'`: en
+  touch manda el scroll nativo.
+
+**Sin scroll horizontal en ningún ancho.** `body` lleva `overflow-x: hidden` y los
+fantasmas "21" sangran a propósito; verificado que no se pueda scrollear en x de
+320 a 2560.
+
 ## Notas técnicas / convenciones
 
 - **`window.scrollTo` instantáneo:** el `<html>` tiene `scroll-behavior: smooth`, y
@@ -524,7 +619,6 @@ Dos detalles que hay que respetar si se toca el script:
 - **Dominio real** en `site` (`astro.config.mjs`) + `public/robots.txt` — de ahí salen canonical, sitemap y URLs absolutas de OG. Hoy es el placeholder `estudio21arq.com`.
 - **Fotos de Sushi WOK Perú**: es el **único** proyecto sin portada ni galería (los otros 9 ya tienen). Van en `src/assets/proyectos/sushi-wok/`.
 - **Imagen (o gráfico) de la columna izquierda de "Quiénes somos"**: hoy es un placeholder de blueprint. Una foto va en `src/assets/estudio/presentacion.*` y aparece sola; si va otra cosa (un plano, un SVG), hay que reemplazar esa columna en `Presentacion.astro`.
-- **"Quince proyectos, una misma manera de hacer"** (título de la sección Proyectos, `ProyectosHelicoidal.astro`): hay **10** cargados. O se suman los que faltan o se ajusta el número.
 - **Años estimados** de Villa Platero, Vila Rodona y Chana I; m² (área construida) de esos tres. m² de Cavas de Haedo también es **estimado** (no oficial).
 - Vila Rodona: confirmar mix de dormitorios y total de unidades.
 - Sushi WOK: la ficha muestra "Unidades: Pendiente" por ser un local gastronómico — debería decir **"No aplica"**, que no es lo mismo que un dato que falta.
