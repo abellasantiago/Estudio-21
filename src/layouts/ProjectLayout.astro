@@ -3,6 +3,7 @@ import { Picture, getImage } from 'astro:assets';
 import type { CollectionEntry } from 'astro:content';
 import { render } from 'astro:content';
 import BaseLayout from './BaseLayout.astro';
+import Galeria from '../components/Galeria.astro';
 import { getPortada, getGaleria } from '../lib/images';
 import { site } from '../data/site';
 import '../styles/project-page.css';
@@ -12,7 +13,7 @@ interface Props {
 }
 
 const { proyecto } = Astro.props;
-const { nombre, slug, estado, ubicacion, barrio, anio, unidades, metros } =
+const { nombre, slug, estado, ubicacion, barrio, anio, unidades, metros, portadaFoco, portadaZoom } =
   proyecto.data;
 
 const { Content } = await render(proyecto);
@@ -56,6 +57,24 @@ const jsonLd = {
 
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 
+/*
+ * Ancho REAL que el navegador tiene que rasterizar de la portada.
+ * La caja mide como mucho 480px de ancho, pero es 6/7 y la foto entra con
+ * `object-fit:cover`: una apaisada se agranda hasta que su ALTO llena la caja,
+ * así que termina midiendo `alto_de_caja × proporción` de ancho. Villa Platero
+ * (1.50) necesita más de 480 — pidiéndole 480 el navegador la estiraba y salía
+ * blanda. El zoom manual (`portadaZoom`) multiplica sobre eso.
+ * ⚠ COVER_AR debe coincidir con el `aspect-ratio` de `.proj-cover` en
+ * project-page.css — si se cambia uno hay que cambiar el otro.
+ */
+const COVER_W = 480; // ancho máximo de la caja (ver .proj-top en project-page.css)
+const COVER_AR = 6 / 7; // proporción de la caja de la portada
+const coverAr = portada ? portada.width / portada.height : COVER_AR;
+const coverRender = Math.round(COVER_W * Math.max(1, coverAr / COVER_AR) * (portadaZoom ?? 1));
+const coverWidths = portada
+  ? [...new Set([coverRender, Math.min(coverRender * 2, portada.width)])].sort((a, b) => a - b)
+  : [COVER_W];
+
 const ficha = [
   { k: 'Estado', v: estadoLabel, pendiente: false, loc: false },
   { k: 'Año', v: String(anio), pendiente: false, loc: false },
@@ -71,69 +90,50 @@ const ficha = [
       <a class="back-link" href={`${base}/#proyectos`}>Volver a proyectos</a>
 
       <div class="proj-head">
-        <div>
-          <h1 class="proj-title">{nombre}</h1>
-        </div>
+        <h1 class="proj-title">{nombre}</h1>
         <span class={`status ${estado}`}><span class="pip"></span>{estadoLabel}</span>
       </div>
 
-      {portada ? (
-        <div class="proj-cover">
-          <Picture
-            src={portada}
-            formats={['avif', 'webp']}
-            alt={`Portada del proyecto ${nombre}`}
-            widths={[800, 1200, 1600]}
-            sizes="(max-width: 1240px) 100vw, 1240px"
-            loading="eager"
-            fetchpriority="high"
-          />
-        </div>
-      ) : (
-        <div class="proj-cover is-placeholder">
-          <span class="cover-ph">imagen pendiente</span>
-        </div>
-      )}
-
-      <!-- ficha técnica -->
-      <div class="ficha">
-        {ficha.map((c) => (
-          <div class="cell">
-            <div class="fk">{c.k}</div>
-            <div class={`fv${c.pendiente ? ' pendiente' : ''}${c.loc ? ' fv-loc' : ''}`}>{c.v}</div>
-          </div>
-        ))}
-      </div>
-
-      <!-- descripción -->
-      <div class="proj-desc">
-        <Content />
-      </div>
-
-      <!-- galería -->
-      <section class="galeria" aria-label="Galería de fotos">
-        <span class="eyebrow">Galería</span>
-        {galeria.length > 0 ? (
-          <div class="galeria-grid">
-            {galeria.map((img, i) => (
-              <figure>
-                <Picture
-                  src={img}
-                  formats={['avif', 'webp']}
-                  alt={`${nombre} — foto ${i + 1}`}
-                  widths={[500, 800, 1100]}
-                  sizes="(max-width: 600px) 100vw, 50vw"
-                  loading="lazy"
-                />
-              </figure>
-            ))}
+      {/* Portada a la izquierda, descripción al costado. La portada va SIEMPRE
+          en 4/5 (vertical suave), igual en todos los proyectos: el encuadre de
+          cada una se ajusta con `portadaFoco` / `portadaZoom` del frontmatter. */}
+      <div class="proj-top">
+        {portada ? (
+          <div class="proj-cover">
+            <Picture
+              src={portada}
+              formats={['avif', 'webp']}
+              alt={`Portada del proyecto ${nombre}`}
+              widths={coverWidths}
+              sizes={`${coverRender}px`}
+              style={`--pf:${portadaFoco ?? '50% 50%'};--pz:${portadaZoom ?? 1}`}
+              loading="eager"
+              fetchpriority="high"
+            />
           </div>
         ) : (
-          <p class="galeria-empty">
-            Galería pendiente · tirá las fotos en src/assets/proyectos/{slug}/
-          </p>
+          <div class="proj-cover is-placeholder">
+            <span class="cover-ph">imagen pendiente</span>
+          </div>
         )}
-      </section>
+
+        <!-- descripción -->
+        <div class="proj-desc">
+          <Content />
+        </div>
+      </div>
+
+      <!-- ficha técnica -->
+      <dl class="ficha">
+        {ficha.map((c) => (
+          <div class="cell">
+            <dt class="fk">{c.k}</dt>
+            <dd class={`fv${c.pendiente ? ' pendiente' : ''}${c.loc ? ' fv-loc' : ''}`}>{c.v}</dd>
+          </div>
+        ))}
+      </dl>
+
+      <Galeria fotos={galeria} nombre={nombre} slug={slug} />
     </div>
   </article>
 </BaseLayout>

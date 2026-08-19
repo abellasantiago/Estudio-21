@@ -4,16 +4,40 @@
 .back-link:hover{color:var(--ink)}
 .back-link::before{content:"←";font-size:1rem}
 
+/* título arriba de todo, con el chip de estado a la derecha */
 .proj-head{display:flex;align-items:flex-end;justify-content:space-between;gap:1.5rem;flex-wrap:wrap;margin-top:1.8rem}
 h1.proj-title{font-family:var(--font-display);font-weight:500;font-size:clamp(2.2rem,5vw,4rem);line-height:1.02;letter-spacing:-.025em;margin-top:.9rem;max-width:16ch}
 
-/* portada grande */
+/* ---------- portada a la izquierda, descripción al costado ----------
+   El ancho de la columna de la foto está topado (480px): con el 6/7 fijo, más
+   ancho que eso da una portada de más de 550px de alto, que deja la columna de
+   texto —de 77 a 151 palabras según el proyecto— colgando en el aire. Lo que
+   sobra va a la descripción, que igual se topa en 62ch para que la línea no se
+   haga incómoda de leer. */
+.proj-top{
+  display:grid;
+  grid-template-columns:clamp(260px,38vw,480px) minmax(0,1fr);
+  gap:clamp(1.8rem,4vw,3.5rem);
+  align-items:start;
+  margin-top:clamp(1.8rem,4vw,2.8rem);
+}
+
+/* Portada SIEMPRE en 6/7 (vertical suave, más ancha que el 4/5 anterior),
+   igual en todos los proyectos. Las fotos van de 0.75 a 1.50, así que el
+   encuadre de cada una se ajusta a mano desde el frontmatter: --pf
+   (portadaFoco) mueve qué parte se conserva y --pz (portadaZoom) acerca desde
+   ese mismo punto. Mismos campos que usa la card del helicoidal → un solo
+   ajuste sirve para las dos vistas. ⚠ Este 6/7 tiene que coincidir con
+   COVER_AR en ProjectLayout.astro (decide qué ancho pedirle a la imagen). */
 .proj-cover{
-  position:relative;margin-top:clamp(1.8rem,4vw,2.8rem);aspect-ratio:16/9;overflow:hidden;
+  position:relative;aspect-ratio:6/7;overflow:hidden;
   background:var(--paper-deep);border:1px solid var(--line);
 }
 .proj-cover picture,.proj-cover img{width:100%;height:100%}
-.proj-cover img{object-fit:cover}
+.proj-cover img{
+  object-fit:cover;object-position:var(--pf,50% 50%);
+  transform:scale(var(--pz,1));transform-origin:var(--pf,50% 50%);
+}
 .proj-cover.is-placeholder::before{
   content:"";position:absolute;inset:0;
   background-image:linear-gradient(var(--line-soft) 1px,transparent 1px),linear-gradient(90deg,var(--line-soft) 1px,transparent 1px);
@@ -21,7 +45,14 @@ h1.proj-title{font-family:var(--font-display);font-weight:500;font-size:clamp(2.
 }
 .proj-cover .cover-ph{position:absolute;left:14px;bottom:12px;font-family:var(--font-mono);font-size:.66rem;letter-spacing:.08em;text-transform:uppercase;color:var(--concrete-soft);opacity:.85}
 
-/* ficha técnica */
+/* descripción: al costado de la portada, arrancando a la misma altura */
+.proj-desc{max-width:62ch}
+.proj-desc :is(p){font-size:clamp(1.02rem,1.3vw,1.18rem);color:var(--ink-soft);margin-bottom:1.1rem}
+.proj-desc :is(h2,h3){font-family:var(--font-display);font-weight:500;letter-spacing:-.01em;margin:2rem 0 .8rem}
+.proj-desc :is(ul,ol){margin:0 0 1.1rem 1.2rem;color:var(--ink-soft)}
+.proj-desc li{margin-bottom:.4rem}
+
+/* ficha técnica: banda horizontal de 5 columnas al pie del bloque */
 .ficha{margin-top:clamp(3rem,6vw,5rem);border-top:1px solid var(--ink);display:grid;grid-template-columns:repeat(5,1fr)}
 .ficha .cell{padding:1.5rem 1.4rem 1.6rem .75rem;border-right:1px solid var(--line);position:relative}
 .ficha .cell:last-child{border-right:0}
@@ -32,22 +63,15 @@ h1.proj-title{font-family:var(--font-display);font-weight:500;font-size:clamp(2.
    más chica y en un solo renglón para que no se parta en la columna angosta. */
 .ficha .fv.fv-loc{font-size:clamp(1rem,1.5vw,1.3rem);white-space:nowrap}
 
-/* descripción */
-.proj-desc{margin-top:clamp(3rem,6vw,5rem);max-width:62ch}
-.proj-desc :is(p){font-size:clamp(1.02rem,1.3vw,1.18rem);color:var(--ink-soft);margin-bottom:1.1rem}
-.proj-desc :is(h2,h3){font-family:var(--font-display);font-weight:500;letter-spacing:-.01em;margin:2rem 0 .8rem}
-.proj-desc :is(ul,ol){margin:0 0 1.1rem 1.2rem;color:var(--ink-soft)}
-.proj-desc li{margin-bottom:.4rem}
+/* la galería vive en su propio componente (Galeria.astro + galeria.css) */
 
-/* galería */
-.galeria{margin-top:clamp(3rem,6vw,5rem)}
-.galeria-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:clamp(.8rem,2vw,1.4rem);margin-top:1.6rem}
-.galeria-grid figure{position:relative;aspect-ratio:4/3;overflow:hidden;background:var(--paper-deep);border:1px solid var(--line)}
-.galeria-grid picture,.galeria-grid img{width:100%;height:100%}
-.galeria-grid img{object-fit:cover;transition:transform .5s cubic-bezier(.2,.7,.3,1)}
-.galeria-grid figure:hover img{transform:scale(1.03)}
-.galeria-empty{margin-top:1.6rem;border:1px dashed var(--line);padding:2.4rem;text-align:center;font-family:var(--font-mono);font-size:.78rem;letter-spacing:.06em;color:var(--concrete-soft);text-transform:uppercase}
-
+/* una sola columna: la portada arriba y la descripción debajo. Se topa el ancho
+   de la portada para que en tablet no se coma una pantalla entera de alto. */
+@media(max-width:900px){
+  .proj-top{grid-template-columns:minmax(0,1fr);gap:clamp(1.6rem,4vw,2.4rem)}
+  .proj-cover{width:min(100%,440px);margin-inline:auto}
+  .proj-desc{max-width:none}
+}
 @media(max-width:900px){
   .ficha{grid-template-columns:repeat(2,1fr)}
   .ficha .cell{border-bottom:1px solid var(--line)}
@@ -56,8 +80,4 @@ h1.proj-title{font-family:var(--font-display);font-weight:500;font-size:clamp(2.
 @media(max-width:600px){
   .ficha{grid-template-columns:1fr}
   .ficha .cell{border-right:0!important;padding-inline:0}
-  .galeria-grid{grid-template-columns:1fr}
-}
-@media(prefers-reduced-motion:reduce){
-  .galeria-grid figure:hover img{transform:none}
 }

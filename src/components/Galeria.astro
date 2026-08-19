@@ -1,0 +1,326 @@
+---
+/*
+ * Galería del proyecto: tira horizontal de miniaturas + visor a pantalla completa.
+ *
+ * Tira: todas las miniaturas al MISMO ALTO y con el ANCHO que les corresponde
+ * por su proporción real (tipo tira de contactos) → ninguna foto se recorta.
+ * Las fotos del estudio van de 0.56 (vertical de celular) a 1.95 (panorámica),
+ * así que cualquier caja fija recortaría fuerte a la mitad del material.
+ * Scrollea sola en horizontal; el script agrega arrastrar con el mouse y los
+ * degradés de borde que avisan que hay más.
+ *
+ * Visor: la foto grande sobre un velo de papel translúcido + blur — el sitio se
+ * sigue viendo detrás, no es un fondo negro opaco. Anterior/siguiente con los
+ * botones, con las flechas del teclado y en ciclo (de la última vuelve a la
+ * primera). Escape o click afuera cierran.
+ *
+ * Sin JS sigue sirviendo: cada miniatura es un <a> a la foto grande.
+ */
+import { Picture, getImage } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+import '../styles/galeria.css';
+
+interface Props {
+  fotos: ImageMetadata[];
+  nombre: string;
+  slug: string;
+}
+
+const { fotos, nombre, slug } = Astro.props;
+
+// Alto de referencia de la tira (ver --gal-h en galeria.css). Con eso y la
+// proporción real de cada foto sabemos el ancho exacto que va a ocupar cada
+// miniatura → se piden justo esos tamaños en vez de un `sizes` genérico.
+const TIRA_H = 168;
+
+const items = await Promise.all(
+  fotos.map(async (img) => {
+    const ar = img.width / img.height;
+    const ancho = Math.max(60, Math.round(TIRA_H * ar));
+    return {
+      img,
+      ar,
+      ancho,
+      // versión grande para el visor: se genera en build pero no se descarga
+      // hasta abrirla (el <img> del visor recibe el src recién al abrir).
+      grande: await getImage({
+        src: img,
+        width: Math.min(img.width, 1800),
+        format: 'webp',
+        quality: 82,
+      }),
+    };
+  }),
+);
+
+const pad = (n: number) => String(n).padStart(2, '0');
+---
+
+<section class="galeria" aria-label="Galería de fotos">
+  <div class="gal-head">
+    <span class="eyebrow">Galería</span>
+    {fotos.length > 0 && <p class="gal-count" aria-hidden="true">{pad(fotos.length)} fotos</p>}
+  </div>
+
+  {fotos.length > 0 ? (
+    <div class="gal-strip-wrap">
+      <ul class="gal-strip" id="galStrip">
+        {items.map((it, i) => (
+          <li>
+            <a
+              class="gal-item"
+              href={it.grande.src}
+              style={`--ar:${it.img.width}/${it.img.height}`}
+              data-w={it.img.width}
+              data-h={it.img.height}
+              aria-label={`Ampliar foto ${i + 1} de ${fotos.length}`}
+            >
+              <Picture
+                src={it.img}
+                formats={['avif', 'webp']}
+                alt={`${nombre} — foto ${i + 1}`}
+                widths={[it.ancho, Math.min(it.ancho * 2, it.img.width)]}
+                sizes={`${it.ancho}px`}
+                loading="lazy"
+              />
+            </a>
+          </li>
+        ))}
+      </ul>
+
+      {/* flechitas sobre las miniaturas de los extremos: desplazan la tira sin
+          tener que ir hasta la barra de scroll. Sólo aparecen del lado donde
+          todavía queda algo por ver (lo maneja el script). */}
+      <button type="button" class="gal-arrow prev" data-gal-scroll="-1" aria-label="Ver fotos anteriores">
+        <svg viewBox="0 0 10 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M8.5 1 1.5 8l7 7" />
+        </svg>
+      </button>
+      <button type="button" class="gal-arrow next" data-gal-scroll="1" aria-label="Ver más fotos">
+        <svg viewBox="0 0 10 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M1.5 1l7 7-7 7" />
+        </svg>
+      </button>
+    </div>
+  ) : (
+    <p class="galeria-empty">
+      Galería pendiente · tirá las fotos en src/assets/proyectos/{slug}/
+    </p>
+  )}
+</section>
+
+{fotos.length > 0 && (
+  <div class="lbox" id="galLbox" hidden>
+    <div class="lbox-veil" data-gal-close></div>
+    <div class="lbox-panel" role="dialog" aria-modal="true" aria-label="Foto ampliada" tabindex="-1">
+      <img class="lbox-img" data-gal-img alt="" />
+
+      <div class="lbox-bar">
+        <button type="button" class="lbox-btn" data-gal-prev aria-label="Foto anterior">
+          <svg viewBox="0 0 10 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M8.5 1 1.5 8l7 7" />
+          </svg>
+        </button>
+        <p class="lbox-counter">
+          <span data-gal-i>01</span><span class="lbox-sep">/</span><span>{pad(fotos.length)}</span>
+        </p>
+        <button type="button" class="lbox-btn" data-gal-next aria-label="Foto siguiente">
+          <svg viewBox="0 0 10 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M1.5 1l7 7-7 7" />
+          </svg>
+        </button>
+      </div>
+
+      <button type="button" class="lbox-close" data-gal-close aria-label="Cerrar la foto">
+        <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true">
+          <path d="M1 1l12 12M13 1L1 13" />
+        </svg>
+      </button>
+    </div>
+  </div>
+)}
+
+<script>
+  const strip = document.getElementById('galStrip');
+  const lbox = document.getElementById('galLbox');
+
+  if (strip && lbox) {
+    const items = Array.from(strip.querySelectorAll<HTMLAnchorElement>('.gal-item'));
+    const wrap = strip.parentElement;
+    const visor = lbox.querySelector<HTMLImageElement>('[data-gal-img]');
+    const panel = lbox.querySelector<HTMLElement>('.lbox-panel');
+    const idxEl = lbox.querySelector<HTMLElement>('[data-gal-i]');
+    const root = document.documentElement;
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+    const pad = (n: number) => String(n).padStart(2, '0');
+
+    let cur = -1;
+    let opener: HTMLElement | null = null;
+    let hideTimer = 0;
+
+    // ---- visor ---------------------------------------------------------------
+    /** Muestra la foto `i` (en ciclo: de la última pasa a la primera y al revés). */
+    function show(i: number) {
+      const n = items.length;
+      if (!n) return;
+      cur = ((i % n) + n) % n;
+      const a = items[cur];
+
+      if (visor) {
+        // width/height reales → el visor reserva el lugar y la foto no salta
+        visor.width = Number(a.dataset.w) || 0;
+        visor.height = Number(a.dataset.h) || 0;
+        visor.src = a.href;
+        visor.alt = a.querySelector('img')?.alt ?? '';
+      }
+      if (idxEl) idxEl.textContent = pad(cur + 1);
+
+      // precargar las vecinas → pasar de foto es instantáneo
+      for (const d of [1, -1]) {
+        const pre = new Image();
+        pre.src = items[((cur + d) % n + n) % n].href;
+      }
+
+      // acompañar con la tira: la miniatura de la foto abierta queda a la vista
+      items.forEach((el, k) => el.classList.toggle('is-active', k === cur));
+      a.scrollIntoView({
+        block: 'nearest',
+        inline: 'nearest',
+        behavior: reduce.matches ? 'auto' : 'smooth',
+      });
+    }
+
+    function open(i: number, desde: HTMLElement | null) {
+      clearTimeout(hideTimer);
+      opener = desde;
+      lbox!.hidden = false;
+      root.classList.add('gal-open'); // bloquea el scroll de la página
+      show(i);
+      // un frame de margen para que la transición de entrada se vea
+      requestAnimationFrame(() => lbox!.classList.add('is-open'));
+      panel?.focus();
+    }
+
+    function close() {
+      lbox!.classList.remove('is-open');
+      root.classList.remove('gal-open');
+      const ocultar = () => {
+        lbox!.hidden = true;
+        visor?.removeAttribute('src');
+      };
+      if (reduce.matches) ocultar();
+      else hideTimer = window.setTimeout(ocultar, 260);
+      opener?.focus();
+      opener = null;
+    }
+
+    // ---- abrir desde la tira -------------------------------------------------
+    items.forEach((a, i) => {
+      a.addEventListener('click', (e) => {
+        // ctrl/cmd/shift o botón del medio → dejar que el navegador abra la
+        // foto en una pestaña nueva, que es lo que el usuario está pidiendo
+        if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+        e.preventDefault();
+        if (arrastrado) return; // veníamos arrastrando la tira, no es un click
+        open(i, a);
+      });
+    });
+
+    lbox.querySelectorAll('[data-gal-close]').forEach((b) => b.addEventListener('click', close));
+    lbox.querySelector('[data-gal-prev]')?.addEventListener('click', () => show(cur - 1));
+    lbox.querySelector('[data-gal-next]')?.addEventListener('click', () => show(cur + 1));
+
+    document.addEventListener('keydown', (e) => {
+      if (lbox!.hidden) return;
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        close();
+      } else if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        show(cur - 1);
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        show(cur + 1);
+      } else if (e.key === 'Tab') {
+        // el foco no se escapa del visor mientras está abierto
+        const f = Array.from(lbox!.querySelectorAll<HTMLElement>('button'));
+        if (!f.length) return;
+        const primero = f[0];
+        const ultimo = f[f.length - 1];
+        const activo = document.activeElement;
+        if (e.shiftKey && (activo === primero || activo === panel)) {
+          e.preventDefault();
+          ultimo.focus();
+        } else if (!e.shiftKey && activo === ultimo) {
+          e.preventDefault();
+          primero.focus();
+        }
+      }
+    });
+
+    // ---- tira: arrastrar con el mouse ---------------------------------------
+    // El scroll horizontal nativo cubre trackpad, touch y la barra; con mouse a
+    // secas arrastrar es lo natural. Umbral de 5px para no comerse el click.
+    let arrastrado = false;
+    let apretado = false;
+    let x0 = 0;
+    let scroll0 = 0;
+
+    strip.addEventListener('pointerdown', (e) => {
+      if (e.pointerType !== 'mouse' || e.button !== 0) return;
+      apretado = true;
+      arrastrado = false;
+      x0 = e.clientX;
+      scroll0 = strip.scrollLeft;
+    });
+    strip.addEventListener('pointermove', (e) => {
+      if (!apretado) return;
+      const dx = e.clientX - x0;
+      if (!arrastrado && Math.abs(dx) > 5) {
+        arrastrado = true;
+        strip.classList.add('is-dragging');
+      }
+      if (arrastrado) strip.scrollLeft = scroll0 - dx;
+    });
+    const soltar = () => {
+      if (!apretado) return;
+      apretado = false;
+      strip.classList.remove('is-dragging');
+      // el `click` posterior corre ANTES que este timer → todavía ve arrastrado
+      // en true y no abre el visor; recién después se limpia.
+      setTimeout(() => {
+        arrastrado = false;
+      }, 0);
+    };
+    strip.addEventListener('pointerup', soltar);
+    strip.addEventListener('pointerleave', soltar);
+    strip.addEventListener('pointercancel', soltar);
+    // sin esto el navegador arranca su propio arrastre de imagen/link
+    strip.addEventListener('dragstart', (e) => e.preventDefault());
+
+    // ---- flechitas de los extremos ------------------------------------------
+    // Desplazan ~3/4 de lo que se ve, para que quede algo de contexto en cuadro.
+    wrap?.querySelectorAll<HTMLButtonElement>('[data-gal-scroll]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const dir = Number(btn.dataset.galScroll) || 1;
+        strip.scrollBy({
+          left: dir * strip.clientWidth * 0.75,
+          behavior: reduce.matches ? 'auto' : 'smooth',
+        });
+      });
+    });
+
+    // ---- degradés de borde: sólo si hay algo más para ver --------------------
+    const bordes = () => {
+      if (!wrap) return;
+      const max = strip.scrollWidth - strip.clientWidth;
+      wrap.classList.toggle('has-overflow', max > 2);
+      wrap.classList.toggle('at-start', strip.scrollLeft <= 2);
+      wrap.classList.toggle('at-end', strip.scrollLeft >= max - 2);
+    };
+    strip.addEventListener('scroll', bordes, { passive: true });
+    window.addEventListener('resize', bordes, { passive: true });
+    bordes();
+  }
+</script>

@@ -1,0 +1,168 @@
+/* ============================================================
+   GALERÍA DEL PROYECTO — tira de contactos + visor
+   ============================================================ */
+
+.galeria{margin-top:clamp(3rem,6vw,5rem)}
+.gal-head{display:flex;align-items:baseline;justify-content:space-between;gap:1.5rem}
+.gal-count{font-family:var(--font-mono);font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:var(--concrete-soft)}
+
+/* ---------- tira horizontal ---------- */
+/* --gal-h manda: todas las miniaturas tienen ESE alto y el ancho se lo da su
+   propia proporción (--ar, escrita en el markup con las medidas reales). Como
+   la caja ya tiene la proporción exacta de la foto, el `cover` de adentro no
+   recorta nada — sólo asegura que llene la caja. */
+.gal-strip-wrap{--gal-h:clamp(112px,15vh,168px);position:relative;margin-top:1.4rem}
+
+.gal-strip{
+  list-style:none;margin:0;padding:0 0 .9rem;
+  display:flex;gap:.7rem;
+  overflow-x:auto;overflow-y:hidden;
+  overscroll-behavior-x:contain;
+  scroll-snap-type:x proximity;
+  scrollbar-color:var(--concrete-soft) var(--paper-deep);
+  scrollbar-width:thin;
+}
+.gal-strip::-webkit-scrollbar{height:6px}
+.gal-strip::-webkit-scrollbar-track{background:var(--paper-deep);border-radius:3px}
+.gal-strip::-webkit-scrollbar-thumb{background:var(--concrete-soft);border-radius:3px}
+.gal-strip::-webkit-scrollbar-thumb:hover{background:var(--concrete)}
+.gal-strip.is-dragging{cursor:grabbing;scroll-snap-type:none;scroll-behavior:auto}
+.gal-strip.is-dragging .gal-item{pointer-events:none}
+
+.gal-strip > li{flex:0 0 auto;display:flex}
+.gal-item{
+  display:block;position:relative;
+  height:var(--gal-h);aspect-ratio:var(--ar);
+  scroll-snap-align:start;
+  background:var(--paper-deep);border:1px solid var(--line);
+  overflow:hidden;cursor:zoom-in;
+  transition:border-color .25s ease,transform .35s cubic-bezier(.2,.7,.3,1),box-shadow .35s ease;
+}
+.gal-item picture,
+.gal-item img{display:block;width:100%;height:100%}
+.gal-item img{object-fit:cover}
+.gal-item:hover{border-color:var(--ink);transform:translateY(-3px);box-shadow:0 16px 30px -22px rgba(26,25,22,.6)}
+/* la miniatura de la foto que está abierta en el visor */
+.gal-item.is-active{border-color:var(--ink)}
+.gal-item.is-active::after{
+  content:"";position:absolute;left:0;right:0;bottom:0;height:3px;background:var(--petrol);
+}
+
+/* degradés de borde: avisan que hay más fotos hacia ese lado. Los pone el
+   script (has-overflow / at-start / at-end) → si entran todas, no aparecen. */
+.gal-strip-wrap::before,
+.gal-strip-wrap::after{
+  content:"";position:absolute;top:0;bottom:.9rem;width:clamp(28px,5vw,56px);
+  pointer-events:none;z-index:2;opacity:0;transition:opacity .3s ease;
+}
+.gal-strip-wrap::before{left:0;background:linear-gradient(to right,var(--paper),transparent)}
+.gal-strip-wrap::after{right:0;background:linear-gradient(to left,var(--paper),transparent)}
+.gal-strip-wrap.has-overflow:not(.at-start)::before{opacity:1}
+.gal-strip-wrap.has-overflow:not(.at-end)::after{opacity:1}
+
+/* flechitas sobre la miniatura de cada extremo. `visibility` (no display) para
+   que además salgan del orden de tabulación cuando no hay nada para ese lado. */
+.gal-arrow{
+  position:absolute;top:calc((100% - .9rem) / 2);transform:translateY(-50%);
+  z-index:3;display:flex;align-items:center;justify-content:center;
+  width:1.9rem;height:1.9rem;padding:0;cursor:pointer;
+  background:color-mix(in srgb,var(--paper-2) 92%,transparent);
+  backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);
+  border:1px solid var(--line);border-radius:50%;color:var(--ink);
+  box-shadow:0 6px 16px -10px rgba(26,25,22,.7);
+  visibility:hidden;opacity:0;
+  transition:opacity .25s ease,border-color .2s ease,background .2s ease;
+}
+.gal-arrow svg{width:7px;height:11px}
+.gal-arrow:hover{border-color:var(--ink);background:var(--paper-2)}
+.gal-arrow.prev{left:.5rem}
+.gal-arrow.next{right:.5rem}
+.gal-strip-wrap.has-overflow:not(.at-start) .gal-arrow.prev,
+.gal-strip-wrap.has-overflow:not(.at-end) .gal-arrow.next{visibility:visible;opacity:1}
+
+.galeria-empty{
+  margin-top:1.6rem;border:1px dashed var(--line);padding:2.4rem;text-align:center;
+  font-family:var(--font-mono);font-size:.78rem;letter-spacing:.06em;color:var(--concrete-soft);
+  text-transform:uppercase;
+}
+
+/* ============================================================
+   VISOR (lightbox)
+   El velo es PAPEL translúcido + blur, no negro: el sitio se sigue
+   viendo detrás, apenas desenfocado, y la foto se lee como una
+   lámina apoyada encima.
+   ============================================================ */
+html.gal-open{overflow:hidden}
+
+.lbox{position:fixed;inset:0;z-index:120;display:flex;align-items:center;justify-content:center}
+.lbox[hidden]{display:none}
+.lbox-veil{
+  position:absolute;inset:0;
+  background:color-mix(in srgb,var(--paper) 72%,transparent);
+  backdrop-filter:blur(16px) saturate(115%);
+  -webkit-backdrop-filter:blur(16px) saturate(115%);
+  opacity:0;transition:opacity .28s ease;
+}
+.lbox.is-open .lbox-veil{opacity:1}
+
+.lbox-panel{
+  position:relative;z-index:1;
+  display:flex;flex-direction:column;align-items:center;gap:1.1rem;
+  max-width:min(94vw,1500px);
+  opacity:0;transform:scale(.985) translateY(6px);
+  transition:opacity .28s ease,transform .32s cubic-bezier(.2,.7,.3,1);
+}
+.lbox.is-open .lbox-panel{opacity:1;transform:none}
+.lbox-panel:focus{outline:none}
+.lbox-panel:focus-visible{outline:2px solid var(--petrol);outline-offset:8px}
+
+.lbox-img{
+  display:block;width:auto;height:auto;
+  max-width:min(94vw,1500px);max-height:78vh;
+  object-fit:contain;
+  background:var(--paper-deep);
+  border:1px solid var(--line);
+  box-shadow:0 50px 90px -50px rgba(26,25,22,.65);
+}
+
+/* cajetín inferior: anterior · contador · siguiente */
+.lbox-bar{
+  display:flex;align-items:center;gap:.5rem;
+  background:color-mix(in srgb,var(--paper-2) 92%,transparent);
+  border:1px solid var(--line);border-radius:2px;padding:.3rem;
+}
+.lbox-btn,
+.lbox-close{
+  display:inline-flex;align-items:center;justify-content:center;
+  background:none;border:0;border-radius:2px;cursor:pointer;color:var(--ink);
+  transition:background .2s ease,color .2s ease,border-color .2s ease;
+}
+.lbox-btn{width:2.3rem;height:2.1rem}
+.lbox-btn svg{width:9px;height:14px}
+.lbox-btn:hover{background:var(--paper-deep)}
+.lbox-counter{
+  font-family:var(--font-mono);font-size:.74rem;letter-spacing:.12em;color:var(--concrete);
+  min-width:4.4rem;text-align:center;font-variant-numeric:tabular-nums;
+}
+.lbox-counter [data-gal-i]{color:var(--ink)}
+.lbox-sep{margin:0 .35rem;color:var(--concrete-soft)}
+
+.lbox-close{
+  position:absolute;top:-.4rem;right:-.4rem;transform:translate(50%,-50%);
+  width:2.4rem;height:2.4rem;
+  background:var(--paper-2);border:1px solid var(--line);
+}
+.lbox-close svg{width:13px;height:13px}
+.lbox-close:hover{border-color:var(--ink);background:var(--paper-deep)}
+
+@media(max-width:700px){
+  .lbox-img{max-width:94vw;max-height:68vh}
+  .lbox-close{top:0;right:0;transform:translate(35%,-115%)}
+}
+
+@media(prefers-reduced-motion:reduce){
+  .gal-item,.lbox-veil,.lbox-panel{transition:none}
+  .gal-item:hover{transform:none}
+  .lbox-panel{opacity:1;transform:none}
+  .lbox-veil{opacity:1}
+}
