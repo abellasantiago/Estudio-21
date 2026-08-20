@@ -100,6 +100,14 @@ const pad = (n: number) => String(n).padStart(2, '0');
       <span class="tl"></span><span class="tr"></span><span class="bl"></span><span class="br"></span>
     </span>
 
+    <!-- Carriles de escape: la franja de cada costado adonde el cilindro NO
+         llega. Con el cursor ahí las cards se quedan quietas y el scroll mueve
+         el SITIO, saltando a la sección de al lado (ver el <script>). Son
+         decoración (pointer-events:none): marcan la zona, no la capturan — los
+         filtros y las cards que caigan debajo se siguen pudiendo clickear. -->
+    <span class="ph-lane ph-lane-l" aria-hidden="true"><span class="ph-lane-txt">Seguir de largo</span></span>
+    <span class="ph-lane ph-lane-r" aria-hidden="true"><span class="ph-lane-txt">Seguir de largo</span></span>
+
     <div class="wrap ph-shell">
       <div class="ph-stage">
         <ul class="ph-axis" id="phAxis">
@@ -135,7 +143,9 @@ const pad = (n: number) => String(n).padStart(2, '0');
         </ul>
       </div>
 
-      <p class="ph-hint" aria-hidden="true">Scrolleá para recorrer la obra</p>
+      <p class="ph-hint" aria-hidden="true">
+        Scrolleá para recorrer la obra<span class="ph-hint-lane"> · a los costados, el scroll sigue de largo</span>
+      </p>
     </div>
   </div>
 </section>
@@ -171,15 +181,15 @@ const pad = (n: number) => String(n).padStart(2, '0');
     const header = document.getElementById('header');
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
     // El cilindro necesita LUGAR, y el corte es geométrico igual que el de los
-    // 1700px del riel de filtros. Por debajo de ~760px de ancho la barra de
-    // filtros pasa a dos filas y la card frontal —que va a 1.56×— le monta
-    // encima; por debajo de ~620px de alto (un celular acostado, o una ventana
-    // muy baja) la card no entra entera y se corta contra el borde de abajo.
-    // Sumado a eso, en un teléfono el recorrido son ~3800px de scroll para diez
-    // proyectos. En esos tamaños queda la GRILLA, que no es un premio consuelo:
-    // es la misma vista que da el toggle "Ver todos" y el fallback accesible
-    // del componente.
-    const roomMq = window.matchMedia('(min-width: 760px) and (min-height: 620px)');
+    // 1700px del riel de filtros. Por debajo de ~620px de alto (un celular
+    // acostado, o una ventana muy baja) la card frontal no entra entera y se
+    // corta contra el borde de abajo. Y por debajo de 1024px de ancho ya no
+    // quedan los CARRILES DE ESCAPE de los costados: las cards proyectadas
+    // ocupan todo el ancho, así que la única forma de pasar la sección sería
+    // recorrerla entera (~6,8 pantallas de scroll). En esos tamaños queda la
+    // GRILLA, que no es un premio consuelo: es la misma vista que da el toggle
+    // "Ver todos" y el fallback accesible del componente.
+    const roomMq = window.matchMedia('(min-width: 1024px) and (min-height: 620px)');
     const canSpin = () => !reduce.matches && roomMq.matches;
 
     // ---- parámetros ----
@@ -193,7 +203,17 @@ const pad = (n: number) => String(n).padStart(2, '0');
     const ZOOM_AMOUNT = 0.7; // extra al centro → pico = BASE_FRONT + ZOOM_AMOUNT = 1.56×
     const ZOOM_WIDTH = 22; // ° a cada lado del centro donde actúa el zoom (angosto = pop aislado)
     const SS = 2; // factor de supersample: la card se maqueta a SS× (CSS) y acá se reduce ÷SS → nítida
-    let RADIUS = 440; // radio del cilindro (px) — círculo amplio = cards más separadas; se ajusta en mobile
+    // ---- carriles de escape ----
+    const RADIUS_MAX = 540; // radio del cilindro con lugar de sobra (el de siempre)
+    const RADIUS_MIN = 380; // piso: por debajo las cards se amontonan
+    const LANE_MIN = 92; // ancho mínimo utilizable de un carril (px)
+    const LANE_GAP = 12; // aire entre el cilindro y el carril
+    // ° a cada lado del frente que cuentan como "el cilindro" a los efectos del
+    // carril: la card en foco y sus vecinas inmediatas (stepAngle es 34°). Subir
+    // este número angosta el carril; bajarlo lo ensancha.
+    const CORE_ANGLE = 40;
+    let RADIUS = RADIUS_MAX; // radio del cilindro (px); lo ajusta fitGeometry()
+    let laneW = 0; // ancho de cada carril de escape (px); 0 = no hay lugar
     let stepAngle = 0; // ° entre cards (compartido layout/render); lo fija layout()
     // px que scrollea la sección ANTES de que el panel sticky se fije (= alto del
     // header con el título). Hasta ese punto el scroll mueve la página, no el
@@ -234,11 +254,79 @@ const pad = (n: number) => String(n).padStart(2, '0');
     const clamp = (v: number, a: number, b: number) => Math.min(b, Math.max(a, v));
     const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
     const pad = (n: number) => String(n).padStart(2, '0');
-    const calcRadius = () => (window.innerWidth < 680 ? 300 : 540);
+    // ancho visible del viewport SIN la barra de scroll: es el sistema de
+    // coordenadas de clientX y el ancho real del panel, no `innerWidth`.
+    const viewW = () => document.documentElement.clientWidth;
+
+    // ---- envolvente del cilindro: hasta dónde llegan las cards proyectadas ----
+    // Máximo |x| (px desde el centro del escenario) que ocupa una card entre 0°
+    // y `hasta`, con la perspectiva ya aplicada. Con el barrido completo (180°)
+    // el máximo NO cae en 90°: la perspectiva agranda las que todavía están de
+    // este lado, así que el pico real queda cerca de los 70°.
+    function envelope(radius: number, cw: number, persp: number, hasta = 180) {
+      let max = 0;
+      for (let a = 0; a <= hasta; a += 2) {
+        const rad = (a * Math.PI) / 180;
+        const cosT = (Math.cos(rad) + 1) / 2;
+        const depth = BASE_SIDE + (BASE_FRONT - BASE_SIDE) * Math.pow(cosT, 1.3);
+        const peak = a < ZOOM_WIDTH ? (Math.cos((a / ZOOM_WIDTH) * Math.PI) + 1) / 2 : 0;
+        const s = (depth + ZOOM_AMOUNT * peak) / SS; // mismo tamaño que aplica render()
+        const z = radius * Math.cos(rad);
+        const k = persp / Math.max(persp - z, 1); // factor de perspectiva a esa profundidad
+        // centro de la card + su medio ancho escorzado por el giro
+        const x = (radius * Math.sin(rad) + ((cw * s) / 2) * Math.abs(Math.cos(rad))) * k;
+        if (x > max) max = x;
+      }
+      return max;
+    }
+
+    // ---- radio del cilindro + ancho de los carriles de escape ----
+    // Los carriles son la razón de ser del ajuste: el cilindro nunca debe
+    // ocupar TODO el ancho, porque la franja que queda a cada costado es por
+    // donde el visitante sigue scrolleando el sitio sin recorrer la espiral.
+    // En pantallas anchas (≥ ~1364px) no cambia nada: entra el radio de siempre
+    // y sobra margen. Más angosto, se achica el radio lo justo para dejar
+    // LANE_MIN a cada lado, hasta el piso RADIUS_MIN.
+    function fitGeometry() {
+      const first = cardEls[0];
+      const stageEl = section!.querySelector<HTMLElement>('.ph-stage');
+      const cw = first ? parseFloat(getComputedStyle(first).getPropertyValue('--cw')) || 376 : 376;
+      const persp = stageEl ? parseFloat(getComputedStyle(stageEl).perspective) || 2600 : 2600;
+      const half = viewW() / 2;
+      const room = half - LANE_MIN - LANE_GAP; // envolvente máxima tolerada
+      let r = RADIUS_MAX;
+      if (envelope(r, cw, persp) > room) {
+        // bisección: el mayor radio cuya envolvente entra en `room`
+        let lo = RADIUS_MIN;
+        let hi = RADIUS_MAX;
+        for (let i = 0; i < 14; i++) {
+          const mid = (lo + hi) / 2;
+          if (envelope(mid, cw, persp) <= room) lo = mid;
+          else hi = mid;
+        }
+        r = lo;
+      }
+      RADIUS = Math.round(r);
+      // ---- ancho del carril ----
+      // NO se mide contra la envolvente completa sino contra el NÚCLEO: la card
+      // al frente y sus vecinas inmediatas (hasta CORE_ANGLE°), que son las que
+      // se leen y se clickean. Más allá de eso el cilindro son fantasmas a 0,3
+      // de opacidad y desenfocados: que el scroll ahí responda al sitio es lo
+      // esperable, y así el carril queda casi el doble de ancho (en 1920 pasa de
+      // ~380 a ~460px, o sea toma toda la franja de los botones de filtro).
+      // El marcador del carril (el filete y el rótulo, contra el borde) igual
+      // queda libre de cards: para eso el radio se ajustó contra la envolvente
+      // completa unas líneas más arriba.
+      const w = Math.round(half - envelope(RADIUS, cw, persp, CORE_ANGLE) - LANE_GAP);
+      laneW = w >= 48 ? w : 0; // menos que eso no es un blanco clickeable: sin carril
+      section!.style.setProperty('--ph-lane', `${laneW}px`);
+      section!.classList.toggle('has-lanes', laneW > 0);
+      if (!laneW) setLaneSide(0);
+    }
 
     // ---- posicionar el cilindro para el subconjunto visible ----
     function layout() {
-      RADIUS = calcRadius();
+      fitGeometry();
       N = active.length;
       // El panel sticky (top:0) se fija cuando su borde superior —a `headOffset`
       // px del tope de la sección— llega al tope del viewport. No depende de N;
@@ -259,6 +347,14 @@ const pad = (n: number) => String(n).padStart(2, '0');
     // ---- progreso de scroll de la sección (0..1) -> targetScroll (0..N-1) ----
     function updateTarget() {
       if (!is3d() || transitioning) return; // en grilla / durante el flip no se scrubea
+      // ¿el panel está pegado? Es exactamente el tramo en el que el scroll gira
+      // el cilindro, o sea donde se marcan los carriles de escape.
+      setPinned(pinnedNow());
+      // CONGELADO (cursor en un carril): no se toca `targetScroll`, así que el
+      // rAF deja las cards y el parallax del fondo clavados donde estaban por
+      // más que la página siga scrolleando. Es la garantía de que el costado
+      // mueve el SITIO y no los proyectos.
+      if (frozen) return;
       const passed = -section!.getBoundingClientRect().top;
       // El recorrido del helicoidal arranca cuando el panel se fija (passed >=
       // headOffset) y termina al soltarse (passed = offsetHeight - innerHeight).
@@ -342,9 +438,188 @@ const pad = (n: number) => String(n).padStart(2, '0');
       });
     }
 
+    // ======================================================================
+    // CARRILES DE ESCAPE — el costado mueve el SITIO, no el cilindro
+    // ----------------------------------------------------------------------
+    // El problema: mientras el panel está pegado, el documento mide ~6,8
+    // pantallas que el navegador gasta ENTERAS en girar el cilindro. Quien no
+    // quiere recorrer la obra quedaba obligado a scrollear todo eso para llegar
+    // a la sección siguiente.
+    //
+    // La regla, geométrica como el resto de la sección: ENCIMA de las cards
+    // manda el recorrido; AFUERA (las franjas de cada costado, a todo el alto)
+    // manda el sitio. Con el cursor en un carril pasan dos cosas:
+    //   1. **Las cards se CONGELAN** (`frozen`): el scroll deja de girar el
+    //      cilindro. Esto no depende de nada del navegador — es simplemente no
+    //      tocar `targetScroll` — así que es la garantía visual de que los
+    //      proyectos se quedan quietos, pase lo que pase con el evento.
+    //   2. **La página salta a la sección de al lado** con una animación propia:
+    //      abajo, el arranque de la que sigue; arriba, el arranque de ésta.
+    //      O sea: el sitio se desplaza entre secciones y las cards ni se enteran.
+    //
+    // ⚠ DOS COSAS QUE NO HAY QUE VOLVER A ASUMIR (rompieron versiones anteriores):
+    // 1. **`preventDefault()` no siempre corre.** Con un gesto de scroll ya
+    //    arrancado, Chrome manda los `wheel` con `cancelable:false` y el
+    //    preventDefault se ignora en silencio. Por eso el congelamiento es el
+    //    mecanismo principal y el salto va aparte: aunque el navegador scrollee
+    //    por su cuenta, las cards siguen quietas y lo único que se mueve es el
+    //    sitio — que es justo lo que se busca.
+    // 2. **El listener va en `window`, no en la sección.** Colgado de la sección
+    //    depende del hit-test: cualquier cosa fija bajo el cursor (el botón de
+    //    WhatsApp, el header) se come el evento. Se engancha y desengancha con
+    //    el IntersectionObserver, así que el listener no-pasivo sólo existe
+    //    mientras la sección está a la vista.
+    // ======================================================================
+    let pinned = false; // el panel está pegado (sólo para la marca visual)
+    let laneSide = 0; // carril bajo el cursor: -1 izquierda · 1 derecha · 0 ninguno
+    let frozen = false; // cards quietas: el scroll no gira el cilindro
+    let unfreezeTimer = 0;
+    let jumping = false; // hay un salto de sección en curso
+    let jumpRaf = 0;
+    let jumpFrom = 0;
+    let jumpTo = 0;
+    let jumpT0 = 0;
+    let jumpAccum = 0; // rueda acumulada en el carril antes de disparar
+    let jumpCooldown = 0; // hasta este timestamp no se dispara otro salto
+    const JUMP_MS = 640; // duración del salto entre secciones
+    const JUMP_TRIGGER = 24; // px de rueda que hay que juntar para dispararlo
+
+    function setPinned(v: boolean) {
+      if (v === pinned) return;
+      pinned = v;
+      section!.classList.toggle('is-pinned', v);
+      if (!v) setLaneSide(0);
+    }
+
+    function setLaneSide(s: number) {
+      if (s === laneSide) return;
+      laneSide = s;
+      section!.classList.toggle('is-lane-l', s === -1);
+      section!.classList.toggle('is-lane-r', s === 1);
+    }
+
+    // ¿el cursor cae en un carril? (sólo mira el eje x: mientras el panel está
+    // pegado ocupa el viewport entero, así que el carril va a todo el alto)
+    function laneAt(x: number) {
+      if (!laneW) return 0;
+      if (x <= laneW) return -1;
+      if (x >= viewW() - laneW) return 1;
+      return 0;
+    }
+
+    // El panel es `sticky; top:0`: mientras está pegado su borde superior vale 0
+    // exacto. Antes de pegarse es > 0 y al soltarse (la sección termina) pasa a
+    // < 0. Por eso alcanza —y sobra— con mirar el top: no depende del alto del
+    // panel, que va en `svh` y no siempre coincide con `innerHeight`. Se observa
+    // la posición REAL en vez de deducirla de `headOffset`, que puede quedar
+    // viejo si la fuente entra después y el título reflowea.
+    function pinnedNow() {
+      if (!sticky) return false;
+      return Math.abs(sticky.getBoundingClientRect().top) <= 1.5;
+    }
+
+    const maxScroll = () =>
+      Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+
+    // la rueda reporta píxeles, líneas o páginas según el dispositivo
+    function wheelPx(e: WheelEvent) {
+      if (e.deltaMode === 1) return e.deltaY * 16;
+      if (e.deltaMode === 2) return e.deltaY * window.innerHeight * 0.9;
+      return e.deltaY;
+    }
+
+    // ---- congelar / descongelar el cilindro ----
+    // Congelado = `updateTarget` no toca `targetScroll`, así que el rAF deja las
+    // cards (y el parallax del fondo) exactamente donde estaban por más que la
+    // página se mueva. Se descongela sola un rato después de la última rueda en
+    // el carril: si el gesto sigue (inercia del trackpad), sigue congelada.
+    function freeze() {
+      frozen = true;
+      clearTimeout(unfreezeTimer);
+      unfreezeTimer = window.setTimeout(unfreeze, 220);
+    }
+    function unfreeze() {
+      clearTimeout(unfreezeTimer);
+      if (!frozen) return;
+      frozen = false;
+      updateTarget(); // resincronizar con la posición real (el cilindro se acomoda solo)
+    }
+
+    // ---- salto entre secciones ----
+    // Abajo: el arranque de la sección siguiente (el borde inferior de ésta).
+    // Arriba: el arranque de ésta (el borde con la anterior). En los dos casos
+    // el destino queda justo debajo del navbar fijo.
+    function jumpTargetFor(dir: number) {
+      const secTop = section!.getBoundingClientRect().top + window.scrollY;
+      const nav = navH();
+      const to = dir > 0 ? secTop + section!.offsetHeight - nav : secTop - nav;
+      return clamp(to, 0, maxScroll());
+    }
+
+    function startJump(dir: number) {
+      const to = jumpTargetFor(dir);
+      const from = window.scrollY;
+      if ((to - from) * dir <= 8) return; // ya estamos ahí, o el destino no va en esa dirección
+      jumping = true;
+      jumpFrom = from;
+      jumpTo = to;
+      jumpT0 = 0;
+      cancelAnimationFrame(jumpRaf);
+      jumpRaf = requestAnimationFrame(stepJump);
+    }
+
+    function stepJump(t: number) {
+      if (!jumping) return;
+      if (!jumpT0) jumpT0 = t;
+      const p = Math.min((t - jumpT0) / JUMP_MS, 1);
+      const e = p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2; // easeInOutCubic
+      // 'instant', NO 'auto': `html` tiene scroll-behavior:smooth y 'auto' lo
+      // respetaría → dos animaciones peleando.
+      window.scrollTo({
+        top: jumpFrom + (jumpTo - jumpFrom) * e,
+        behavior: 'instant' as ScrollBehavior,
+      });
+      if (p < 1) {
+        jumpRaf = requestAnimationFrame(stepJump);
+        return;
+      }
+      jumping = false;
+      jumpAccum = 0;
+      jumpCooldown = performance.now() + 320; // la inercia del gesto no dispara otro salto
+      freeze(); // y tampoco vuelve a girar las cards
+    }
+
+    function cancelJump() {
+      jumping = false;
+      cancelAnimationFrame(jumpRaf);
+      jumpAccum = 0;
+      unfreeze();
+    }
+
+    function onWheel(e: WheelEvent) {
+      if (!is3d() || transitioning || !laneW) return;
+      if (e.ctrlKey) return; // zoom con trackpad
+      if (!laneAt(e.clientX)) {
+        jumpAccum = 0; // volvió sobre las cards: el scroll nativo manda otra vez
+        return;
+      }
+      if (!jumping && !pinnedNow()) return; // fuera del tramo pegado: scroll normal
+      const dy = wheelPx(e);
+      if (!dy) return;
+      // Se pide, pero el mecanismo no depende de esto (ver la nota de arriba).
+      if (e.cancelable) e.preventDefault();
+      freeze(); // lo primero: las cards se quedan quietas pase lo que pase
+      if (jumping || performance.now() < jumpCooldown) return;
+      if (jumpAccum !== 0 && Math.sign(dy) !== Math.sign(jumpAccum)) jumpAccum = 0;
+      jumpAccum += dy;
+      if (Math.abs(jumpAccum) < JUMP_TRIGGER) return;
+      startJump(Math.sign(jumpAccum));
+    }
+
     // ---- filtros (sirven igual en 3D y en grilla) ----
     function applyFilter(filter: string) {
       if (transitioning) return; // no filtrar a mitad del desenrollado/reensamblado
+      cancelJump(); // el filtro cambia el alto de la sección: el destino del salto ya no vale
       filterBtns.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.filter === filter)));
       active = cards.filter((c) => filter === 'todos' || c.status === filter);
       cards.forEach((c) => {
@@ -469,6 +744,8 @@ const pad = (n: number) => String(n).padStart(2, '0');
       viewMode = 'grilla';
       syncToggle();
       stop();
+      setPinned(false); // en grilla no hay panel pegado ni carriles
+      bindWheel(false);
 
       // FIRST — posición y opacidad actuales de cada card sobre el cilindro
       const first = rectsOf();
@@ -525,6 +802,8 @@ const pad = (n: number) => String(n).padStart(2, '0');
       transitioning = true;
       viewMode = 'cilindro';
       syncToggle();
+      cancelJump();
+      bindWheel(true);
 
       // montar el cilindro en el arranque del helicoidal (eje SIN rotar → el
       // transform base de cada card queda alineado ~pantalla para el "bloom")
@@ -583,23 +862,66 @@ const pad = (n: number) => String(n).padStart(2, '0');
       lastActiveIdx = -1;
       render();
       start();
+      bindWheel(true); // el IO lo corrige en su primera notificación si no está a la vista
     }
 
     // ---- interacciones (se enganchan UNA vez; cada handler se guarda por modo) ----
+    // El listener de rueda es NO PASIVO (necesita poder cancelar el scroll), así
+    // que sólo se engancha mientras la sección está a la vista: en el resto del
+    // sitio el navegador conserva el scroll asíncrono del compositor.
+    let wheelBound = false;
+    function bindWheel(on: boolean) {
+      if (on === wheelBound) return;
+      wheelBound = on;
+      if (on) window.addEventListener('wheel', onWheel, { passive: false });
+      else {
+        window.removeEventListener('wheel', onWheel);
+        cancelJump();
+      }
+    }
+
     const io = new IntersectionObserver(
       (entries) =>
         entries.forEach((e) => {
-          if (e.isIntersecting && is3d() && !transitioning) start();
+          const live = e.isIntersecting && is3d() && !transitioning;
+          if (live) start();
           else stop();
+          bindWheel(e.isIntersecting && is3d());
         }),
       { rootMargin: '0px' },
     );
     io.observe(section);
 
     window.addEventListener('scroll', updateTarget, { passive: true });
+
+    // ---- carriles de escape ----
+    // La rueda se escucha en WINDOW, no en la sección: colgado de la sección el
+    // evento depende del hit-test y cualquier cosa fija que caiga bajo el cursor
+    // (el botón de WhatsApp, el header) se lo comía. El listener es no-pasivo,
+    // así que se engancha y desengancha con el IntersectionObserver (ver
+    // `bindWheel` más abajo): sólo existe mientras la sección está a la vista.
+    // Sólo para el aviso visual del carril; la rueda ya trae su propio clientX,
+    // así que esto no hace falta para que funcione (podés scrollear con el
+    // cursor quieto en el costado sin haberlo movido nunca).
+    section.addEventListener(
+      'pointermove',
+      (e) => {
+        if (!is3d() || transitioning || !pinned || e.pointerType !== 'mouse') return setLaneSide(0);
+        setLaneSide(laneAt(e.clientX));
+      },
+      { passive: true },
+    );
+    section.addEventListener('pointerleave', () => setLaneSide(0), { passive: true });
+    // Soltar el control si el visitante mueve la página por otra vía (arrastrar
+    // la barra de scroll, teclado, un ancla): ahí sí hay que dejar de corregir.
+    window.addEventListener('pointerdown', cancelJump, { passive: true });
+    window.addEventListener('keydown', cancelJump, { passive: true });
+    window.addEventListener('touchstart', cancelJump, { passive: true });
+
     window.addEventListener(
       'resize',
       () => {
+        cancelJump(); // cambian los límites del tramo pegado a mitad de vuelo
         if (!is3d() || transitioning) return;
         layout();
         updateTarget();
@@ -610,6 +932,25 @@ const pad = (n: number) => String(n).padStart(2, '0');
       },
       { passive: true },
     );
+
+    // Remedir cuando el HEADER cambia de alto sin que haya resize de ventana.
+    // Pasa en cada carga: `layout()` corre apenas parsea el script, con las
+    // métricas de la fuente FALLBACK, y cuando entra Space Grotesk el título
+    // reflowea y `headOffset` queda viejo. Con headOffset viejo el tramo
+    // pegado se calcula corrido → el cilindro arranca desfasado y los carriles
+    // no se enteran de que el panel ya está pegado. `.ph-head` es exactamente
+    // lo que se mide, así que se observa eso y no la ventana.
+    if ('ResizeObserver' in window && head) {
+      let firstRO = true;
+      new ResizeObserver(() => {
+        if (firstRO) { firstRO = false; return; } // la primera notificación es el estado inicial
+        if (!is3d() || transitioning) return;
+        layout();
+        updateTarget();
+        scroll = targetScroll; // snap: es una corrección de medición, no una animación
+        render();
+      }).observe(head);
+    }
 
     // foco por teclado → rotar el cilindro para mostrar la card enfocada
     cards.forEach((c) => {
@@ -653,6 +994,8 @@ const pad = (n: number) => String(n).padStart(2, '0');
       if (!ahora) {
         // menos movimiento, o ya no entra → grilla fija, sin toggle
         stop();
+        setPinned(false);
+        bindWheel(false);
         section!.classList.remove('is-toggleable', 'is-3d', 'is-scrolling');
         section!.classList.add('is-grid');
         dockControls(false);

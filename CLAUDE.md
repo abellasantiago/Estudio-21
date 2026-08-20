@@ -396,13 +396,65 @@ dos secciones se pisen — **identidad acá, modelo allá**.
 - **Cards limpias:** sin cartelito `E21·NN`, sin nombre gigante de fondo, sin grilla
   blueprint; el fondo del panel es parallax multicapa (fantasma "21" + marcas de registro).
   El CTA "Ver proyecto" aparece **sólo en hover de la card al frente**.
-- **El cilindro pide LUGAR: `(min-width: 760px) and (min-height: 620px)`.** Por debajo
+- **Carriles de escape: no hay que recorrer todo el cilindro para seguir el sitio.**
+  El tramo pegado son ~6,8 pantallas de scroll con diez proyectos, y eso obligaba a
+  girar la espiral entera para llegar a la sección siguiente. La regla que lo resuelve
+  es geométrica, no un botón: **encima de las cards manda el recorrido; afuera —las
+  franjas de cada costado adonde el cilindro no llega, a todo el alto— manda el
+  sitio.** Con el cursor en un carril y la rueda andando pasan **dos cosas**:
+  1. **Las cards se CONGELAN** (`frozen`): `updateTarget` deja de tocar `targetScroll`,
+     así que el cilindro y el parallax del fondo quedan clavados donde estaban por más
+     que la página se mueva. Esto no depende de nada del navegador —es simplemente no
+     actualizar una variable— así que es la **garantía** de que los proyectos se quedan
+     quietos, pase lo que pase con el evento de rueda.
+  2. **La página salta a la sección de al lado** con una animación propia (`stepJump`,
+     640 ms, easeInOutCubic): abajo, el arranque de la que sigue; arriba, el arranque
+     de ésta. O sea: el sitio se desplaza entre secciones y las cards ni se enteran.
+
+  Detalles a respetar:
+  - ⚠ **`preventDefault()` NO alcanza, y por eso el mecanismo principal es el
+    congelamiento.** Con un gesto de scroll ya arrancado Chrome manda los `wheel` con
+    `cancelable:false` y el preventDefault se ignora en silencio — justo el caso normal
+    (venís scrolleando y te corrés al costado), que fue lo que dejó el carril inerte en
+    las primeras versiones. Aunque el navegador scrollee por su cuenta, con las cards
+    congeladas lo único que se mueve es el sitio: que es exactamente lo que se busca.
+  - ⚠ **El listener de rueda va en `window`, no en la sección.** Colgado de la sección
+    depende del hit-test y cualquier cosa fija bajo el cursor (el botón de WhatsApp, el
+    header) se comía el evento. Es no-pasivo, así que se engancha y desengancha con el
+    `IntersectionObserver`: sólo existe mientras la sección está a la vista.
+  - **Un gesto = un salto.** Hace falta juntar `JUMP_TRIGGER` (24px) de rueda para
+    dispararlo (un roce no te teletransporta) y después queda un cooldown de 320 ms
+    para que la inercia del trackpad no encadene un segundo salto. Verificado con un
+    flick de 12 eventos: un solo salto, sin pasarse.
+  - **Fuera del tramo pegado el handler ni se mete** (scroll normal), y sobre las cards
+    tampoco: ahí el recorrido sigue siendo el de siempre, proporcional al scroll.
+  - **El ancho del carril lo calcula el script** (`fitGeometry` → `--ph-lane`) contra el
+    **núcleo** del cilindro: la card al frente y sus vecinas hasta `CORE_ANGLE` (40°),
+    que son las que se leen y se clickean. Más allá de eso el cilindro son fantasmas a
+    0,3 de opacidad y desenfocados, y que el scroll ahí responda al sitio es lo
+    esperable. Da **459px por lado en 1920**, 299 en 1600, 219 en 1440, 159 en 1024 —
+    o sea toda la franja donde viven los botones de filtro (el riel termina en 246px).
+    Para angostarlo, subir `CORE_ANGLE`; para ensancharlo, bajarlo.
+  - **El marcador del carril igual queda libre de cards**: el filete va a ~19px del
+    borde y el rótulo a 28–44px, y la card más saliente nunca pasa de 104px del borde
+    en ningún ancho. Eso se sostiene porque el **RADIO** sí se ajusta contra la
+    envolvente COMPLETA (el máximo |x| en todo el recorrido, con perspectiva — el pico
+    no cae en 90° sino cerca de 70°): bisección entre 380 y 540 hasta dejar `LANE_MIN`
+    (92px) libres a cada lado. Arriba de ~1280px no cambia nada; el ajuste sólo actúa
+    entre 1024 y ~1280px.
+  - Los carriles son **decoración con `pointer-events:none`** (filete punteado + rótulo
+    "Seguir de largo" en el tercio de abajo, visibles sólo con el panel pegado): el riel
+    de filtros y el toggle viven dentro del carril y se tienen que poder clickear igual.
+  - En **touch no hay carril** (no hay `wheel` ni cursor): ahí la salida es el toggle
+    "Ver todos", que está pineado y a la vista.
+- **El cilindro pide LUGAR: `(min-width: 1024px) and (min-height: 620px)`.** Por debajo
   de eso el componente arranca —y vuelve— a la **grilla**. El corte es geométrico, como
-  el de los 1700px del riel: con menos de 760px la barra de filtros pasa a dos filas y
-  la card frontal (que va a 1,70×) le monta encima; con menos de 620px de alto (un
-  celular acostado, una ventana corta) la card no entra entera y se corta contra el
-  borde de abajo. Sumado a eso, en un teléfono el recorrido eran ~3800px de scroll para
-  diez proyectos. La grilla no es un premio consuelo: es la misma vista que da el toggle
+  el de los 1700px del riel: con menos de 1024px de ancho ya no quedan **carriles de
+  escape** (las cards proyectadas ocupan todo el ancho, así que la única forma de pasar
+  la sección sería recorrerla entera); con menos de 620px de alto (un celular acostado,
+  una ventana corta) la card no entra entera y se corta contra el borde de abajo.
+  Sumado a eso, en un teléfono el recorrido eran ~3800px de scroll para diez proyectos.
+  La grilla no es un premio consuelo: es la misma vista que da el toggle
   "Ver todos". El cambio es **en runtime** (girar el teléfono, arrastrar el borde de la
   ventana): se compara contra el estado anterior para no pisar una elección manual del
   toggle, y se engancha tanto al `change` de la media query como al `resize` —
@@ -570,13 +622,15 @@ Lo que hay que respetar para que el sitio siga entrando en cualquier pantalla y
 cualquier navegador. Todo esto está verificado midiendo el layout de 320px a 2560px
 de ancho (y en alturas de 390 a 1440), en la home y en la ficha de proyecto.
 
-**Los tres cortes que mandan** (no son estéticos, cada uno tiene su geometría):
+**Los cortes que mandan** (no son estéticos, cada uno tiene su geometría):
 - **900px** → capa inmersiva (`immersive.ts`: además pide `pointer: fine` y no
   `prefers-reduced-motion`). Debajo, el hero es estático y el `<html>` no lleva
   `is-immersive`.
-- **760px** → navbar horizontal ⇄ menú hamburguesa (`header.css`), y piso de ancho
-  del cilindro helicoidal. Es el mismo número por casualidad: el del navbar sale del
-  ancho del wordmark + los 5 links, el del cilindro del radio de las cards.
+- **760px** → navbar horizontal ⇄ menú hamburguesa (`header.css`). Sale del ancho del
+  wordmark + los 5 links.
+- **1024px** → piso de ancho del cilindro helicoidal. Debajo de eso no entran los
+  carriles de escape de los costados (ver la sección de proyectos) y el recorrido sería
+  obligatorio: queda la grilla.
 - **620px de ALTO** → piso del cilindro. El único corte del sitio que mira la altura
   además de las reglas de card chica del helicoidal (`max-height` 820/660).
 
@@ -637,6 +691,13 @@ fantasmas "21" sangran a propósito; verificado que no se pueda scrollear en x d
   cada filtro, y con el panel pegado leía p.ej. 4032 en vez de 247 → `range` quedaba
   en ~0 y el progreso clavado en 0. Si se agrega otro cálculo de layout ahí, medirlo
   siempre contra un elemento que no sea sticky.
+- **`headOffset` se remide con un `ResizeObserver` sobre `.ph-head`**, no sólo en el
+  `resize` de la ventana. `layout()` corre apenas parsea el script, o sea con las
+  métricas de la fuente **fallback**; cuando entra Space Grotesk el título reflowea y la
+  medición queda vieja **sin que dispare ningún `resize`** → el tramo pegado se calcula
+  corrido (el cilindro arranca desfasado y los carriles no se enteran de que el panel ya
+  está pegado). Observando `.ph-head` —que es exactamente lo que se mide— la corrección
+  llega sola. La primera notificación del observer se descarta: es el estado inicial.
 
 ## Pendientes antes de publicar
 

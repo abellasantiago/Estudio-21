@@ -152,6 +152,9 @@
 }
 
 .ph-hint{display:none}
+/* la coletilla que explica los carriles sólo tiene sentido si hay carriles */
+.ph-hint-lane{display:none}
+.ph.is-3d.has-lanes .ph-hint-lane{display:inline}
 
 /* responsive de la grilla (igual breakpoints que la grilla original) */
 @media(max-width:900px){.ph-axis{grid-template-columns:1fr 1fr}}
@@ -234,6 +237,81 @@
   background:color-mix(in srgb,var(--paper) 84%,transparent);
   backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);
 }
+
+/* ---- Carriles de escape (modo 3D) ------------------------------------------
+   La franja de cada costado adonde el cilindro NO llega. Con el cursor ahí el
+   scroll deja de girar los proyectos y pasa la sección a velocidad de sitio
+   (lo resuelve el <script>; acá sólo se marca la zona para que se entienda).
+
+   El ancho lo calcula el script en `--ph-lane` a partir de la envolvente real
+   del cilindro —y le achica el radio si hace falta— así que el carril nunca
+   cae encima de una card. Es DECORACIÓN: `pointer-events:none`, porque el riel
+   de filtros y el toggle viven dentro del carril y se tienen que poder
+   clickear igual.
+   Sólo se ve mientras el panel está pegado (`.is-pinned`), que es justo el
+   tramo en el que el scroll gira el cilindro. */
+.ph-lane{display:none}
+.ph.is-3d{--ph-lane-inset:clamp(.7rem,1.3vw,1.2rem)}
+.ph.is-3d.has-lanes .ph-lane{
+  display:block;position:absolute;top:0;bottom:0;z-index:4;
+  width:var(--ph-lane,0px);pointer-events:none;
+  opacity:0;transition:opacity .45s ease;
+}
+.ph.is-3d.has-lanes.is-pinned .ph-lane{opacity:1}
+.ph.is-flipping .ph-lane{opacity:0}
+.ph-lane-l{left:0}
+.ph-lane-r{right:0}
+/* filete PUNTEADO al borde exterior: marca el límite del recorrido sin
+   competir con el riel de filtros, que en ≥1700px es una línea llena. */
+.ph-lane::before{
+  content:"";position:absolute;top:14%;bottom:14%;width:1px;
+  background-image:repeating-linear-gradient(to bottom,var(--line) 0 5px,transparent 5px 11px);
+  opacity:.8;transition:opacity .3s ease,background-image .3s ease;
+}
+.ph-lane-l::before{left:var(--ph-lane-inset)}
+.ph-lane-r::before{right:var(--ph-lane-inset)}
+/* velo apenas perceptible, sólo con el carril activo: da a entender que el
+   costado es una zona y no un vacío. color-mix con declaración plana antes
+   (si el navegador no lo soporta, se queda con el rgba y no con nada). */
+.ph.is-3d.has-lanes .ph-lane::after{
+  content:"";position:absolute;inset:0;opacity:0;transition:opacity .35s ease;
+}
+.ph-lane-l::after{
+  background:linear-gradient(to right,rgba(224,222,215,.5),transparent);
+  background:linear-gradient(to right,color-mix(in srgb,var(--paper-deep) 50%,transparent),transparent);
+}
+.ph-lane-r::after{
+  background:linear-gradient(to left,rgba(224,222,215,.5),transparent);
+  background:linear-gradient(to left,color-mix(in srgb,var(--paper-deep) 50%,transparent),transparent);
+}
+/* El rótulo va en el tercio de abajo, no centrado: en ≥1700px el riel vertical
+   de filtros vive dentro del carril izquierdo y está centrado — a media altura
+   los dos se pisan (quedaban a 10px). Abajo despeja el riel y también el
+   toggle, que está pineado arriba. */
+.ph-lane-txt{
+  position:absolute;top:72%;
+  writing-mode:vertical-rl;
+  font-family:var(--font-mono);font-size:.6rem;letter-spacing:.24em;text-transform:uppercase;
+  color:var(--concrete-soft);white-space:nowrap;
+  opacity:0;transition:opacity .3s ease,color .3s ease;
+}
+/* el rótulo del margen izquierdo se lee de abajo hacia arriba (convención de
+   plano); el del derecho, de arriba hacia abajo */
+.ph-lane-l .ph-lane-txt{left:calc(var(--ph-lane-inset) + 9px);transform:translateY(-50%) rotate(180deg)}
+.ph-lane-r .ph-lane-txt{right:calc(var(--ph-lane-inset) + 9px);transform:translateY(-50%)}
+/* carril activo: se marca el filete, entra el velo y aparece el rótulo.
+   Los selectores repiten `.is-3d.has-lanes` porque el estado de reposo del
+   velo (`opacity:0`) se declara con esas dos clases: sin repetirlas acá, gana
+   el reposo por especificidad y el velo no aparece nunca. */
+.ph.is-3d.has-lanes.is-lane-l .ph-lane-l::before,
+.ph.is-3d.has-lanes.is-lane-r .ph-lane-r::before{
+  opacity:1;
+  background-image:repeating-linear-gradient(to bottom,var(--concrete-soft) 0 5px,transparent 5px 11px);
+}
+.ph.is-3d.has-lanes.is-lane-l .ph-lane-l::after,
+.ph.is-3d.has-lanes.is-lane-r .ph-lane-r::after{opacity:1}
+.ph.is-3d.has-lanes.is-lane-l .ph-lane-l .ph-lane-txt,
+.ph.is-3d.has-lanes.is-lane-r .ph-lane-r .ph-lane-txt{opacity:1;color:var(--concrete)}
 
 /* Durante el desenrollado las cards vuelan fuera del panel: hay que soltar el
    recorte para que no se corten a mitad de vuelo. */
