@@ -560,10 +560,7 @@ de ancho (y en alturas de 390 a 1440), en la home y en la ficha de proyecto.
   Debajo de 900px el título va quieto, de frente (y no gasta batería animando 3D).
 - **Las notas mono del fondo vivo (`.lbg-note`) se ocultan en ≤760px.** Van con
   `white-space: nowrap` y "EST·21 — ARQUITECTURA Y DESARROLLO" mide ~305px: en un
-  teléfono se salía de pantalla por la izquierda y cruzaba el indicador de scroll.
-- **`.hero-stage` reserva 6rem abajo en `max-height: 620px`.** Con poco alto el
-  escenario mide lo que ocupa el contenido (no 80vh) y el "SCROLL", que va absoluto
-  contra el piso, se le montaba a la línea "21 de Setiembre 3024".
+  teléfono se salía de pantalla por la izquierda.
 - **El panel sticky del helicoidal va en `svh`** (`100vh` primero, de fallback). En
   iPad/Android `100vh` es el viewport GRANDE: el panel quedaba ~90px más alto que lo
   visible y el cilindro se cortaba abajo. **`dvh` no sirve acá** — cambiaría de alto
