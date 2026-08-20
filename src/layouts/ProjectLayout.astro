@@ -13,8 +13,19 @@ interface Props {
 }
 
 const { proyecto } = Astro.props;
-const { nombre, slug, estado, ubicacion, barrio, anio, unidades, metros, portadaFoco, portadaZoom } =
-  proyecto.data;
+const {
+  nombre,
+  slug,
+  estado,
+  ubicacion,
+  barrio,
+  anio,
+  unidades,
+  metros,
+  portadaFoco,
+  portadaZoom,
+  portadaAspecto,
+} = proyecto.data;
 
 const { Content } = await render(proyecto);
 const portada = getPortada(slug);
@@ -59,18 +70,28 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 
 /*
  * Ancho REAL que el navegador tiene que rasterizar de la portada.
- * La caja mide como mucho 480px de ancho, pero es 6/7 y la foto entra con
- * `object-fit:cover`: una apaisada se agranda hasta que su ALTO llena la caja,
- * así que termina midiendo `alto_de_caja × proporción` de ancho. Villa Platero
- * (1.50) necesita más de 480 — pidiéndole 480 el navegador la estiraba y salía
- * blanda. El zoom manual (`portadaZoom`) multiplica sobre eso.
- * ⚠ COVER_AR debe coincidir con el `aspect-ratio` de `.proj-cover` en
- * project-page.css — si se cambia uno hay que cambiar el otro.
+ * Lo que manda es el ALTO de la caja, topado en COVER_H_MAX (ver --cover-h en
+ * .proj-cover, project-page.css: el ancho de la columna se DERIVA de ese alto
+ * fijo según la proporción de cada portada — no al revés). Con
+ * `object-fit:cover`, el navegador escala la foto hasta que su lado más
+ * exigente llena la caja: si la foto es más ancha que la caja (proporción >
+ * coverBoxAr) manda el ALTO y el ancho renderizado = COVER_H_MAX × proporción
+ * de la foto; si es más angosta, manda el ANCHO de la caja. Las dos se cubren
+ * con `COVER_H_MAX × max(coverBoxAr, coverAr)`. Villa Platero (1.50) necesita
+ * 840px — pidiéndole menos el navegador la estiraba y salía blanda. El zoom
+ * manual (`portadaZoom`) multiplica sobre eso.
+ * ⚠ COVER_AR_DEFAULT debe coincidir con el fallback del `aspect-ratio` de
+ * `.proj-cover` en project-page.css, y COVER_H_MAX con su `--cover-h` — si se
+ * cambia uno hay que cambiar el otro.
  */
-const COVER_W = 480; // ancho máximo de la caja (ver .proj-top en project-page.css)
-const COVER_AR = 6 / 7; // proporción de la caja de la portada
-const coverAr = portada ? portada.width / portada.height : COVER_AR;
-const coverRender = Math.round(COVER_W * Math.max(1, coverAr / COVER_AR) * (portadaZoom ?? 1));
+const COVER_W = 480; // ancho de la caja cuando está en 6/7 (su ancho de referencia)
+const COVER_AR_DEFAULT = 6 / 7; // proporción por defecto de la caja de la portada
+const COVER_H_MAX = COVER_W / COVER_AR_DEFAULT; // 560 — alto MÁXIMO de la caja (fijo, igual en todos los proyectos)
+const coverBoxAr = portadaAspecto
+  ? (([w, h]) => w / h)(portadaAspecto.split('/').map(Number))
+  : COVER_AR_DEFAULT;
+const coverAr = portada ? portada.width / portada.height : coverBoxAr;
+const coverRender = Math.round(COVER_H_MAX * Math.max(coverBoxAr, coverAr) * (portadaZoom ?? 1));
 const coverWidths = portada
   ? [...new Set([coverRender, Math.min(coverRender * 2, portada.width)])].sort((a, b) => a - b)
   : [COVER_W];
@@ -94,12 +115,15 @@ const ficha = [
         <span class={`status ${estado}`}><span class="pip"></span>{estadoLabel}</span>
       </div>
 
-      {/* Portada a la izquierda, descripción al costado. La portada va SIEMPRE
-          en 4/5 (vertical suave), igual en todos los proyectos: el encuadre de
-          cada una se ajusta con `portadaFoco` / `portadaZoom` del frontmatter. */}
+      {/* Portada a la izquierda, descripción al costado. La portada va en 6/7
+          (vertical suave) por defecto, igual en la mayoría de los proyectos:
+          el encuadre de cada una se ajusta con `portadaFoco` / `portadaZoom`
+          del frontmatter. La proporción de la caja en sí también se puede
+          overridear por proyecto con `portadaAspecto` (ej. Patios del
+          Regimiento, muy apaisada: el 6/7 le recortaba demasiado). */}
       <div class="proj-top">
         {portada ? (
-          <div class="proj-cover">
+          <div class="proj-cover" style={`--cover-ar:${portadaAspecto ?? '6/7'}`}>
             <Picture
               src={portada}
               formats={['avif', 'webp']}
