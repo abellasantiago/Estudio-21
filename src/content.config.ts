@@ -30,6 +30,11 @@ const proyectos = defineCollection({
     // centrado sin zoom.
     portadaFoco: z.string().optional(), // object-position, ej. "50% 20%" o "left top"
     portadaZoom: z.number().optional(), // >=1, recorte extra sobre el foco (1 = sin zoom)
+    // Override de la proporción de la portada GRANDE en la ficha del proyecto
+    // (formato CSS aspect-ratio, ej. "1/1"). Por defecto 6/7 (vertical suave);
+    // sólo hace falta tocarlo cuando esa proporción le queda mal a una foto
+    // muy apaisada (recorta demasiado). No afecta la card del helicoidal.
+    portadaAspecto: z.string().optional(),
   }),
 });
 

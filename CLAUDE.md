@@ -85,7 +85,7 @@ Orden: **Hero · El estudio · Cómo operamos · Proyectos · Equipo · Contacto
 (`src/pages/index.astro`). Ojo con los anclajes: **`#nosotros` es la sección de
 presentación** (`Presentacion.astro`) — el link "Nosotros" del navbar entra por ahí,
 que es donde se dice quiénes son; la sección del modelo de trabajo
-(`Nosotros.astro`, la de las fases F01–F04) quedó con `id="como-operamos"`.
+(`Nosotros.astro`, la de las cuatro fases) quedó con `id="como-operamos"`.
 Entre **Quiénes somos / Cómo operamos** y entre **Cómo operamos / Proyectos** van
 **reglas divisorias** (`hr.section-rule`, sueltas en `index.astro` entre los
 `<section>`): en la home inmersiva las secciones son transparentes y sin eso se leían
@@ -437,8 +437,11 @@ dos secciones se pisen — **identidad acá, modelo allá**.
 
 ### Cómo operamos / Equipo / Contacto
 - **Cómo operamos** (`Nosotros.astro` / `nosotros.css`, ancla `/#como-operamos`):
-  cabecera simple (eyebrow + título + lead) y los bloques F01–F04. Las cifras de
-  trayectoria **no** van acá: viven al pie de la sección de presentación.
+  cabecera simple (eyebrow + título + lead) y los bloques de las cuatro fases.
+  Las cifras de trayectoria **no** van acá: viven al pie de la sección de
+  presentación. La etiqueta de cada bloque va sólo `· Originación` /
+  `· Estructura` / etc. — el prefijo `F01`–`F04` que tenía antes se sacó del
+  todo (no significaba nada para quien lo lee).
   La línea que corona las fases va en **`--concrete`**, no en `--ink` como la de las
   cifras y la del equipo: es la única de las tres que tiene cuatro columnas colgando,
   y en tinta plena pesaba de más. **No lleva los puntitos** que tenía sobre cada
@@ -470,27 +473,51 @@ Orden de la página: **título · (portada | descripción) · ficha técnica · 
 
 - **Título arriba de todo** (`.proj-head`), con el chip de estado a la derecha.
 - **Portada a la izquierda, descripción al costado** (`.proj-top`). La columna de
-  la foto está **topada en 480px**: con el 6/7 fijo, más ancho que eso da una
-  portada de +560px de alto y la descripción —de 77 a 151 palabras según el
-  proyecto— queda colgando en el aire. Lo que sobra va al texto, topado en 62ch.
-  En ≤900px se apila (portada centrada, `min(100%, 440px)`).
-- **La portada va SIEMPRE en 6/7** (vertical suave, más ancha que un 4/5), igual
-  en todos los proyectos. Las fotos reales van de 0.75 a 1.50, así que cada una
-  se encuadra a mano desde el frontmatter: **`portadaFoco`** (`--pf`, qué parte
-  se conserva) y **`portadaZoom`** (`--pz`, acerca desde ese mismo punto). Son
-  los mismos campos que usa la card del helicoidal → un solo ajuste sirve para
-  las dos vistas. Cuánto se recorta con el 6/7: las verticales entre 7% y 13%
-  (antes con el 4/5 casi no perdían nada — el trade-off de ensanchar la caja),
-  las cuadradas ~14%, Cavas de Haedo (1.03) ~17% y las tres apaisadas entre 36%
-  y 43% (en las tres el edificio está centrado, así que el foco al centro las
-  toma bien).
+  la foto está **topada en 480px de ancho / 560px de alto** — pero es el **alto**
+  el que manda (`--cover-h` en `.proj-cover`, `grid-template-columns:max-content
+  ...` en `.proj-top`): el ancho de la columna se deriva de ese alto fijo según
+  la proporción de cada portada, no al revés. Así una portada más ancha que 6/7
+  (ver `portadaAspecto` abajo) ensancha su propia columna en vez de perder alto
+  para seguir midiendo 480px — **todas las fichas comparten la misma banda
+  vertical**, sea cual sea su proporción. Con el ancho fijo (6/7, 77 a 151
+  palabras según el proyecto) la descripción queda colgando en el aire; lo que
+  sobra va al texto, topado en 62ch. En ≤900px se apila y vuelve al modelo de
+  ancho fijo (`--cover-h:auto`, portada centrada en `min(100%, 440px)`) — con
+  una sola columna, alto fijo no tiene sentido: una cuadrada se vería tan ancha
+  como una vertical, pegada al ancho completo.
+- **La portada va en 6/7 por defecto** (vertical suave, más ancha que un 4/5),
+  igual en la mayoría de los proyectos. Las fotos reales van de 0.75 a 1.50, así
+  que cada una se encuadra a mano desde el frontmatter: **`portadaFoco`** (`--pf`,
+  qué parte se conserva) y **`portadaZoom`** (`--pz`, acerca desde ese mismo
+  punto). Son los mismos campos que usa la card del helicoidal → un solo ajuste
+  sirve para las dos vistas. Además, **la caja entera** (no sólo el encuadre)
+  hace un zoom parejo de **1.06×** sobre `--pz` (en el CSS, no en el frontmatter):
+  las portadas se sentían "de catálogo", sin recortar nada, y ese acercamiento
+  leve les da más presencia sin ser una decisión de encuadre por proyecto.
+  Cuánto se recorta con el 6/7 (antes del 1.06× parejo): las verticales entre 7%
+  y 13% (con el 4/5 anterior casi no perdían nada — el trade-off de ensanchar la
+  caja), las cuadradas ~14%, Cavas de Haedo (1.03) ~17%.
+  - **La proporción de la caja también se puede overridear por proyecto**, con
+    `portadaAspecto` (ej. `"1/1"`) en el frontmatter — para cuando el 6/7 le
+    recorta demasiado a una foto muy apaisada. Patios del Regimiento (1.41, la
+    más apaisada después de Villa Platero) lo usa: en 6/7 perdía ~39%, cuadrada
+    pierde ~29%. Villa Platero (1.50, ~43% en 6/7) y Terrazas de Italia (1.33,
+    ~36%) se quedaron en el 6/7 default — en las tres el edificio está centrado,
+    así que el foco al centro las toma bien sea cual sea la caja.
   - ⚠ **El `widths`/`sizes` de la portada NO es el ancho de la caja.** Con
-    `object-fit:cover` en una caja 6/7, una foto apaisada se agranda hasta que su
-    **alto** llena la caja → termina rasterizando `alto × proporción` de ancho.
-    Villa Platero (1.50) necesita **840px**, no 480: pidiéndole 480 el navegador
-    la estiraba y salía blanda. Lo calcula `coverRender` en el layout
-    (`480 × max(1, ar/COVER_AR) × portadaZoom`, con `COVER_AR = 6/7` — tiene que
-    coincidir con el `aspect-ratio` de `.proj-cover` en project-page.css).
+    `object-fit:cover`, el navegador escala la foto hasta que su lado más
+    exigente llena la caja: como el ALTO es fijo (`COVER_H_MAX = 560`, igual en
+    todos los proyectos), el ancho a rasterizar es `COVER_H_MAX × max(coverBoxAr,
+    coverAr) × portadaZoom` (`coverBoxAr` = el valor de `portadaAspecto` si
+    existe, si no `COVER_AR_DEFAULT = 6/7`; `coverAr` = la proporción real de la
+    foto). Villa Platero (1.50, caja 6/7) necesita **840px**; Patios del
+    Regimiento (1.41, caja 1/1 por `portadaAspecto`) necesita **792px** — pedir
+    de menos deja la foto ligeramente blanda. Lo calcula `coverRender` en el
+    layout. ⚠ `COVER_H_MAX` tiene que coincidir con el `--cover-h` de
+    `.proj-cover` en project-page.css, y `COVER_AR_DEFAULT` con su fallback de
+    `aspect-ratio`. El zoom parejo de 1.06× es sólo CSS (`transform`), no entra
+    en esta cuenta — el margen de las fuentes 2× ya lo absorbe sin que se note
+    blando.
 - **Ficha técnica**: banda horizontal de 5 columnas al pie del bloque, con
   `border-top` en `--ink` (marcado `<dl>` con `<dt>`/`<dd>`).
 - **Galería = tira de contactos + visor.** Todas las miniaturas al **mismo alto**
@@ -583,10 +610,7 @@ de ancho (y en alturas de 390 a 1440), en la home y en la ficha de proyecto.
   Debajo de 900px el título va quieto, de frente (y no gasta batería animando 3D).
 - **Las notas mono del fondo vivo (`.lbg-note`) se ocultan en ≤760px.** Van con
   `white-space: nowrap` y "EST·21 — ARQUITECTURA Y DESARROLLO" mide ~305px: en un
-  teléfono se salía de pantalla por la izquierda y cruzaba el indicador de scroll.
-- **`.hero-stage` reserva 6rem abajo en `max-height: 620px`.** Con poco alto el
-  escenario mide lo que ocupa el contenido (no 80vh) y el "SCROLL", que va absoluto
-  contra el piso, se le montaba a la línea "21 de Setiembre 3024".
+  teléfono se salía de pantalla por la izquierda.
 - **El panel sticky del helicoidal va en `svh`** (`100vh` primero, de fallback). En
   iPad/Android `100vh` es el viewport GRANDE: el panel quedaba ~90px más alto que lo
   visible y el cilindro se cortaba abajo. **`dvh` no sirve acá** — cambiaría de alto

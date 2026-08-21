@@ -1,10 +1,26 @@
 /* ---------- ESTUDIO / TEAM ---------- */
-.team-grid{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--ink)}
+/* Sin borde exterior arriba ni abajo: quedan sólo las líneas INTERNAS que
+   separan a los profesionales (verticales entre columnas, horizontal entre
+   filas). El equipo son 6 personas (ver equipo.ts) → la última fila cambia con
+   el breakpoint (2 filas a 3 columnas, 3 filas a 2, 6 filas a 1); el
+   border-bottom se saca puntualmente de esa última fila en cada uno.
+   `--team-line`: son divisorias de una retícula editorial, no bordes de card —
+   tienen que insinuarse, no competir con el retrato. Ni `--line` ni `--line-soft`
+   alcanzaban (la sección va sobre `--paper-2`, y contra ese fondo las dos se
+   notaban de más); se mezcla `--line-soft` con el propio fondo de la sección
+   para que quede bien tenue. El plano de antes del color-mix es el fallback si
+   el navegador no lo soporta (misma convención que el resto del sitio). */
+.team-grid{
+  display:grid;grid-template-columns:repeat(3,1fr);
+  --team-line:#e9e8e2;
+  --team-line:color-mix(in srgb,var(--line-soft) 45%,var(--paper-2) 55%);
+}
 .person{
-  padding:1.6rem 1.5rem 1.8rem;border-right:1px solid var(--line);border-bottom:1px solid var(--line);
+  padding:1.6rem 1.5rem 1.8rem;border-right:1px solid var(--team-line);border-bottom:1px solid var(--team-line);
   display:flex;flex-direction:column;gap:.4rem;
 }
 .team-grid .person:nth-child(3n){border-right:0}
+.team-grid .person:nth-child(n+4){border-bottom:0}
 
 /* retrato (foto optimizada o placeholder)
    ---------------------------------------------------------------------------
@@ -15,8 +31,12 @@
    queda del tamaño de un retrato de fichero, no de un póster. El tope también
    ordena el caso de 1 columna en mobile, donde el retrato se iba a ~500px. */
 .person .portrait{
+  /* margin-inline:auto centra el retrato dentro de la celda: al estar topado
+     en --team-portrait (más angosto que la celda), sin esto quedaba pegado al
+     borde izquierdo (el `stretch` por defecto de flex-column no reparte el
+     espacio sobrante — lo deja todo del lado derecho). */
   position:relative;aspect-ratio:4/5;width:100%;max-width:var(--team-portrait);
-  margin-bottom:.95rem;overflow:hidden;
+  margin:0 auto .95rem;overflow:hidden;
   background:var(--paper-deep);border:1px solid var(--line);
 }
 .person .portrait picture,
@@ -36,6 +56,12 @@
   position:absolute;left:10px;bottom:9px;font-family:var(--font-mono);font-size:.6rem;
   letter-spacing:.08em;text-transform:uppercase;color:var(--concrete-soft);opacity:.85;
 }
+/* Mismo ancho y centrado que el retrato (--team-portrait + margin-inline:auto):
+   así el nombre y el rol arrancan justo bajo el borde izquierdo de la foto, no
+   contra el padding de la celda (que quedó más a la izquierda desde que el
+   retrato se centró). */
+.person .pname,
+.person .prole{width:100%;max-width:var(--team-portrait);margin-inline:auto}
 .person .pname{font-family:var(--font-display);font-weight:500;font-size:1.06rem;letter-spacing:-.01em}
 .person .prole{font-size:.875rem;color:var(--concrete)}
 
@@ -68,8 +94,11 @@
 
 @media(max-width:900px){
   .team-grid{grid-template-columns:1fr 1fr}
-  .team-grid .person:nth-child(3n){border-right:1px solid var(--line)}
+  .team-grid .person:nth-child(3n){border-right:1px solid var(--team-line)}
   .team-grid .person:nth-child(2n){border-right:0}
+  /* 2 columnas → 3 filas: la última pasa a ser la 5ª y 6ª persona */
+  .team-grid .person:nth-child(n+4){border-bottom:1px solid var(--team-line)}
+  .team-grid .person:nth-child(n+5){border-bottom:0}
 }
 @media(max-width:600px){
   .team-grid{grid-template-columns:1fr}
@@ -78,6 +107,9 @@
      título y del texto de la sección, y la sangría se lee como un error de
      alineación. Mismo criterio que `.phase` en nosotros.css. */
   .team-grid .person{border-right:0!important;padding-inline:0}
+  /* 1 columna → 6 filas: sólo la última (la 6ª persona) pierde el borde */
+  .team-grid .person:nth-child(n+5){border-bottom:1px solid var(--team-line)}
+  .team-grid .person:last-child{border-bottom:0}
 }
 
 @media(prefers-reduced-motion:reduce){

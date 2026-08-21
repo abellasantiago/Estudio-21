@@ -14,6 +14,7 @@ portadaZoom: 1
 Vila Rodona es un edificio de baja altura en Mariano Soler 3326, en Brazo
 Oriental, a media cuadra de Av. Luis Alberto de Herrera y a pasos de Av. San
 Martín, a minutos del Shopping Nuevo Centro y del Parque del Prado y el Rosedal.
+
 Son dos pisos de apartamentos de un dormitorio con doble orientación y balcones
 al frente y al fondo, y dúplex de dos dormitorios con dos baños, cochera
 individual y terraza privada con parrillero. En la azotea suma un salón de usos

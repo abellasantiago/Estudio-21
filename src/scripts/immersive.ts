@@ -49,7 +49,6 @@ export function initImmersive(): void {
   // La aparición del header la resuelve el scroll siempre-activo de BaseLayout
   // (clase `past-hero`), no este motor → aparece aunque esta capa no arrancara.
   const railFill = document.querySelector<HTMLElement>('[data-rail-fill]');
-  const scrollHint = document.querySelector<HTMLElement>('[data-scroll-hint]');
   // pabellón wireframe del hero: se revela SOLO (temporizado), no con el mouse
   const wireframe = document.querySelector<HTMLElement>('[data-wireframe]');
 
@@ -233,11 +232,6 @@ export function initImmersive(): void {
         p.el.style.transform = t;
       }
 
-      // el indicador de scroll se desvanece apenas se avanza
-      if (scrollHint) {
-        scrollHint.style.opacity = clamp(1 - introProgress * 6, 0, 1).toFixed(3);
-      }
-
       // rail de progreso de toda la página
       if (railFill) {
         const max = root.scrollHeight - window.innerHeight;
@@ -284,7 +278,6 @@ export function initImmersive(): void {
       corridor.style.opacity = '';
     }
     for (const p of parallax) p.el.style.transform = '';
-    if (scrollHint) scrollHint.style.opacity = '';
     if (railFill) railFill.style.transform = '';
     root.style.removeProperty('--hero-fade');
     mx = my = tmx = tmy = angle = 0;

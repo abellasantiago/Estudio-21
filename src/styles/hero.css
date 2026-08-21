@@ -255,50 +255,6 @@
   border-radius: 50%;
 }
 
-/* ---- indicador de scroll ---- */
-.scroll-hint {
-  position: absolute;
-  bottom: clamp(1.4rem, 4vh, 2.8rem);
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.6rem;
-}
-.scroll-hint-line {
-  width: 1px;
-  height: clamp(2rem, 5vh, 3.2rem);
-  background: linear-gradient(to bottom, transparent, var(--concrete));
-  position: relative;
-  overflow: hidden;
-}
-.scroll-hint-line::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: -40%;
-  width: 100%;
-  height: 40%;
-  background: var(--ink);
-  animation: scroll-hint-run 1.8s cubic-bezier(0.5, 0, 0.5, 1) infinite;
-}
-.scroll-hint-label {
-  font-family: var(--font-mono);
-  font-size: 0.62rem;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--concrete);
-}
-@keyframes scroll-hint-run {
-  0% {
-    transform: translateY(0);
-  }
-  100% {
-    transform: translateY(350%);
-  }
-}
-
 /* ============================================================
    MODO INMERSIVO — el escenario se fija y el título gira con el scroll
    ============================================================ */
@@ -324,24 +280,8 @@ html.is-immersive .hero-title {
   --shadow-pulse: 1;
 }
 
-/* ---- viewport bajo (celular acostado, ventana corta) ----------------------
-   Con poco alto el escenario deja de medir 80vh y pasa a medir lo que ocupa el
-   contenido; el "SCROLL", que va absoluto contra el piso del escenario, se le
-   montaba encima a la línea "21 de Setiembre 3024" (medido a 844×390: 16px de
-   solape). Se le reserva la banda que necesita — 58px de indicador + su offset
-   de 2.8rem — abajo del contenido. */
-@media (max-height: 620px) {
-  .hero-stage {
-    padding-bottom: 6rem;
-  }
-}
-
-/* ---- reduced-motion: sin la animación del indicador de scroll ni el giro ---- */
+/* ---- reduced-motion: sin el giro ---- */
 @media (prefers-reduced-motion: reduce) {
-  .scroll-hint-line::after {
-    animation: none;
-    display: none;
-  }
   .hero-title {
     animation: none;
   }

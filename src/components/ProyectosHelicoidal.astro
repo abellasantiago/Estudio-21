@@ -172,7 +172,7 @@ const pad = (n: number) => String(n).padStart(2, '0');
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
     // El cilindro necesita LUGAR, y el corte es geométrico igual que el de los
     // 1700px del riel de filtros. Por debajo de ~760px de ancho la barra de
-    // filtros pasa a dos filas y la card frontal —que va a 1.70×— le monta
+    // filtros pasa a dos filas y la card frontal —que va a 1.56×— le monta
     // encima; por debajo de ~620px de alto (un celular acostado, o una ventana
     // muy baja) la card no entra entera y se corta contra el borde de abajo.
     // Sumado a eso, en un teléfono el recorrido son ~3800px de scroll para diez
@@ -185,12 +185,12 @@ const pad = (n: number) => String(n).padStart(2, '0');
     // ---- parámetros ----
     const VERT_STEP = 64; // descenso vertical por proyecto (px) — aire entre cards
     const MAX_STEP = 34; // ° máx entre cards: con pocos proyectos (filtros) no quedan ralos
-    // ---- zoom al centro (pico 1.60×) ----
+    // ---- zoom al centro (pico 1.56×) ----
     // Con 15 cards juntas (24° entre sí) el zoom tiene que ser PUNTUAL: sólo la
     // central crece, las vecinas se quedan en su tamaño de viaje → no se pisan.
     const BASE_SIDE = 0.46; // tamaño "de viaje" en laterales/dorso (chico = no se superponen)
     const BASE_FRONT = 0.86; // tamaño base al frente, sin el zoom
-    const ZOOM_AMOUNT = 0.84; // extra al centro → pico = BASE_FRONT + ZOOM_AMOUNT = 1.70×
+    const ZOOM_AMOUNT = 0.7; // extra al centro → pico = BASE_FRONT + ZOOM_AMOUNT = 1.56×
     const ZOOM_WIDTH = 22; // ° a cada lado del centro donde actúa el zoom (angosto = pop aislado)
     const SS = 2; // factor de supersample: la card se maqueta a SS× (CSS) y acá se reduce ÷SS → nítida
     let RADIUS = 440; // radio del cilindro (px) — círculo amplio = cards más separadas; se ajusta en mobile
@@ -294,7 +294,7 @@ const pad = (n: number) => String(n).padStart(2, '0');
         // Tamaño "de viaje": chico en laterales, base al frente (curva de profundidad).
         const depth = BASE_SIDE + (BASE_FRONT - BASE_SIDE) * Math.pow(cosT, 1.3);
         // Zoom al centro: pico justo al frente, baja suave a cada lado y es nulo
-        // más allá de ZOOM_WIDTH°. La card entra, crece hasta ~1.60× en el centro
+        // más allá de ZOOM_WIDTH°. La card entra, crece hasta ~1.56× en el centro
         // y se deszoomea al seguir su curso (entra y sale igual, sin saltos).
         const peak = fromFront < ZOOM_WIDTH ? (Math.cos((fromFront / ZOOM_WIDTH) * Math.PI) + 1) / 2 : 0;
         const scale = depth + ZOOM_AMOUNT * peak;
