@@ -2,6 +2,9 @@
 dist/
 .astro/
 
+# worktrees de git creados por herramientas (copias completas del repo)
+.claude/worktrees/
+
 # dependencias
 node_modules/
 

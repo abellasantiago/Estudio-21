@@ -1,6 +1,5 @@
 ---
 import '../../styles/hero.css';
-// import HeroBlueprints from '../HeroBlueprints.astro'; // easter egg oculto por ahora
 import HeroWireframe from '../HeroWireframe.astro';
 import { site } from '../../data/site';
 
@@ -43,8 +42,6 @@ const wordLayers = Array.from({ length: WORD_LAYERS }, (_, i) => {
        hace girar "Estudio 21". En fallback es un hero centrado normal. -->
   <div class="hero-track" data-immersive-intro>
     <div class="hero-stage">
-      {/* <HeroBlueprints /> easter egg oculto por ahora */}
-
       <!-- pabellón wireframe a dos puntos de fuga, detrás del título -->
       <HeroWireframe />
 

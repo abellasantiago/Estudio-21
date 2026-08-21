@@ -124,8 +124,11 @@
    de estado al pie (`margin-top:auto`) → en la grilla los estados quedan
    alineados entre cards aunque el nombre ocupe una o dos líneas. */
 .ph-meta{display:flex;flex-direction:column;flex:1 1 auto;gap:.7rem;padding:1rem 1.1rem 1.15rem}
+/* 700 y no 600: el 600 no se carga (ver la tabla de fuentes en BaseLayout), así
+   que el navegador ya venía resolviéndolo al 700 — medido, mismo ancho exacto.
+   Declararlo como lo que realmente pinta evita creer que hay un peso intermedio. */
 .ph-name{
-  font-family:var(--font-display);font-weight:600;font-size:1.08rem;line-height:1.16;letter-spacing:-.01em;
+  font-family:var(--font-display);font-weight:700;font-size:1.08rem;line-height:1.16;letter-spacing:-.01em;
   display:-webkit-box;-webkit-line-clamp:2;line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
 }
 .ph-sub{display:flex;flex-direction:column;gap:.5rem;margin-top:auto}

@@ -9,23 +9,25 @@
 // @font-face, arranca a bajar a los ~0 ms) + `font-display: block` (si aun así
 // no llegara al primer paint, el texto espera invisible — NUNCA pinta glifos
 // de otra fuente).
-import sg400 from '@fontsource/space-grotesk/files/space-grotesk-latin-400-normal.woff2?url';
 import sg500 from '@fontsource/space-grotesk/files/space-grotesk-latin-500-normal.woff2?url';
 import sg700 from '@fontsource/space-grotesk/files/space-grotesk-latin-700-normal.woff2?url';
 import inter400 from '@fontsource/inter/files/inter-latin-400-normal.woff2?url';
-import inter500 from '@fontsource/inter/files/inter-latin-500-normal.woff2?url';
 import mono400 from '@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-400-normal.woff2?url';
-import mono500 from '@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-500-normal.woff2?url';
 import '../styles/global.css';
 
+// SÓLO los pesos que el sitio realmente pinta. Cada entrada acá es un preload
+// que compite por ancho de banda justo cuando el primer paint está esperando
+// (font-display:block), así que un peso de más se paga en TODAS las páginas.
+// Medido con document.fonts + un recorrido del DOM en home / ficha / 404, a
+// 1440 y 390px, con el menú y el visor abiertos: Space Grotesk 400, Inter 500 e
+// IBM Plex Mono 500 no los usaba nada (52 KB de descarga bloqueante al pedo).
+// Si algún día se usa un peso nuevo, hay que AGREGARLO acá: si no está, el
+// navegador lo sintetiza (falso bold) o cae al más cercano.
 const fontFaces = [
-  { family: 'Space Grotesk', weight: 400, url: sg400 },
   { family: 'Space Grotesk', weight: 500, url: sg500 },
   { family: 'Space Grotesk', weight: 700, url: sg700 },
   { family: 'Inter', weight: 400, url: inter400 },
-  { family: 'Inter', weight: 500, url: inter500 },
   { family: 'IBM Plex Mono', weight: 400, url: mono400 },
-  { family: 'IBM Plex Mono', weight: 500, url: mono500 },
 ];
 const fontFaceCss = fontFaces
   .map(

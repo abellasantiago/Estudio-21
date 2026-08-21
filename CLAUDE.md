@@ -28,6 +28,13 @@ registro), no rediseñar. Todo el copy va en **español rioplatense**.
   (`swap` + fetch perezoso post-layout) el primer paint de un refresh podía salir con la
   fuente fallback → "pantallazo" de un 21 distinto. Así las fuentes arrancan a bajar
   a ~0 ms y nunca se pinta un glifo de otra fuente.
+  **Sólo se cargan los 4 pesos que el sitio realmente pinta** (Space Grotesk 500 y 700,
+  Inter 400, IBM Plex Mono 400). Los otros tres que había (Space Grotesk 400, Inter 500,
+  Mono 500) no los usaba nada: eran 52 KB de descarga **bloqueante** en cada página,
+  porque un `preload` baja sí o sí, se use o no. Si se agrega un peso nuevo en algún CSS
+  hay que **sumarlo a la tabla `fontFaces` de `BaseLayout`**: si no está declarado, el
+  navegador lo sintetiza (falso bold) o cae al más cercano — que es lo que pasaba con el
+  `font-weight:600` de `.ph-name`, que en realidad se veía 700 (hoy declarado 700).
 - `@astrojs/sitemap`, `sharp`.
 - Imágenes con `<Image>/<Picture>` de Astro (AVIF + WebP + srcset).
 - Comandos: `npm install`, `npm run dev` (→ `http://localhost:4321`), `npm run build`
@@ -275,13 +282,13 @@ leería como "ya visto" y nunca dibujaría en la primera carga).
   0.07, `.lbg-grain`) en el fondo vivo. Luz de estudio en el stage
   (`.hero-stage::before`: centro apenas más claro + viñeta sutil). Los parches de
   puntos matriz que hubo acá se sacaron (no gustaron).
-- Easter egg de blueprint "linterna" (`HeroBlueprints.astro`): **desactivado por ahora**
-  (import y uso comentados en `Hero.astro`, el componente y su CSS quedan intactos para
-  retomarlo). Cuando esté activo: un solo plano a la izquierda del "21" (PLANTA); se
-  descubre pasando el mouse (dibujo tipo lápiz por segmentos) y al salir queda
-  "durmiendo" tenue. El de la fachada (derecha) se sacó.
+- Easter egg de blueprint "linterna" (`HeroBlueprints.astro`): **eliminado**. Estuvo
+  desactivado un tiempo (import y uso comentados en `Hero.astro`) y se sacó en la
+  limpieza junto con `hero-blueprints.css`. Era un plano a la izquierda del "21" que se
+  descubría con el mouse. Si se quiere retomar, está entero en git: los archivos viven
+  en el commit `51a539c` (`git show 51a539c:src/components/HeroBlueprints.astro`).
 - **`--hero-fade`** (seteado por `immersive.ts` según el scroll) desvanece al dejar el
-  hero y trae de vuelta al subir: las notas mono del fondo vivo, el blueprint izquierdo,
+  hero y trae de vuelta al subir: las notas mono del fondo vivo,
   el eyebrow **"Arquitectura que trasciende"** (combinado con su reveal-on-scroll inicial
   vía una custom property `--reveal`, no pisa la transición de `.reveal`) y la línea
   **"21 de Setiembre 3024"** (`.hero-dim`). El texto/marca se corren a la izquierda con
@@ -329,6 +336,22 @@ dos secciones se pisen — **identidad acá, modelo allá**.
   por curva de coseno (frente grande/nítido → dorso chico/desvanecido/blur). **Zoom al
   centro** con pico ~**1.70×** (ventana angosta = pop aislado), `RADIUS` 540 (300 mobile),
   **supersampling 2×** (card maquetada al doble y reducida ÷2 → nítida), sin snap.
+- **Rendimiento — dos recortes sin tocar el resultado visual** (medidos con Chrome
+  headless; el filtro "Todos", con 10 proyectos, era el que se sentía pesado):
+  - **El blur sólo se aplica hasta cierta opacidad** (`BLUR_OPACITY_FLOOR = 0.35` en
+    `render()`). Una card ya tan tenue que casi no se ve no necesita además el
+    desenfoque encima — la opacidad sola cumple el mismo trabajo visual — y
+    `filter:blur` es el efecto más caro de componer que hay. Con "Todos" llegaban a
+    girar **7 cards borrosas a la vez, en cada fotograma**; con el piso quedan en 1-2.
+    Los filtros con pocos proyectos (En proceso, Próximamente) no tenían ninguna
+    borrosa ni antes ni después — por eso ahí ya fluía bien.
+  - **El loop de render (`tick()`/`loop()`) se PARA SOLO en cuanto `scroll` alcanza a
+    `targetScroll`** (asentado, nada más que animar) en vez de seguir pidiendo
+    `requestAnimationFrame` 60 veces por segundo para redibujar exactamente lo mismo
+    mientras la sección sigue a la vista. `updateTarget()` (el listener de `scroll`)
+    llama a `start()` para reactivarlo apenas hay un scroll nuevo. Medido: 0 escrituras
+    de estilo en 2s de reposo (antes, continuas); el recorrido y los filtros no
+    cambian en nada.
 - **Header (título) fuera del sticky:** scrollea con la página. En modo 3D la **barra de
   filtros + contador** se relocaliza al panel sticky (pineada mientras se recorre).
 - **Dónde queda la barra de filtros en 3D — depende del ancho, y el corte es

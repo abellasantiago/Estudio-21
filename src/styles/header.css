@@ -21,11 +21,6 @@ header.scrolled{border-bottom-color:var(--line);background:var(--paper);backgrou
    que no se sientan tan pegados a los bordes. */
 .nav{display:flex;align-items:center;justify-content:space-between;height:58px;padding-inline:9vw 8vw}
 .brand{display:flex;align-items:center}
-.brand .mark{
-  font-family:var(--font-mono);font-weight:500;font-size:.78rem;
-  border:1px solid var(--ink);border-radius:2px;padding:.18rem .42rem;line-height:1;
-  letter-spacing:.04em;
-}
 /* logotipo "Estudio 21 Arquitectos" en el navbar */
 .brand .mark-img{display:block;height:2rem;width:auto}
 /* `align-self:stretch` → la fila de links toma los 58px del navbar (sus propios

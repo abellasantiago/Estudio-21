@@ -270,6 +270,7 @@ const pad = (n: number) => String(n).padStart(2, '0');
       // queda donde lo dejaste, sin re-centrarse solo (más fluido al recorrer).
       targetScroll = progress * Math.max(N - 1, 0);
       section!.classList.toggle('is-scrolling', progress > 0.01);
+      start(); // el loop se autodetiene al asentarse (ver loop()); un scroll nuevo lo reactiva
     }
 
     // ---- render: escala/opacidad continuas por curva de coseno ----
@@ -299,8 +300,15 @@ const pad = (n: number) => String(n).padStart(2, '0');
         const scale = depth + ZOOM_AMOUNT * peak;
         // opacidad con falloff marcado: las laterales pierden visibilidad.
         const opacity = 0.12 + 0.88 * Math.pow(cosT, 2.2);
-        // difuminado sólo en laterales/dorso (la central y vecinas quedan nítidas).
-        const blur = (1 - cosT) * 1.8;
+        // difuminado sólo en las vecinas cercanas (transición de foco visible).
+        // Pasado este piso de opacidad la card ya está tan tenue que un blur de
+        // más no se nota — y `filter:blur` es el efecto más caro de componer
+        // que hay (mucho más que mover u opacar), así que con "Todos" (10
+        // proyectos) llegaban a componerse 7 cards borrosas A LA VEZ, en cada
+        // fotograma del giro. Cortarlo acá las deja en 1-2 sin cambiar el look:
+        // la opacidad sola ya las funde al fondo.
+        const BLUR_OPACITY_FLOOR = 0.35;
+        const blur = opacity > BLUR_OPACITY_FLOOR ? (1 - cosT) * 1.8 : 0;
         c.el.style.opacity = opacity.toFixed(3);
         c.el.style.filter = blur > 0.25 ? `blur(${blur.toFixed(2)}px)` : 'none';
         // ÷SS: compensa la maqueta a SS× → tamaño visual idéntico, textura nítida
@@ -325,6 +333,13 @@ const pad = (n: number) => String(n).padStart(2, '0');
     function loop() {
       if (!running) return;
       tick();
+      // Asentado (scroll ya alcanzó targetScroll): no hay nada más que animar, así
+      // que el loop se PARA SOLO en vez de seguir pidiendo frames 60 veces por
+      // segundo para redibujar exactamente lo mismo. `updateTarget()` lo reactiva
+      // (llama a `start()`) en cuanto un scroll nuevo mueva el target de nuevo.
+      // Antes corría sin parar mientras la sección estuviera a la vista, aunque el
+      // visitante llevara rato quieto mirando una card — puro gasto de CPU/GPU.
+      if (scroll === targetScroll) { running = false; return; }
       rafId = requestAnimationFrame(loop);
     }
     const start = () => { if (!running) { running = true; loop(); } };
