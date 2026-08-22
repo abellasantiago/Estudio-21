@@ -193,6 +193,36 @@ leería como "ya visto" y nunca dibujaría en la primera carga).
 - El "Estudio 21" gira en 3D (rotateY continuo + extra atado al scroll del hero,
   retrocede en Z y se desvanece integrándose al fondo), parallax de mouse en las capas
   `[data-depth]`, corredor de marcos que avanza en Z, rail de progreso.
+- **Presupuesto de trabajo por frame — el motor es lo más caro del sitio, así que
+  sólo trabaja cuando hace falta** (todo medido; el efecto se ve idéntico, verificado
+  con diff de píxeles: la diferencia antes/después queda POR DEBAJO del ruido natural
+  entre dos cargas del mismo código, porque la deriva del fondo arranca con fase
+  aleatoria). Cuatro reglas que hay que respetar si se toca `immersive.ts`:
+  - **Zonas.** Cada bloque corre sólo si lo que anima está a la vista. El bloque del
+    "21" (transform sobre un `preserve-3d` de 25 capas + la sombra) se saltea entero
+    fuera del tramo del hero, y el fondo vivo cuando la primera sección OPACA
+    (`#estudio`, `section.alt`) llega al tope y lo tapa — es `position:fixed`, así que
+    el corte es `scrollY < opaqueTop`, no un rect. Medido: pasadas las secciones
+    opacas el motor hace **0 frames** (antes seguía a 60fps hasta el pie de página).
+  - **Escribir sólo si cambió** (`put`). Tocar el DOM dispara recálculo de estilo
+    aunque se escriba el mismo valor. Quieto en el hero eran ~120 escrituras por
+    segundo para dejar todo igual.
+  - **Los custom properties se HEREDAN — ojo dónde se escriben.** `--shadow-pulse` iba
+    en `.hero-title` e invalidaba el estilo de sus 26 descendientes (las 25 capas del
+    extruido) en cada frame; ahora va en `.ht-shadow`, su única consumidora.
+    `--hero-fade` iba en `:root` e invalidaba el documento ENTERO (~840 nodos); ahora
+    va en `.hero` y `.living-bg`, que contienen a todos sus consumidores
+    (`.hero-stage::before`, `.hero-eyebrow`, `.hero-dim`, `.hero-wireframe`,
+    `.lbg-note`). Si se agrega un consumidor fuera de esos dos, hay que sumarlo ahí.
+  - **Geometría cacheada** (`measure`): las posiciones son invariantes al scroll, así
+    que se miden al cargar, en `resize` y cuando cambia el alto del documento (un
+    `ResizeObserver` sobre el `body`: fuentes, imágenes, el helicoidal al filtrar).
+    Medirlas dentro del frame, además de costar, fuerza layout sincrónico.
+  Con eso el loop **se apaga solo** (`idle`) cuando no queda nada continuo que animar;
+  `kick()` lo despierta con cualquier scroll, movimiento de mouse o resize — el
+  paralaje de las secciones de abajo sigue respondiendo al mouse igual que antes.
+  El **rail de progreso** salió del rAF: sólo depende del scroll, así que se pinta en
+  el listener (`paintRail`) y sigue exacto aunque el motor esté dormido.
 - **Corredor de marcos** (`.depth-frame`, los cuadrados de registro en
   `LivingBackground.astro`): avanzan hacia la cámara con el scroll durante todo el
   descenso hero→cards (crecen por perspectiva) pero **se desvanecen con el mismo
@@ -627,7 +657,9 @@ de ancho (y en alturas de 390 a 1440), en la home y en la ficha de proyecto.
   margen negativo que compensa). Antes el área tocable eran 24px de alto.
 - **`will-change` en `.living-bg > *` sólo bajo `is-immersive`.** Sin motor promovía
   una docena de capas que no se mueven nunca — memoria de GPU regalada justo en el
-  equipo que menos tiene.
+  equipo que menos tiene. La regla lleva **`:not(.lbg-grain)`**: el grano es una capa
+  estática y declara `will-change:auto` a propósito, pero esta regla (más específica)
+  le ganaba y lo promovía igual — justo lo que ese `auto` quería evitar.
 
 **Compatibilidad (Safari/iOS es el que marca el piso):**
 - `-webkit-backdrop-filter` **siempre** al lado de `backdrop-filter` (Safari <18 lo

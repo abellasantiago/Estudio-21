@@ -273,10 +273,16 @@ html.is-immersive .hero-title {
   /* en inmersivo el transform (y el giro continuo) lo escribe immersive.ts
      frame a frame; la animación CSS lo pisaría, así que acá se apaga. */
   animation: none;
-  /* antes del primer frame del motor el bloque está a 0° (de frente): la sombra
-     arranca con el MISMO valor que va a escribir el motor en ese ángulo
-     (0.72 + 0.28·|cos 0°| = 1) → sin blink de opacidad al cargar. El inline
-     que setea el motor después pisa este valor. */
+}
+/* Antes del primer frame del motor el bloque está a 0° (de frente): la sombra
+   arranca con el MISMO valor que va a escribir el motor en ese ángulo
+   (0.72 + 0.28·|cos 0°| = 1) → sin blink de opacidad al cargar. El inline que
+   setea el motor después pisa este valor.
+   Va acá y no en `.hero-title` (donde estaba) porque un custom property SE
+   HEREDA: declarado en el título, cada escritura del motor invalidaba el estilo
+   de sus 26 descendientes (las 25 capas del extruido + la sombra) 60 veces por
+   segundo. La sombra es su única consumidora — acá invalida un solo nodo. */
+html.is-immersive .ht-shadow {
   --shadow-pulse: 1;
 }
 
