@@ -7,8 +7,9 @@
  * queda estático y legible (esta capa ni se activa).
  *
  * Un único requestAnimationFrame maneja:
- *   · el giro del "Estudio 21" del hero (rotateY) + su retroceso y desvanecido
- *     a medida que la cámara avanza (se integra al fondo);
+ *   · el vaivén del "Estudio 21" del hero (rotateY de ida y vuelta, sin dar la
+ *     vuelta entera) + su retroceso y desvanecido a medida que la cámara avanza
+ *     (se integra al fondo);
  *   · el "descenso" hero → cards: el corredor de marcos avanza en Z y el
  *     fantasma "21" del fondo gira lento (movimiento/profundidad continuos);
  *   · el paralaje de mouse de las capas [data-depth] + deriva autónoma del fondo;
@@ -107,8 +108,25 @@ export function initImmersive(): void {
   const capable = () => !reduceMq.matches && fineMq.matches && wideMq.matches;
 
   // ---- parámetros (Z contenido, movimiento cuidado) ----
-  const TOTAL_ROTATION = 360; // ° extra que gira "Estudio 21" con el scroll del hero
-  const SPIN_PERIOD = 18000; // ms por vuelta del giro horizontal continuo (constante)
+  // PÉNDULO del "Estudio 21": va y viene dentro de un arco legible en vez de dar
+  // vueltas completas. Pasados los ~90° se vería su ESPALDA, que no es una cara
+  // diseñada sino la capa más lejana del extruido espejada por el navegador
+  // (backface-visibility: visible); y cerca del canto las 16 capas se separan y
+  // el bloque se lee como un peine.
+  // EN REPOSO el vaivén va sólo por reloj: el scroll no lo sacude. Se probó atar
+  // el vaivén al scroll (empujando la fase del seno) y no gustó — el bloque se
+  // agitaba con la rueda del mouse en vez de tener un movimiento propio y sereno.
+  const SWING = 40; // ° de amplitud del vaivén, a cada lado del frente
+  const SWING_PERIOD = 10000; // ms de una ida y vuelta completa
+  // AL IRSE sí reacciona: mientras retrocede en Z y se desvanece, da una vuelta
+  // entera. Acá la espalda no molesta (al revés del reposo, donde arruinaba la
+  // marca) porque se ve de paso, chica y translúcida. EXIT_EASE es lo que lo
+  // garantiza: con exponente 2.5 el giro arranca lento y se acelera, así que los
+  // 180° —el momento de la espalda— caen recién al 76% del tramo, con el bloque
+  // ya 350px atrás y al 69% de opacidad. Bajarlo mucho adelanta la espalda a
+  // cuando el "21" todavía se ve entero y de frente.
+  const EXIT_SPIN = 360; // ° que gira mientras se va (vuelta completa)
+  const EXIT_EASE = 2.5; // >1 = el grueso del giro ocurre tarde, ya desvaneciéndose
   const TITLE_RECEDE = 460; // px que retrocede el título en Z mientras gira
   const CORRIDOR_DEPTH = 720; // px que avanza el corredor de marcos en el descenso
   const MOUSE_RANGE = 26; // px máx de desplazamiento por paralaje de mouse
@@ -273,27 +291,41 @@ export function initImmersive(): void {
       // progreso del tramo del hero (0 al empezar → 1 al terminar el giro)
       const range = introH - vh;
       const introProgress = range > 0 ? clamp((scrollY - introTop) / range, 0, 1) : 0;
-      // mismo desvanecido que el título (0.65→1 del tramo del hero): el corredor
-      // de marcos lo comparte para no quedar creciendo de fondo, molestando la
-      // lectura, una vez que "Estudio 21" ya se integró al espacio.
-      const heroFadeOut = clamp(1 - (introProgress - 0.65) / 0.35, 0, 1);
+      // Desvanecido de salida del título (lo comparte el corredor de marcos, para
+      // que no quede creciendo de fondo y moleste la lectura una vez que
+      // "Estudio 21" ya se integró al espacio).
+      // ⚠ Va de 0.5→0.9 y no de 0.65→1 por el GIRO DE SALIDA: el bloque pasa por
+      // su espalda —la capa más lejana del extruido, espejada y en gris claro— a
+      // eso del 76% del tramo. Con el fade viejo llegaba ahí al 69% de opacidad y
+      // se leía clarísimo el "OIDUTSE" al revés, que es exactamente lo que se
+      // quiso evitar en el reposo. Adelantándolo, la espalda cae al ~35% y ya casi
+      // no se distingue. Si se cambia EXIT_EASE hay que revisar este tramo.
+      const heroFadeOut = clamp(1 - (introProgress - 0.5) / 0.4, 0, 1);
       // progreso del "descenso" completo hero → cards (helicoidal)
       const descent = clamp(scrollY / descentTop, 0, 1);
 
-      // "Estudio 21": gira horizontalmente de forma constante e infinita
-      // (giro continuo por tiempo, desde 0° — reloj relativo a t0) + un giro
-      // extra atado al scroll del hero; además retrocede en Z y se desvanece
-      // integrándose al fondo. Es el bloque MÁS CARO del motor (transform sobre
-      // un contexto preserve-3d de 25 capas), así que fuera del hero no se toca.
-      const spin = (t / SPIN_PERIOD) * 360;
-      angle = spin + introProgress * TOTAL_ROTATION;
+      // "Estudio 21" = PÉNDULO (reloj) + GIRO DE SALIDA (scroll).
+      // · El péndulo va y viene entre ±SWING por reloj, sin completar la vuelta:
+      //   es el movimiento de reposo y nunca muestra la espalda. Arranca en 0°
+      //   (= el estado que pinta el CSS antes del primer frame, sin salto) y el
+      //   seno da de yapa la física correcta: rápido al cruzar el frente,
+      //   frenando en los extremos.
+      // · Encima, bajar por el hero le suma una vuelta entera, acelerando hacia
+      //   el final, mientras retrocede en Z (`recede`) y se desvanece
+      //   (`heroFadeOut`). Como sale de `introProgress` —función pura del
+      //   scroll—, subir lo desanda solo: arriba de todo vuelve a 0° y queda
+      //   nada más que el péndulo, sin estado que resetear.
+      // Es el bloque MÁS CARO del motor (transform sobre un contexto preserve-3d
+      // de 25 capas), así que fuera del hero no se toca.
+      const swing = Math.sin((t / SWING_PERIOD) * Math.PI * 2) * SWING * ramp;
+      angle = swing + Math.pow(introProgress, EXIT_EASE) * EXIT_SPIN;
       if (title && (heroLive || heroWas)) {
         const recede = introProgress * TITLE_RECEDE;
         // vaivén leve autónomo + inclinación sutil hacia el mouse, para que en
         // reposo el "21" no quede estático y se perciba su profundidad. Se apaga
         // a medida que arranca el giro del scroll (idle → 0) para no competir.
         const rest = clamp(1 - introProgress * 2.5, 0, 1);
-        // el giro horizontal ya es continuo (angle); acá sólo un cabeceo vertical
+        // el vaivén horizontal ya lo maneja `angle`; acá sólo un cabeceo vertical
         // leve + la inclinación hacia el mouse para reforzar la profundidad.
         const swayX = Math.sin(now * 0.0008 + 1.3) * 2.4 * rest * ramp;
         const tiltY = mx * 5 * rest;
@@ -306,8 +338,10 @@ export function initImmersive(): void {
               `rotateX(${(swayX + tiltX).toFixed(2)}deg) ` +
               `rotateY(${(angle + tiltY).toFixed(2)}deg)`,
           ) || wrote;
-        // sombra: respira con el ángulo — de frente el bloque proyecta su
-        // huella completa, de canto (90°/270°) proyecta menos → más tenue.
+        // sombra: respira con el ángulo — de frente el bloque proyecta su huella
+        // completa y cuanto más girado, menos → más tenue. En reposo el recorrido
+        // es corto (±40°) y queda un latido sutil; durante el giro de salida da la
+        // vuelta entera, pero para entonces ya se está desvaneciendo con el título.
         const rad = (angle * Math.PI) / 180;
         wrote =
           put(shadow, '--shadow-pulse', (0.72 + 0.28 * Math.abs(Math.cos(rad))).toFixed(3)) ||

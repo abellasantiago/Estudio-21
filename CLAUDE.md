@@ -190,9 +190,44 @@ leería como "ya visto" y nunca dibujaría en la primera carga).
 - Motor en `src/scripts/immersive.ts` (sólo en la home, `data-immersive-page`, y sólo
   si no hay `prefers-reduced-motion`, con puntero fino y pantalla ≥900px). Progressive
   enhancement: sin eso, queda estático y legible.
-- El "Estudio 21" gira en 3D (rotateY continuo + extra atado al scroll del hero,
-  retrocede en Z y se desvanece integrándose al fondo), parallax de mouse en las capas
-  `[data-depth]`, corredor de marcos que avanza en Z, rail de progreso.
+- El "Estudio 21" hace un **péndulo** en 3D en reposo y, al bajar por el hero, **una
+  vuelta entera de salida** mientras retrocede en Z y se desvanece; además parallax
+  de mouse en las capas `[data-depth]`, corredor de marcos que avanza en Z y rail de
+  progreso. Ver "Péndulo y giro de salida" abajo.
+- **Péndulo y giro de salida — dos movimientos con reglas opuestas.**
+  - **En reposo (por reloj):** va y viene entre **±40°** (`SWING`) con un ciclo de
+    **10 s** (`SWING_PERIOD`), sin completar nunca la vuelta. El máximo real es
+    **~45°** (los 40 del péndulo + los 5 de la inclinación hacia el mouse, que sólo
+    actúa arriba del todo, con `rest` > 0). El seno da el arranque en **0° exacto**
+    —el mismo estado que pinta el CSS antes del primer frame, sin salto— y de yapa
+    la física correcta: rápido al cruzar el frente, frenando en los extremos.
+  - **Al irse (por scroll):** `Math.pow(introProgress, EXIT_EASE) * EXIT_SPIN` suma
+    **360°** a lo largo del tramo. Como sale de `introProgress` —función pura del
+    scroll— **subir lo desanda solo**: arriba de todo vuelve a 0°, Z 0 y opacidad 1,
+    sin ningún estado que resetear (verificado en el sitio andando).
+  - ⚠ **Por qué el reposo NO se ata al scroll pero la salida SÍ.** El problema de
+    siempre es la **espalda** (a 180° se ve la capa más lejana del extruido,
+    espejada y en gris claro — el navegador no oculta la cara trasera) y **el canto**
+    (cerca de 90° las 16 capas se separan y el "21" se lee como un peine). En reposo
+    eso arruina la marca, así que el péndulo se queda corto. En la salida no molesta,
+    porque para cuando llega la espalda el bloque ya está lejos y translúcido. Se
+    probaron además dos formas de atar el *vaivén* al scroll y ninguna quedó: sumarle
+    un ángulo chico no se percibía (0,02°/px, el hero se sentía estático), y meter el
+    scroll en la fase del seno lo sacudía con la rueda del mouse.
+  - ⚠ **`EXIT_EASE` (2.5) y el tramo del fade están calibrados juntos.** Con el
+    exponente el giro arranca lento y acelera, así que los 180° caen recién al **76%**
+    del tramo; y `heroFadeOut` va de **0.5→0.9** (no 0.65→1) para que en ese punto la
+    opacidad sea **0,35** en vez de 0,69. Medido en el sitio: a 76% el título está en
+    `rotateY(181°)`, `translateZ(-350px)`, opacidad 0,35 — la espalda pasa casi sin
+    verse. Con el fade viejo se leía clarísimo el "OIDUTSE" al revés. **Si se toca
+    uno de los dos, hay que rever el otro.**
+  - El corredor de marcos comparte `heroFadeOut`, así que también se va un poco antes
+    que antes — no molesta, era justamente para que no compita con la lectura.
+  - El fallback CSS (`hero-sway-y` en `hero.css`, para sin-JS / puntero grueso)
+    replica el vaivén con los tiempos de un seno (0/25/75/100%) y el **easing por
+    tramo** (`ease-out` / `ease-in-out` / `ease-in`). Si se cambia la amplitud o el
+    período hay que tocar **los dos lados** para que sigan siendo el mismo
+    movimiento.
 - **Presupuesto de trabajo por frame — el motor es lo más caro del sitio, así que
   sólo trabaja cuando hace falta** (todo medido; el efecto se ve idéntico, verificado
   con diff de píxeles: la diferencia antes/después queda POR DEBAJO del ruido natural
@@ -263,11 +298,26 @@ leería como "ya visto" y nunca dibujaría en la primera carga).
   DETRÁS del "21"** (luz alta desde adelante; tras el `rotateX(90°)` la mitad
   superior del plano es el lado lejano). Todos los degradés van **centrados en
   x = 50%** (no se derraman a los costados de los dígitos) y **angostos** (anchos
-  ~44–52%); los centros en y < 50% (50/47,5/45/43,5%) los estiran hacia atrás.
-  Tupida: alfas altas (~0,9/0,74/0,62/0,5) y caída tardía a transparente.
-  `--shadow-pulse` (motor) la respira según el ángulo (de
-  canto proyecta menos). Funciona también en el fallback (la rota la animación CSS
-  `hero-spin-y`). El bloque `.hero-title` entero lleva `user-select: none` (el
+  ~43–53%); los centros en y < 50% (50/47,1/44,2/42,1%) los estiran hacia atrás.
+  Tupida: alfas altas (0,9/0,74/0,62/0,5) y caída tardía a transparente.
+  - ⚠ **A 90° la perspectiva aplasta la distancia hacia atrás**, así que para que
+    la sombra gane *recorrido* visible hay que exagerar mucho en las unidades del
+    plano: llevarla de 62% a **120% de alto** con los degradés reescalados sólo
+    corrió el borde lejano **27px** en pantalla. Si se quiere más, hay que seguir
+    agrandando el plano — no alcanza con mover los centros.
+  - ⚠ **Los radios verticales son % de la altura DEL PLANO**: al cambiar `height`
+    hay que reescalar los cuatro degradés o cambian de tamaño solos. La oclusión de
+    contacto se recalculó (3,6%) justamente para quedar **igual de fina** que antes:
+    es la que hace que el "21" se lea apoyado, y engordarla lo despega del piso.
+  - Al agrandar el plano los degradés se superponen más, así que la sombra **gana
+    densidad además de alcance**. Se probó bajarle las alfas exteriores para dejar
+    sólo el alcance, pero quedó demasiado tímida: la elección fue la versión densa
+    (decisión del 2026-09-09). Si alguna vez se quiere alcance sin peso, el ajuste
+    es bajar esas dos alfas (0,62 y 0,5), no achicar el plano.
+  `--shadow-pulse` (motor) la respira según el ángulo (cuanto más girado, menos
+  huella; con el péndulo es un latido sutil, porque el recorrido es corto).
+  Funciona también en el fallback (la rota la animación CSS
+  `hero-sway-y`). El bloque `.hero-title` entero lleva `user-select: none` (el
   "Estudio 21" visible es decorativo, `aria-hidden`; el texto real va en
   `.sr-only`): no se puede seleccionar ni arrastrar.
 - **Nave wireframe** (`HeroWireframe.astro` + `hero-wireframe.css`): pabellón vidriado
@@ -634,10 +684,15 @@ de ancho (y en alturas de 390 a 1440), en la home y en la ficha de proyecto.
   además de las reglas de card chica del helicoidal (`max-height` 820/660).
 
 **Cosas que ya se rompieron una vez y no hay que volver a romper:**
-- **El "Estudio 21" del hero gira sólo en ≥900px.** El giro constante
-  (`hero-spin-y`, modo base sin motor) a tamaño de celular era ilegible: el "21" mide
-  ~123px y, de canto, las 16 capas del extruido se separan y se leen como un peine.
-  Debajo de 900px el título va quieto, de frente (y no gasta batería animando 3D).
+- **El "Estudio 21" del hero no da la vuelta entera, y sólo se mueve en ≥900px.**
+  Las dos cosas por separado. (a) El **péndulo** (ver arriba) existe porque pasados
+  los ~90° se veía la **espalda** del bloque, que no es una cara diseñada sino la capa
+  más lejana del extruido espejada por el navegador (`backface-visibility: visible`
+  → el "21" al revés, y en el gris claro del fondo del degradé), y cerca del canto las
+  16 capas se separan y se lee como un peine. (b) Debajo de **900px** el título va
+  quieto y de frente igual: el 3D a 60fps de fondo no paga lo que gasta de batería en
+  un celular. Ojo: el peine ya no es motivo del corte de 900px —el péndulo no llega
+  nunca a ese ángulo—, pero la batería sí.
 - **Las notas mono del fondo vivo (`.lbg-note`) se ocultan en ≤760px.** Van con
   `white-space: nowrap` y "EST·21 — ARQUITECTURA Y DESARROLLO" mide ~305px: en un
   teléfono se salía de pantalla por la izquierda.
