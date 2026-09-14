@@ -1,0 +1,205 @@
+/* ============================================================
+   AXONOMETRÍA — "Quiénes somos"
+   ------------------------------------------------------------
+   Paleta del dibujo, derivada de la del sitio: papel en tres tonos
+   según hacia dónde mira cada cara (cubierta clara, sur media, este
+   oscura), tinta para la estructura, hormigón para el detalle y un
+   único acento petróleo en el vidrio y el agua.
+   Los grosores están en unidades del viewBox (≈ px a tamaño desktop).
+   ============================================================ */
+
+/* ---- rellenos ---- */
+.axo [class^='c-'],
+.axo .poche {
+  stroke: none;
+}
+.axo .c-o1 { fill: #faf9f5; }
+.axo .c-o2 { fill: #dfdcd4; }
+.axo .c-o3 { fill: #ebe8e2; }
+.axo .c-p2 { fill: #d9d4ca; }
+.axo .c-p3 { fill: #e4dfd6; }
+.axo .c-m1 { fill: #f3eee5; }
+.axo .c-m2 { fill: #ddd5c8; }
+.axo .c-m3 { fill: #ebe5da; }
+.axo .c-v { fill: #cddfda; fill-opacity: 0.3; }
+.axo .c-vb { fill: #cddfda; fill-opacity: 0.14; }
+.axo .c-vo { fill: #b8c7c3; }
+.axo .c-u1 { fill: #fefdfb; }
+.axo .c-u2 { fill: #e9e6df; }
+.axo .c-u3 { fill: #f3f1ec; }
+.axo .c-t1 { fill: #f7f4ef; }
+.axo .c-t2 { fill: #e2ddd3; }
+.axo .c-t3 { fill: #ece8e0; }
+.axo .c-suelo { fill: #f5f4ef; }
+.axo .c-z2 { fill: #d6d2c9; }
+.axo .c-z3 { fill: #e3e0d8; }
+.axo .c-deck { fill: #f1ede6; }
+.axo .c-borde { fill: #f2f0ea; }
+.axo .c-losa { fill: #e8e5de; }
+.axo .c-pz1 { fill: #bfd2cd; }
+.axo .c-pz2 { fill: #aec4bf; }
+.axo .c-agua { fill: #d2e2de; }
+.axo .c-cel { fill: #d4ccbe; }
+.axo .c-pv { fill: #c9cfce; }
+.axo .c-rug { fill: #ebe6dd; }
+/* la copa lleva relleno Y contorno en un mismo path (va después de la regla
+   general de los `c-`, que les saca el trazo) */
+.axo .c-copa { fill: #fbfaf6; fill-opacity: 0.9; stroke: #6b675f; stroke-width: 0.55; stroke-linejoin: round; }
+.axo .c-fig { fill: #9d998f; }
+.axo .c-sombra { fill: #1a1916; fill-opacity: 0.07; }
+.axo .poche { fill: #3b3933; }
+
+/* ---- trazos ---- */
+.axo [class^='l-'],
+.axo .cor {
+  fill: none;
+  stroke-linecap: butt;
+  stroke-linejoin: round;
+}
+.axo .l-sil { stroke: #3b3933; stroke-width: 1.05; }
+.axo .l-ari { stroke: #3b3933; stroke-width: 0.55; }
+.axo .cor { stroke: #1a1916; stroke-width: 0.95; }
+.axo .l-msil { stroke: #5a564e; stroke-width: 0.75; }
+.axo .l-mari { stroke: #6a665e; stroke-width: 0.42; }
+.axo .l-vsil { stroke: #6b8480; stroke-width: 0.5; }
+.axo .l-vari { stroke: #6f8581; stroke-width: 0.38; }
+.axo .l-usil { stroke: #55524b; stroke-width: 0.6; }
+.axo .l-uari { stroke: #6b675f; stroke-width: 0.36; }
+.axo .l-mar { stroke: #6c7b77; stroke-width: 0.38; }
+.axo .l-ref { stroke: #8fa6a1; stroke-width: 0.34; }
+.axo .l-cel { stroke: #756f65; stroke-width: 0.32; }
+.axo .l-jun { stroke: #a29d93; stroke-width: 0.3; }
+.axo .l-tab { stroke: #b5afa4; stroke-width: 0.28; }
+.axo .l-tab2 { stroke: #c2bdb4; stroke-width: 0.25; }
+.axo .l-fin { stroke: #8a8780; stroke-width: 0.38; }
+.axo .l-agua { stroke: #6e8f89; stroke-width: 0.45; }
+.axo .l-onda { stroke: #86a39d; stroke-width: 0.38; }
+.axo .l-veg { stroke: #8c8a7f; stroke-width: 0.42; }
+.axo .l-tronco { stroke: #6b675f; stroke-width: 0.7; }
+.axo .l-copa2 { stroke: #8f8c84; stroke-width: 0.34; }
+.axo .l-fig { stroke: #3b3933; stroke-width: 0.5; }
+.axo .l-bar { stroke: #55524b; stroke-width: 0.5; }
+.axo .l-pv { stroke: #8e9493; stroke-width: 0.25; }
+.axo .l-graf { stroke: var(--petrol); stroke-width: 0.6; }
+.axo .axo-txt {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.08em;
+  fill: var(--concrete);
+}
+
+/* ============================================================
+   LÁMINA — el dibujo apoyado en la columna de "Quiénes somos"
+   ============================================================ */
+.axo-lamina {
+  position: relative;
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: clamp(0.8rem, 1.8vw, 1.25rem);
+}
+.axo-lienzo {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+.axo-lienzo > .axo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+/* marcas de registro de la hoja, un poco adentro del filete */
+.axo-marcas {
+  inset: 9px;
+}
+/* el pie va superpuesto abajo a la izquierda, en el hueco que deja la maqueta
+   (su canto sur baja hacia la derecha): así no le resta alto al dibujo */
+.axo-pie {
+  position: absolute;
+  left: clamp(1.15rem, 2.3vw, 1.65rem);
+  bottom: clamp(0.95rem, 1.9vw, 1.35rem);
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin: 0;
+  pointer-events: none;
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--concrete-soft);
+}
+
+/* ============================================================
+   ANIMACIÓN — la lámina se dibuja por etapas de obra
+   ------------------------------------------------------------
+   Cada path lleva `t` (trazo: se dibuja con dashoffset sobre
+   pathLength=1) o `r` (relleno: fundido), más `kN`: su tramo
+   (0–47) dentro de la obra — lo reparte Axonometria.astro, que
+   también define `--k` para cada tramo.
+   ============================================================ */
+/* Tramo de la obra dentro del `cover` de la lámina (0% = asoma por abajo,
+   100% = se fue por arriba): arranca con ~3/4 de la lámina a la vista y termina
+   (cover ≈ 61%) con la lámina un poco por encima del centro de la pantalla.
+   Medido en 1024×768 y 1920×1080: si arrancara antes, casi toda la obra se
+   dibujaría con la lámina todavía cortada contra el borde de abajo. */
+.axo {
+  --r0: 17%; /* arranque */
+  --rp: 0.8%; /* recorrido de scroll entre un tramo y el siguiente (48 tramos) */
+  --rd: 5%; /* lo que tarda en completarse cada trazo */
+}
+@keyframes axo-trazo {
+  from { stroke-dashoffset: 1; }
+  to { stroke-dashoffset: 0; }
+}
+@keyframes axo-relleno {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* atada al scroll: termina de dibujarse con la lámina a mitad de pantalla
+     (cover ≈ 57%) y al subir se desarma sola */
+  @supports (animation-timeline: view()) {
+    .axo-lamina {
+      view-timeline: --axo block;
+    }
+    .axo .t,
+    .axo .r {
+      animation-timing-function: linear;
+      animation-fill-mode: both;
+      animation-timeline: --axo;
+    }
+    .axo .t {
+      stroke-dasharray: 1;
+      animation-name: axo-trazo;
+      animation-range: cover calc(var(--r0) + var(--k) * var(--rp)) cover calc(var(--r0) + var(--k) * var(--rp) + var(--rd));
+    }
+    .axo .r {
+      animation-name: axo-relleno;
+      animation-range: cover calc(var(--r0) + (var(--k) + 1.5) * var(--rp))
+        cover calc(var(--r0) + (var(--k) + 1.5) * var(--rp) + var(--rd));
+    }
+  }
+
+  /* plan B (sin scroll-driven animations): por tiempo, al entrar en pantalla */
+  .axo-pendiente .axo .t {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+  }
+  .axo-pendiente .axo .r {
+    opacity: 0;
+  }
+  .axo-pendiente.axo-dibujando .axo .t {
+    animation: axo-trazo 0.9s cubic-bezier(0.45, 0.05, 0.2, 1) both;
+    animation-delay: calc(var(--k) * 65ms);
+  }
+  .axo-pendiente.axo-dibujando .axo .r {
+    animation: axo-relleno 0.7s ease both;
+    animation-delay: calc(var(--k) * 65ms + 160ms);
+  }
+}

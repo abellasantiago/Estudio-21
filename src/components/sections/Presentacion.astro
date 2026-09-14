@@ -6,15 +6,11 @@
  * Estructura: columna gráfica a la izquierda / texto a la derecha, y las cifras
  * de trayectoria como banda horizontal al pie, cerrando la sección.
  *
- * La columna gráfica está vacía por ahora: si aparece
- * `src/assets/estudio/presentacion.*` se usa esa imagen; si no, va un
- * placeholder con la grilla de blueprint (ver assets/estudio/LEEME.md).
+ * La columna gráfica es una axonometría seccionada que se dibuja con el scroll
+ * (Axonometria.astro; la escena 3D vive en src/lib/axonometria/).
  */
-import { Picture } from 'astro:assets';
 import '../../styles/presentacion.css';
-import { getFotoEstudio } from '../../lib/images';
-
-const foto = getFotoEstudio();
+import Axonometria from '../Axonometria.astro';
 
 const trayectoria = [
   { valor: '+10', label: 'Años de trayectoria' },
@@ -30,19 +26,8 @@ const trayectoria = [
 
   <div class="wrap">
     <div class="pres-grid">
-      <div class="pres-visual reveal">
-        {foto ? (
-          <Picture
-            src={foto}
-            formats={['avif', 'webp']}
-            alt="Estudio 21 Arquitectos"
-            widths={[600, 900, 1200]}
-            sizes="(max-width: 900px) 100vw, 46vw"
-            loading="lazy"
-          />
-        ) : (
-          <span class="pres-visual-ph" aria-hidden="true"></span>
-        )}
+      <div class="pres-visual">
+        <Axonometria />
       </div>
 
       <div class="pres-texto">

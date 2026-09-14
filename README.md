@@ -137,16 +137,12 @@ src/assets/equipo/guillermo-tosi.jpg
 
 Hasta que cargues la foto, se muestra un placeholder con las iniciales.
 
-## Imagen de "Quiénes somos"
+## Axonometría de "Quiénes somos"
 
-La sección de presentación tiene una columna gráfica a la izquierda, hoy vacía.
-Para llenarla, tirá una imagen apaisada en:
-
-```
-src/assets/estudio/presentacion.jpg
-```
-
-Aparece sola. Ver [`src/assets/estudio/LEEME.md`](src/assets/estudio/LEEME.md).
+La columna gráfica de la presentación es una axonometría seccionada de una casa
+que se dibuja con el scroll. No es una imagen: sale de una escena 3D que se
+resuelve en el build (`src/lib/axonometria/`), así que se cambia editando el
+modelo (`casa.ts`, `equipamiento.ts`) y no un archivo gráfico.
 
 ## Piezas de marca (favicon, icono de iOS, imagen para compartir)
 

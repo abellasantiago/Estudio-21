@@ -9,36 +9,15 @@
   gap: clamp(2rem, 5vw, 5rem);
 }
 
-/* ---- columna gráfica ---- */
+/* ---- columna gráfica: la lámina de la axonometría ----
+   Papel un tono más claro que la página y un filete: se lee como una hoja de
+   presentación apoyada en la mesa (el dibujo, sus marcas de registro y el pie
+   viven en axonometria.css). */
 .pres-visual {
   position: relative;
-  overflow: hidden;
   min-height: clamp(19rem, 30vw, 27rem);
-  background: var(--paper-deep);
+  background: var(--paper-2);
   border: 1px solid var(--line);
-}
-.pres-visual picture,
-.pres-visual img {
-  width: 100%;
-  height: 100%;
-}
-.pres-visual img {
-  object-fit: cover;
-  /* mismo tratamiento que los retratos del equipo: la foto entra a la paleta
-     en vez de pegar un salto de saturación en medio del papel */
-  filter: grayscale(0.18) contrast(1.02);
-}
-
-/* placeholder: la grilla de blueprint del sitio (igual que los retratos del
-   equipo sin foto). Pensado para reemplazarse entero cuando haya imagen. */
-.pres-visual-ph {
-  position: absolute;
-  inset: 0;
-  background-image:
-    linear-gradient(var(--line-soft) 1px, transparent 1px),
-    linear-gradient(90deg, var(--line-soft) 1px, transparent 1px);
-  background-size: 32px 32px;
-  opacity: 0.5;
 }
 
 /* ---- columna de texto ---- */

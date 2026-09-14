@@ -71,9 +71,10 @@ Pages queda como preview/staging gratis y no hace falta tocar nada de esto.
   inversor. Datos del estudio (mail, dirección, redes) en `src/data/site.ts` — lo que
   se completa aparece solo en Contacto.
 - **Fotos por convención** (`src/lib/images.ts`): tirar imágenes en
-  `src/assets/proyectos/<slug>/` (`portada.*`, `galeria-*.*`), `src/assets/equipo/<slug>.*`
-  y `src/assets/estudio/presentacion.*` (la columna gráfica de "Quiénes somos")
+  `src/assets/proyectos/<slug>/` (`portada.*`, `galeria-*.*`) y `src/assets/equipo/<slug>.*`
   y aparecen solas, sin listarlas. Hasta que existan, se muestra un placeholder.
+  La columna gráfica de "Quiénes somos" **no** es una foto: es la axonometría que se
+  genera en el build (ver "Axonometría de Quiénes somos").
 - **Piezas de marca derivadas** (`scripts/generar-marca.mjs`): `public/favicon.png`,
   `apple-touch-icon.png` y `og-default.png` **no se editan a mano** — se generan del
   logo real (`src/assets/marca/banner_negro.png`) con la paleta del sitio. Ver
@@ -388,12 +389,11 @@ dos secciones se pisen — **identidad acá, modelo allá**.
   El grid va con el `align-items: stretch` por defecto **a propósito**: así el hueco
   gráfico toma exactamente el alto que marca el texto y el bloque queda parejo sin
   fijar una proporción a mano (medido: 448px y 448px). No poner `align-items: start`.
-- **La columna gráfica está vacía por ahora.** Si aparece
-  `src/assets/estudio/presentacion.*` se usa esa imagen (auto-descubierta por
-  `getFotoEstudio()` en `src/lib/images.ts`, misma convención que equipo y proyectos);
-  si no, se dibuja un placeholder con la grilla de blueprint del sitio — el mismo
-  gesto que los retratos del equipo sin foto. Ver `src/assets/estudio/LEEME.md`.
-  Está pensado para reemplazarse entero si en vez de una foto va un gráfico.
+- **La columna gráfica es una lámina con una axonometría seccionada** que se dibuja
+  con el scroll (`Axonometria.astro`, ver la sección siguiente). La lámina es
+  `.pres-visual`: papel `--paper-2` con filete `--line` —se lee como una hoja de
+  presentación apoyada en la mesa— y **sin `.reveal`**: la animación del dibujo ya
+  hace la entrada.
 - **Título: "Estudio 21"** (sin "Arquitectos" — así no repite el lockup del logo del
   navbar), con eyebrow "Quiénes somos".
 - **Los tres párrafos bajan de intensidad** (el primero en `--ink-soft`, los otros dos
@@ -408,6 +408,85 @@ dos secciones se pisen — **identidad acá, modelo allá**.
   el eje va de abajo hacia arriba, así que eso apila contra el borde superior — sin
   eso, una etiqueta que parte en dos líneas (pasa en mobile) empuja su cifra hacia
   abajo y los tres números quedan a distinta altura.
+
+### Axonometría de "Quiénes somos"
+`src/components/Axonometria.astro` + `src/styles/axonometria.css`; la escena vive en
+`src/lib/axonometria/`. Es una **axonometría seccionada de una "vivienda tipo"**
+(genérica, igual que la planta del preloader): planta baja vidriada con un volumen de
+servicio en sillería, caja alta de hormigón con celosía que vuela 5 m sobre el jardín,
+terraza, pérgola, deck, piscina, paneles solares, equipamiento, árboles y figuras de
+escala. **No es un archivo gráfico**: es una escena 3D (metros; X este, Y norte, Z
+arriba) que se proyecta y se resuelve en el build a un SVG plano. Para cambiar el
+dibujo se edita el modelo, no un SVG.
+- **Archivos:** `motor.ts` (proyección ortogonal, ocultamiento, jerarquía de línea,
+  cortes, sombras), `piezas.ts` (estilos → clases CSS, prismas, texturas de fachada y
+  de piso, grupos: escalera, listones, paneles, árboles, matas, figuras), `casa.ts`
+  (estructura, `CORTES`, `VISTA`, `SOL`), `equipamiento.ts` (muebles y ambientación),
+  `niveles.ts` (cotas de nivel).
+- **Ocultamiento = algoritmo del pintor.** Caras con relleno opaco (tono de papel
+  según hacia dónde miran: cubierta clara, sur media, este oscura) y las aristas
+  encima; lo más cercano se pinta después. El orden es topológico entre cajas cuyos
+  contornos **proyectados** se pisan, y el eje que las separa dice cuál está detrás
+  (la mirada avanza hacia −X, +Y y −Z: por eso `az` tiene que estar entre 0° y 90°).
+  - ⚠ **Las cajas no pueden interpenetrarse**: si dos se cortan, el orden sale a ojo y
+    algo se tapa mal. Por eso lo que apoya sobre una alfombra arranca 2 cm más arriba y
+    la losa alta empieza en X = 6, no adentro del volumen de piedra. `dibujar()`
+    devuelve `avisos` (cajas que se cortan y ciclos rotos) y el componente los imprime
+    en el build: **tienen que quedar en cero**.
+  - ⚠ **Comparar rectángulos envolventes no alcanza.** Una losa larga en diagonal
+    "pisa" medio dibujo en su rectángulo y generaba dependencias falsas → ciclos → los
+    paneles solares quedaban tapados por la cubierta. La prueba de solapamiento es
+    sobre el hexágono proyectado de cada caja (ejes separadores).
+- **Jerarquía de línea automática:** arista con una sola cara visible → silueta
+  (gruesa); entre dos caras visibles → arista fina; cara sobre un plano de corte →
+  poché con contorno más grueso. Los grosores van en unidades del viewBox (`esc` 13 ≈
+  px a tamaño desktop).
+- **Cortes** (`CORTES` en `casa.ts`): regiones `x < X < x1 · y0 < Y < y · z0 < Z < z1`.
+  Son dos, escalonados: planta alta + cubierta (se ven el dormitorio y el baño, con los
+  tabiques cortados a 2,40 m y el tope en poché) y la terraza de planta baja (se ve la
+  escalera). Las caras que caen sobre esos planos salen en poché solas; el vidrio
+  cortado lleva su propio tono (`poche`/`cor` por estilo). ⚠ Una cara no puede quedar
+  a medias sobre un plano de corte: se parte el lado de la planta con vértices
+  colineales (la losa alta lleva (21,14) y (24,14) por eso).
+- **Sombras:** sólo al suelo (z = 0) y todas en **un único path** con `nonzero`, así
+  las superposiciones no se oscurecen de más. La de un prisma convexo es la envolvente
+  de sus puntos (un polígono en vez de seis: la sombra llegó a ser el path más pesado).
+  Los muebles de adentro llevan `sinSombra`.
+- **Se amuebla sólo lo que se ve:** bajo la losa de planta baja la mirada entra apenas
+  ~3 m detrás del vidriado, así que el estar y el comedor van contra el vidrio.
+- **Árboles:** copa festoneada con arcos SVG, relleno y contorno en un mismo path
+  (`c-copa`) y tres trazos cortos de sombreado. Las matas chicas llevan menos lóbulos,
+  más marcados y sin sombreado: a ese tamaño se leían como globos con cara.
+- **Vista 35°/42°** (giro/elevación), elegida comparando vistas en cajas del tamaño
+  real de la lámina: conserva la fachada larga (la celosía) como protagonista, muestra
+  más interior por el corte y es menos apaisada que la 30/38 (1,48 contra 1,59) → el
+  dibujo llena más la columna.
+- **Lámina:** marcas de registro adentro del filete; norte (un círculo apoyado en el
+  suelo, o sea una elipse) y escala gráfica paralela al canto de la maqueta, en
+  petróleo. El pie (`figcaption`) va superpuesto abajo a la izquierda, en el hueco que
+  deja la maqueta, para no restarle alto al dibujo.
+- **Animación — se dibuja por etapas de obra:** terreno → planta baja → losa y planta
+  alta → cubierta y pérgola → equipamiento → sombras, vegetación y figuras. Cada path
+  cae en uno de 48 tramos (`kN`, respetando el orden del pintor dentro de cada etapa):
+  los trazos (`t`, con `pathLength=1`) se dibujan con `stroke-dashoffset` y los
+  rellenos (`r`) entran con fundido.
+  - Con scroll-driven animations (`view-timeline` en `.axo-lamina`), el tramo va de
+    `cover 17%` a ~61% (`--r0`/`--rp`/`--rd`): arranca con ~3/4 de la lámina a la
+    vista y termina con la lámina un poco por encima del centro. **Al subir, se
+    desarma.** ⚠ Arrancándolo antes, casi toda la obra se dibujaba con la lámina
+    todavía cortada contra el borde de abajo de la pantalla (medido en 1024×768).
+  - Sin soporte: se dibuja por tiempo la primera vez que entra en pantalla (script con
+    `IntersectionObserver`, clases `.axo-pendiente` / `.axo-dibujando`). Sin JS o con
+    `prefers-reduced-motion`: completa desde el principio.
+  - Medido: 60 fps mientras se dibuja (mediana de 16,7 ms por frame).
+- **Peso:** la lámina son ~120 KB de SVG inline (~28 KB con gzip), lo más pesado del
+  HTML de la home (18,5 KB gzip sin ella). Antes de sumar detalle, medir: las texturas
+  de líneas (tablas, juntas) pesan poco en gzip pero suman nodos al DOM.
+- **Iterar el dibujo fuera de Astro:** los `.ts` importan con extensión `.ts`
+  (`allowImportingTsExtensions`), así que Node 24 los corre directo. Un script que
+  importe `casa.ts`, arme un HTML con el SVG + `axonometria.css` y lo capture con Chrome
+  headless alcanza para iterar sin levantar el sitio (`axonometria()` acepta otra
+  `Vista` para comparar encuadres).
 
 ### Proyectos — carrusel helicoidal 3D
 `src/components/ProyectosHelicoidal.astro` + `src/styles/proyectos-helicoidal.css`.
@@ -752,7 +831,6 @@ fantasmas "21" sangran a propósito; verificado que no se pueda scrollear en x d
 
 - **Dominio real** en `site` (`astro.config.mjs`) + `public/robots.txt` — de ahí salen canonical, sitemap y URLs absolutas de OG. Hoy es el placeholder `estudio21arq.com`.
 - **Fotos de Sushi WOK Perú**: es el **único** proyecto sin portada ni galería (los otros 9 ya tienen). Van en `src/assets/proyectos/sushi-wok/`.
-- **Imagen (o gráfico) de la columna izquierda de "Quiénes somos"**: hoy es un placeholder de blueprint. Una foto va en `src/assets/estudio/presentacion.*` y aparece sola; si va otra cosa (un plano, un SVG), hay que reemplazar esa columna en `Presentacion.astro`.
 - **Años estimados** de Villa Platero, Vila Rodona y Chana I; m² (área construida) de esos tres. m² de Cavas de Haedo también es **estimado** (no oficial).
 - Vila Rodona: confirmar mix de dormitorios y total de unidades.
 - Sushi WOK: la ficha muestra "Unidades: Pendiente" por ser un local gastronómico — debería decir **"No aplica"**, que no es lo mismo que un dato que falta.
