@@ -89,49 +89,23 @@
 }
 
 /* ============================================================
-   LÁMINA — el dibujo apoyado en la columna de "Quiénes somos"
+   EL DIBUJO EN LA COLUMNA de "Quiénes somos"
+   ------------------------------------------------------------
+   Suelto sobre el papel de la página: sin recuadro, filete, marcas
+   ni pie. El SVG toma todo el hueco que le da el grid (el alto lo
+   marca el texto) y se centra ahí con `meet`.
    ============================================================ */
 .axo-lamina {
   position: relative;
-  margin: 0;
   width: 100%;
   height: 100%;
-  display: flex;
-  flex-direction: column;
-  padding: clamp(0.8rem, 1.8vw, 1.25rem);
 }
-.axo-lienzo {
-  position: relative;
-  flex: 1 1 auto;
-  min-height: 0;
-}
-.axo-lienzo > .axo {
+.axo-lamina > .axo {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
   overflow: visible;
-}
-/* marcas de registro de la hoja, un poco adentro del filete */
-.axo-marcas {
-  inset: 9px;
-}
-/* el pie va superpuesto abajo a la izquierda, en el hueco que deja la maqueta
-   (su canto sur baja hacia la derecha): así no le resta alto al dibujo */
-.axo-pie {
-  position: absolute;
-  left: clamp(1.15rem, 2.3vw, 1.65rem);
-  bottom: clamp(0.95rem, 1.9vw, 1.35rem);
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-  margin: 0;
-  pointer-events: none;
-  font-family: var(--font-mono);
-  font-size: 0.6rem;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--concrete-soft);
 }
 
 /* ============================================================

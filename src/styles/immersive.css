@@ -77,6 +77,26 @@ html.is-immersive .living-bg > *:not(.lbg-grain) {
     display: none;
   }
 }
+/* Sin motor (touch, reduced-motion, sin JS) nadie escribe --hero-fade, así que las
+   notas —fijas— quedaban a 0,5 sobre TODA la página: pasaban por detrás de la
+   axonometría de "Quiénes somos", que va suelta, sin recuadro que las tape. Acá
+   las desvanece el scroll en el mismo tramo que usa el motor (el primer 70% de
+   pantalla). Con motor no aplica: manda --hero-fade. */
+@supports (animation-timeline: scroll()) {
+  html:not(.is-immersive) .lbg-note {
+    animation: lbg-note-fuera linear both;
+    animation-timeline: scroll(root block);
+    animation-range: 0 70vh;
+  }
+}
+@keyframes lbg-note-fuera {
+  from {
+    opacity: 0.5;
+  }
+  to {
+    opacity: 0;
+  }
+}
 /* marcas de registro a pantalla completa (mismo lenguaje que .marks) */
 .lbg-marks {
   inset: 6vh 5vw;

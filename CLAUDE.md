@@ -374,6 +374,11 @@ leería como "ya visto" y nunca dibujaría en la primera carga).
   vía una custom property `--reveal`, no pisa la transición de `.reveal`) y la línea
   **"21 de Setiembre 3024"** (`.hero-dim`). El texto/marca se corren a la izquierda con
   el token `--hero-shift` (se anula en pantallas chicas).
+  **Sin motor** (touch, reduced-motion, sin JS) nadie escribe `--hero-fade`, y las
+  notas mono —que son `position:fixed`— quedaban a 0,5 sobre toda la página: pasaban
+  por detrás de la axonometría de "Quiénes somos", que va sin recuadro. Ahí las
+  desvanece una scroll-driven animation (`html:not(.is-immersive) .lbg-note`, en
+  `immersive.css`) en el mismo tramo que usa el motor: el primer 70% de pantalla.
 - **Después del hero NO va texto suelto**: se entra directo a "El estudio". El bloque
   `.hero-intro` que había ahí (claim "De la idea a la escritura, un solo estudio" +
   una frase de contexto + las cifras) se desarmó: repetía lo que ya decía Nosotros y
@@ -389,11 +394,17 @@ dos secciones se pisen — **identidad acá, modelo allá**.
   El grid va con el `align-items: stretch` por defecto **a propósito**: así el hueco
   gráfico toma exactamente el alto que marca el texto y el bloque queda parejo sin
   fijar una proporción a mano (medido: 448px y 448px). No poner `align-items: start`.
-- **La columna gráfica es una lámina con una axonometría seccionada** que se dibuja
-  con el scroll (`Axonometria.astro`, ver la sección siguiente). La lámina es
-  `.pres-visual`: papel `--paper-2` con filete `--line` —se lee como una hoja de
-  presentación apoyada en la mesa— y **sin `.reveal`**: la animación del dibujo ya
-  hace la entrada.
+- **La columna gráfica es una axonometría seccionada** que se dibuja con el scroll
+  (`Axonometria.astro`, ver la sección siguiente). Va **suelta sobre el papel de la
+  página**: `.pres-visual` no lleva fondo, filete, marcas de registro ni pie. Al
+  principio fue una lámina `--paper-2` con filete y un pie ("Axonometría seccionada ·
+  Vivienda tipo"), pero ese recuadro claro contrastaba de más con el fondo y se sacó
+  (decisión del 2026-09-15). Tampoco lleva `.reveal`: la animación del dibujo ya hace
+  la entrada.
+- **La axonometría sólo se ve con las dos columnas.** En ≤900px, donde el grid pasa a
+  una columna, quedaría arriba del texto y bajando del hero se pasaría primero por el
+  dibujo: ahí `.pres-visual` va con `display:none` y del hero se entra directo al
+  texto (decisión del 2026-09-15). El SVG igual viaja en el HTML.
 - **Título: "Estudio 21"** (sin "Arquitectos" — así no repite el lockup del logo del
   navbar), con eyebrow "Quiénes somos".
 - **Los tres párrafos bajan de intensidad** (el primero en `--ink-soft`, los otros dos
@@ -408,6 +419,26 @@ dos secciones se pisen — **identidad acá, modelo allá**.
   el eje va de abajo hacia arriba, así que eso apila contra el borde superior — sin
   eso, una etiqueta que parte en dos líneas (pasa en mobile) empuja su cifra hacia
   abajo y los tres números quedan a distinta altura.
+- **Las cifras cuentan desde cero como un contador mecánico** la primera vez que la
+  banda entra en pantalla (`IntersectionObserver` al 50%, script de
+  `Presentacion.astro`). Cada dígito es una **rueda**: una tira 0…9 más un 0 final
+  (para pasar de 9 a 0 sin salto) detrás de una ventana de `--alto`. La de las
+  unidades gira y la de las decenas avanza **recién mientras las unidades pasan de 9
+  a 0**, como un cuentakilómetros (`posicion()`). 1,9 s con salida cuártica y 140 ms
+  de desfase entre cifras.
+  - La CSS deja cada tira en su dígito final (`--p`): **sin JS o con reduced-motion se
+    ven los valores directo**. El valor real va en `.sr-only` para los lectores de
+    pantalla; las ruedas son `aria-hidden` y `user-select:none`.
+  - `--alto` es **0,9em = el line-height que tenía la cifra**, así la banda mide lo
+    mismo que con texto plano. Medido: a los dígitos les sobran ~2,8px arriba y abajo
+    de la ventana, no se cortan.
+  - Se respeta la cantidad de dígitos del valor ("06" conserva el cero, "+10" cuenta
+    +00…+10). Los números de Space Grotesk son tabulares (22,85px todos, medido):
+    ninguna cifra cambia de ancho mientras rueda.
+  - ⚠ El script escribe el `transform` **inline en cada tira**, no `--p`: un custom
+    property se hereda a las 11 celdas de la tira y las invalidaría en cada cuadro.
+  - La banda queda muy por debajo del hero, así que el salto del valor final a cero
+    al armarse (al cargar) no se ve.
 
 ### Axonometría de "Quiénes somos"
 `src/components/Axonometria.astro` + `src/styles/axonometria.css`; la escena vive en
@@ -461,10 +492,10 @@ dibujo se edita el modelo, no un SVG.
   real de la lámina: conserva la fachada larga (la celosía) como protagonista, muestra
   más interior por el corte y es menos apaisada que la 30/38 (1,48 contra 1,59) → el
   dibujo llena más la columna.
-- **Lámina:** marcas de registro adentro del filete; norte (un círculo apoyado en el
-  suelo, o sea una elipse) y escala gráfica paralela al canto de la maqueta, en
-  petróleo. El pie (`figcaption`) va superpuesto abajo a la izquierda, en el hueco que
-  deja la maqueta, para no restarle alto al dibujo.
+- **Grafismo:** norte (un círculo apoyado en el suelo, o sea una elipse) y escala
+  gráfica paralela al canto de la maqueta, en petróleo. Nada más: sin recuadro,
+  marcas de registro ni pie (ver "Quiénes somos"). El SVG ocupa todo el hueco de la
+  columna y se centra con `meet`.
 - **Animación — se dibuja por etapas de obra:** terreno → planta baja → losa y planta
   alta → cubierta y pérgola → equipamiento → sombras, vegetación y figuras. Cada path
   cae en uno de 48 tramos (`kN`, respetando el orden del pintor dentro de cada etapa):
@@ -480,8 +511,9 @@ dibujo se edita el modelo, no un SVG.
     `prefers-reduced-motion`: completa desde el principio.
   - Medido: 60 fps mientras se dibuja (mediana de 16,7 ms por frame).
 - **Peso:** la lámina son ~120 KB de SVG inline (~28 KB con gzip), lo más pesado del
-  HTML de la home (18,5 KB gzip sin ella). Antes de sumar detalle, medir: las texturas
-  de líneas (tablas, juntas) pesan poco en gzip pero suman nodos al DOM.
+  HTML de la home (18,5 KB gzip sin ella). Viaja también en ≤900px, aunque ahí no se
+  muestre. Antes de sumar detalle, medir: las texturas de líneas (tablas, juntas)
+  pesan poco en gzip pero suman nodos al DOM.
 - **Iterar el dibujo fuera de Astro:** los `.ts` importan con extensión `.ts`
   (`allowImportingTsExtensions`), así que Node 24 los corre directo. Un script que
   importe `casa.ts`, arme un HTML con el SVG + `axonometria.css` y lo capture con Chrome
@@ -755,7 +787,8 @@ de ancho (y en alturas de 390 a 1440), en la home y en la ficha de proyecto.
 **Los tres cortes que mandan** (no son estéticos, cada uno tiene su geometría):
 - **900px** → capa inmersiva (`immersive.ts`: además pide `pointer: fine` y no
   `prefers-reduced-motion`). Debajo, el hero es estático y el `<html>` no lleva
-  `is-immersive`.
+  `is-immersive`. También es donde "Quiénes somos" pasa a una columna y **deja de
+  mostrarse la axonometría**.
 - **760px** → navbar horizontal ⇄ menú hamburguesa (`header.css`), y piso de ancho
   del cilindro helicoidal. Es el mismo número por casualidad: el del navbar sale del
   ancho del wordmark + los 5 links, el del cilindro del radio de las cards.

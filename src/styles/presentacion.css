@@ -9,15 +9,14 @@
   gap: clamp(2rem, 5vw, 5rem);
 }
 
-/* ---- columna gráfica: la lámina de la axonometría ----
-   Papel un tono más claro que la página y un filete: se lee como una hoja de
-   presentación apoyada en la mesa (el dibujo, sus marcas de registro y el pie
-   viven en axonometria.css). */
+/* ---- columna gráfica: la axonometría ----
+   Sin fondo ni filete: el dibujo va suelto sobre el papel de la página. Al
+   principio iba sobre una lámina un tono más clara, con filete, marcas de
+   registro y un pie, pero ese recuadro contrastaba de más con el fondo. El
+   dibujo y su animación viven en axonometria.css. */
 .pres-visual {
   position: relative;
   min-height: clamp(19rem, 30vw, 27rem);
-  background: var(--paper-2);
-  border: 1px solid var(--line);
 }
 
 /* ---- columna de texto ---- */
@@ -95,14 +94,53 @@
   line-height: 1.5;
 }
 
+/* ---- contador mecánico de las cifras ----
+   Cada dígito es una RUEDA: una tira vertical 0…9 más un 0 al final (para dar
+   la vuelta sin salto) detrás de una ventana de un dígito de alto. La CSS deja
+   cada tira en su dígito final (--p): así se ve sin JS y con reduced-motion.
+   El script de Presentacion.astro las pone en cero y las hace rodar cuando la
+   banda entra en pantalla. */
+.contador {
+  /* = el line-height de la cifra: la banda mide lo mismo que con texto plano */
+  --alto: 0.9em;
+  display: flex;
+  height: var(--alto);
+  line-height: var(--alto);
+  /* el texto de las tiras es decorativo (el valor real va en .sr-only): que no
+     se copie "01234567890…" al seleccionar */
+  -webkit-user-select: none;
+  user-select: none;
+}
+.contador-signo,
+.rueda {
+  display: block;
+  height: var(--alto);
+}
+.rueda {
+  overflow: hidden;
+}
+.rueda-tira {
+  display: block;
+  transform: translateY(calc(var(--p, 0) * var(--alto) * -1));
+}
+.rueda-tira > span {
+  display: block;
+  height: var(--alto);
+}
+.contador.contando .rueda-tira {
+  will-change: transform;
+}
+
 @media (max-width: 900px) {
   .pres-grid {
     grid-template-columns: 1fr;
-    gap: clamp(1.8rem, 4vw, 2.6rem);
   }
+  /* En una columna la axonometría quedaría ENCIMA del texto: bajando del hero
+     se pasaría primero por el dibujo y recién después por "Quiénes somos". El
+     dibujo sólo tiene sentido al costado del texto, así que acá no se muestra y
+     del hero se entra directo al texto. (El SVG igual viaja en el HTML.) */
   .pres-visual {
-    min-height: 0;
-    aspect-ratio: 4 / 3;
+    display: none;
   }
 }
 @media (max-width: 600px) {

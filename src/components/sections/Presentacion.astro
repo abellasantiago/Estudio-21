@@ -7,7 +7,8 @@
  * de trayectoria como banda horizontal al pie, cerrando la sección.
  *
  * La columna gráfica es una axonometría seccionada que se dibuja con el scroll
- * (Axonometria.astro; la escena 3D vive en src/lib/axonometria/).
+ * (Axonometria.astro; la escena 3D vive en src/lib/axonometria/). Sólo se ve
+ * con las dos columnas: en ≤900px se oculta y se entra directo al texto.
  */
 import '../../styles/presentacion.css';
 import Axonometria from '../Axonometria.astro';
@@ -17,6 +18,18 @@ const trayectoria = [
   { valor: '+15', label: 'Proyectos ejecutados' },
   { valor: '06', label: 'Profesionales' },
 ];
+
+// Cada cifra se parte en signo + dígitos: los dígitos son las ruedas del
+// contador mecánico (ver el script). Se respeta la cantidad de dígitos del
+// valor, así el "06" conserva su cero y ninguna cifra cambia de ancho al contar.
+const cifras = trayectoria.map((c) => {
+  const m = /^(\D*)(\d+)$/.exec(c.valor);
+  if (!m) throw new Error(`Cifra de trayectoria inválida: "${c.valor}"`);
+  const [, signo, digitos] = m;
+  return { ...c, signo, digitos: [...digitos].map(Number), numero: Number(digitos) };
+});
+// una rueda: 0…9 y un 0 más, para pasar de 9 a 0 sin salto
+const RUEDA = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0];
 ---
 
 <section class="block presentacion" id="nosotros">
@@ -56,12 +69,106 @@ const trayectoria = [
     </div>
 
     <dl class="pres-cifras reveal" data-d="3" aria-label="Trayectoria del estudio">
-      {trayectoria.map((c) => (
+      {cifras.map((c) => (
         <div class="pres-cifra">
           <dt>{c.label}</dt>
-          <dd>{c.valor}</dd>
+          <dd>
+            <span class="sr-only">{c.valor}</span>
+            <span class="contador" aria-hidden="true" data-contador={c.numero}>
+              {c.signo && <span class="contador-signo">{c.signo}</span>}
+              {c.digitos.map((d) => (
+                <span class="rueda">
+                  <span class="rueda-tira" style={`--p:${d}`}>
+                    {RUEDA.map((n) => <span>{n}</span>)}
+                  </span>
+                </span>
+              ))}
+            </span>
+          </dd>
         </div>
       ))}
     </dl>
   </div>
 </section>
+
+<script>
+  /*
+   * Cifras de trayectoria: la primera vez que la banda entra en pantalla, cada
+   * número cuenta desde cero como un contador mecánico. La rueda de las
+   * unidades gira y la de las decenas avanza recién mientras las unidades pasan
+   * de 9 a 0, como en un cuentakilómetros. Sin JS o con prefers-reduced-motion
+   * no se arma nada: las ruedas quedan en su valor final (lo resuelve la CSS).
+   */
+  const banda = document.querySelector<HTMLElement>('.pres-cifras');
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  if (banda && !reduce && 'IntersectionObserver' in window) {
+    const DURACION = 1900; // ms que tarda cada cifra en llegar a su valor
+    const ESCALON = 140; // ms de desfase entre una cifra y la siguiente
+    const DEMORA = 120; // ms desde que la banda entra: acompaña su fundido
+    const salida = (t: number) => 1 - Math.pow(1 - t, 4); // arranca rápido, asienta despacio
+
+    const contadores = Array.from(banda.querySelectorAll<HTMLElement>('[data-contador]')).map((el) => ({
+      el,
+      valor: Number(el.dataset.contador),
+      // de izquierda a derecha: la primera tira es la de mayor peso
+      tiras: Array.from(el.querySelectorAll<HTMLElement>('.rueda-tira')),
+    }));
+
+    // Posición (en dígitos) de la rueda de peso 10^k para el valor continuo v:
+    // su dígito entero más lo que "arrastra" mientras las ruedas de su derecha
+    // recorren la última unidad antes de dar la vuelta (…9 → …0).
+    const posicion = (v: number, k: number) => {
+      const peso = 10 ** k;
+      const entero = Math.floor(v / peso) % 10;
+      const arrastre = Math.min(1, Math.max(0, (v % peso) - (peso - 1)));
+      return entero + arrastre;
+    };
+
+    type Contador = (typeof contadores)[number];
+    const pintar = (c: Contador, v: number) => {
+      const n = c.tiras.length;
+      c.tiras.forEach((tira, i) => {
+        const p = posicion(v, n - 1 - i);
+        tira.style.transform = `translateY(calc(var(--alto) * ${(-p).toFixed(4)}))`;
+      });
+    };
+
+    // Armar: todas las ruedas en cero. La banda queda muy por debajo del hero,
+    // así que el salto del valor final a cero no se llega a ver.
+    for (const c of contadores) pintar(c, 0);
+
+    const correr = () => {
+      const t0 = performance.now() + DEMORA;
+      for (const c of contadores) c.el.classList.add('contando');
+      const cuadro = (ahora: number) => {
+        let quedan = false;
+        contadores.forEach((c, i) => {
+          const t = Math.min(1, Math.max(0, (ahora - t0 - i * ESCALON) / DURACION));
+          if (t < 1) quedan = true;
+          pintar(c, salida(t) * c.valor);
+        });
+        if (quedan) {
+          requestAnimationFrame(cuadro);
+          return;
+        }
+        // en su valor final: se le devuelve el control a la CSS (misma posición)
+        for (const c of contadores) {
+          for (const tira of c.tiras) tira.style.transform = '';
+          c.el.classList.remove('contando');
+        }
+      };
+      requestAnimationFrame(cuadro);
+    };
+
+    const io = new IntersectionObserver(
+      (entradas) => {
+        if (!entradas.some((e) => e.isIntersecting)) return;
+        io.disconnect();
+        correr();
+      },
+      { threshold: 0.5 },
+    );
+    io.observe(banda);
+  }
+</script>

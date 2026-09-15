@@ -93,35 +93,26 @@ const y1 = Math.max(...ys) + 6;
 const viewBox = `${n1(x0)} ${n1(y0)} ${n1(x1 - x0)} ${n1(y1 - y0)}`;
 ---
 
-<figure class="axo-lamina" data-axo>
-  <span class="marks axo-marcas" aria-hidden="true">
-    <span class="tl"></span><span class="tr"></span><span class="bl"></span><span class="br"></span>
-  </span>
-  <div class="axo-lienzo">
-    <svg
-      class="axo"
-      viewBox={viewBox}
-      preserveAspectRatio="xMidYMid meet"
-      xmlns="http://www.w3.org/2000/svg"
-      role="img"
-      aria-labelledby="axo-titulo"
-    >
-      <title id="axo-titulo">
-        Axonometría seccionada de una casa de dos plantas: planta baja vidriada, dormitorio y baño en la planta alta, terraza, pérgola y piscina.
-      </title>
-      {paths.map((p) => <path class={p.cls} d={p.d} pathLength={p.dibuja ? 1 : undefined} />)}
-      <path class="l-graf r k45" d={circuloN} />
-      <path class="l-graf t k45" pathLength={1} d={flechaN} />
-      <text class="axo-txt r k46" x={n1(uN)} y={n1(vN)} text-anchor="middle">N</text>
-      <path class="l-graf t k44" pathLength={1} d={escala} />
-      {rotulos.map((r) => <text class="axo-txt r k46" x={r.u} y={r.v} text-anchor="middle">{r.t}</text>)}
-    </svg>
-  </div>
-  <figcaption class="axo-pie">
-    <span>Axonometría seccionada</span>
-    <span>Vivienda tipo · esc. gráfica</span>
-  </figcaption>
-</figure>
+<div class="axo-lamina" data-axo>
+  <svg
+    class="axo"
+    viewBox={viewBox}
+    preserveAspectRatio="xMidYMid meet"
+    xmlns="http://www.w3.org/2000/svg"
+    role="img"
+    aria-labelledby="axo-titulo"
+  >
+    <title id="axo-titulo">
+      Axonometría seccionada de una casa de dos plantas: planta baja vidriada, dormitorio y baño en la planta alta, terraza, pérgola y piscina.
+    </title>
+    {paths.map((p) => <path class={p.cls} d={p.d} pathLength={p.dibuja ? 1 : undefined} />)}
+    <path class="l-graf r k45" d={circuloN} />
+    <path class="l-graf t k45" pathLength={1} d={flechaN} />
+    <text class="axo-txt r k46" x={n1(uN)} y={n1(vN)} text-anchor="middle">N</text>
+    <path class="l-graf t k44" pathLength={1} d={escala} />
+    {rotulos.map((r) => <text class="axo-txt r k46" x={r.u} y={r.v} text-anchor="middle">{r.t}</text>)}
+  </svg>
+</div>
 <style is:inline set:html={reglasPasos}></style>
 
 <script>
