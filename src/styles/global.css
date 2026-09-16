@@ -36,6 +36,11 @@
 *{box-sizing:border-box;margin:0;padding:0}
 html{
   scroll-behavior:smooth;
+  /* el lugar de la barra de scroll queda reservado aunque se bloquee el scroll
+     (visor de la galería, preloader): sin esto, en Windows la página se corría
+     ~8px al abrir y cerrar, y la miniatura que vuelve del visor aterrizaba
+     corrida respecto de donde había salido */
+  scrollbar-gutter:stable;
   /* iOS Safari infla el cuerpo de texto al girar a horizontal si no se fija.
      `100%` = respetar el tamaño que manda la hoja de estilos. */
   -webkit-text-size-adjust:100%;

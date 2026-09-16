@@ -1,6 +1,7 @@
 ---
 import { Image } from 'astro:assets';
 import { getCollection } from 'astro:content';
+import { getPortada } from '../lib/images';
 import '../styles/header.css';
 import banner from '../assets/marca/banner_negro.png';
 
@@ -25,8 +26,19 @@ const grupos = (
   items: proyectos
     .filter((p) => p.data.estado === g.estado)
     .sort((a, b) => b.data.anio - a.data.anio)
-    .map((p) => p.data),
+    .map((p) => ({ ...p.data, portada: getPortada(p.data.slug) })),
 }));
+
+// chip de la vista previa: mismo texto que en las cards y en la ficha
+const estadoLabels = {
+  proximamente: 'Próximamente',
+  'en-proceso': 'En proceso',
+  terminado: 'Terminado',
+} as const;
+
+// Ancho de la foto de la vista previa en px CSS. ⚠ Tiene que coincidir con
+// --prev-foto-w en header.css: con eso se piden justo la versión 1× y la 2×.
+const PREV_FOTO_W = 208;
 ---
 
 <header id="header">
@@ -62,9 +74,35 @@ const grupos = (
                     <ul>
                       {g.items.map((p) => (
                         <li>
-                          <a href={`${base}/proyectos/${p.slug}/`}>
+                          <a href={`${base}/proyectos/${p.slug}/`} class="nav-proj" data-slug={p.slug}>
                             <span class="nav-proj-name">{p.nombre}</span>
                             <span class="nav-proj-anio">{p.anio}</span>
+                            {/* Vista previa (sólo desktop con mouse, ver header.css):
+                                va ADENTRO del link para que pasar el mouse por la
+                                foto siga contando como estar sobre el proyecto, y
+                                un click en ella también entre a la ficha. Es
+                                decorativa para el lector de pantalla: el nombre
+                                del link ya lo dice todo. */}
+                            <span class="nav-prev" aria-hidden="true">
+                              <span class="nav-prev-foto">
+                                {p.portada ? (
+                                  <Image
+                                    src={p.portada}
+                                    alt=""
+                                    widths={[PREV_FOTO_W, PREV_FOTO_W * 2]}
+                                    sizes={`${PREV_FOTO_W}px`}
+                                    quality={80}
+                                    style={`--pf:${p.portadaFoco ?? '50% 50%'};--pz:${p.portadaZoom ?? 1}`}
+                                  />
+                                ) : (
+                                  <span class="nav-prev-ph">imagen pendiente</span>
+                                )}
+                              </span>
+                              <span class="nav-prev-pie">
+                                <span class={`status ${p.estado}`}><span class="pip"></span>{estadoLabels[p.estado]}</span>
+                                <span class="nav-prev-loc">{p.barrio ?? p.ubicacion}</span>
+                              </span>
+                            </span>
                           </a>
                         </li>
                       ))}
@@ -126,19 +164,108 @@ const grupos = (
     }
 
     /* El submenú abre a la DERECHA del panel salvo que no entre en pantalla: como
-       "Proyectos" cae en la mitad derecha del navbar, en ventanas angostas se
-       saldría de cuadro. Se mide con el panel todavía oculto (visibility:hidden
-       conserva la caja, así que el rect es real). */
+       "Proyectos" cae en la mitad derecha del navbar, en la práctica casi siempre
+       sale hacia la izquierda. La vista previa cuelga del lado de afuera del
+       submenú, así que se busca un lado donde entren LOS DOS; si en ninguno
+       entran (ventanas angostas) el submenú va donde quepa y la vista previa no
+       se muestra. Se mide con todo oculto (visibility:hidden conserva la caja,
+       así que los anchos son reales). */
+    const flyouts = Array.from(item.querySelectorAll<HTMLElement>('.nav-flyout'));
+    const prevEj = item.querySelector<HTMLElement>('.nav-prev');
     function placeFlyout() {
-      if (tapMode()) {
-        item.classList.remove('flyout-left');
-        return;
+      item.classList.remove('flyout-left', 'sin-preview');
+      if (tapMode() || !flyouts.length) return;
+      const margen = 12;
+      const r = menu!.getBoundingClientRect();
+      const flyW = Math.max(...flyouts.map((f) => f.offsetWidth));
+      const prevW = prevEj?.offsetWidth ?? 0; // 0 si la vista previa no aplica (sin mouse)
+      const lugarDer = window.innerWidth - margen - r.right;
+      const lugarIzq = r.left - margen;
+      if (lugarDer >= flyW + prevW) return;
+      if (lugarIzq >= flyW + prevW) item.classList.add('flyout-left');
+      else if (lugarDer >= flyW) item.classList.add('sin-preview');
+      else item.classList.add('flyout-left', 'sin-preview');
+    }
+
+    /* Vista previa: el proyecto "activo" es el último que tocó el mouse (o el
+       foco), no sólo el que está bajo el cursor. Así la foto no parpadea al
+       cruzar el margen del submenú ni al ir con el mouse hasta ella, y el
+       fundido siempre es de un proyecto a otro. Sin JS la CSS lo resuelve con
+       :hover (ver `.nav-flyout:not(.js-prev)` en header.css). */
+    for (const fly of flyouts) {
+      fly.classList.add('js-prev');
+      const links = Array.from(fly.querySelectorAll<HTMLAnchorElement>('.nav-proj'));
+      let pendiente = 0;
+      const activar = (a: HTMLAnchorElement) => {
+        clearTimeout(pendiente);
+        for (const l of links) l.classList.toggle('is-prev', l === a);
+        fly.classList.add('tiene-prev');
+      };
+      const limpiar = () => {
+        clearTimeout(pendiente);
+        fly.classList.remove('tiene-prev');
+        for (const l of links) l.classList.remove('is-prev');
+      };
+
+      /* "Puntería" hacia la foto: quien va con el mouse hasta la vista previa
+         casi nunca se mueve en horizontal, baja o sube en diagonal y en el
+         camino pasa por encima de otros proyectos. Si cada uno se activara al
+         instante, la foto cambiaría justo mientras uno va a mirarla. Mientras
+         el movimiento apunte a la foto (el puntero entra en el triángulo que
+         forman su posición de hace unos eventos y el borde cercano de la
+         vista previa), el cambio espera un instante; si el mouse se queda
+         quieto sobre el proyecto nuevo, se activa igual. */
+      const rastro: { x: number; y: number }[] = [];
+      let ultimoMov = 0;
+      fly.addEventListener('pointermove', (e) => {
+        rastro.push({ x: e.clientX, y: e.clientY });
+        if (rastro.length > 4) rastro.shift();
+        ultimoMov = performance.now();
+      });
+      const apuntaALaFoto = () => {
+        const activa = fly.querySelector<HTMLElement>('.nav-proj.is-prev .nav-prev');
+        if (!activa || rastro.length < 2) return false;
+        const r = activa.getBoundingClientRect();
+        if (!r.width) return false;
+        const p0 = rastro[0];
+        const p1 = rastro[rastro.length - 1];
+        const bx = item.classList.contains('flyout-left') ? r.right : r.left;
+        // ¿p1 cae dentro del triángulo (p0, borde de arriba, borde de abajo)?
+        const lado = (ax: number, ay: number, cx: number, cy: number, px: number, py: number) =>
+          (cx - ax) * (py - ay) - (cy - ay) * (px - ax);
+        const d1 = lado(p0.x, p0.y, bx, r.top - 20, p1.x, p1.y);
+        const d2 = lado(bx, r.top - 20, bx, r.bottom + 20, p1.x, p1.y);
+        const d3 = lado(bx, r.bottom + 20, p0.x, p0.y, p1.x, p1.y);
+        const neg = d1 < 0 || d2 < 0 || d3 < 0;
+        const pos = d1 > 0 || d2 > 0 || d3 > 0;
+        return !(neg && pos) && Math.hypot(p1.x - p0.x, p1.y - p0.y) > 2;
+      };
+      for (const a of links) {
+        // mientras siga en viaje hacia la foto se sigue esperando; en cuanto el
+        // mouse se frena sobre este proyecto, pasa a ser el activo
+        const intentar = () => {
+          if (!a.matches(':hover')) return;
+          if (performance.now() - ultimoMov < 90 && apuntaALaFoto()) {
+            pendiente = window.setTimeout(intentar, 90);
+            return;
+          }
+          activar(a);
+        };
+        a.addEventListener('pointerenter', () => {
+          if (a.classList.contains('is-prev')) return activar(a);
+          if (!fly.classList.contains('tiene-prev') || !apuntaALaFoto()) return activar(a);
+          clearTimeout(pendiente);
+          pendiente = window.setTimeout(intentar, 140);
+        });
+        a.addEventListener('focus', () => activar(a));
       }
-      const fly = item.querySelector<HTMLElement>('.nav-flyout');
-      if (!fly) return;
-      item.classList.remove('flyout-left');
-      const derecha = menu!.getBoundingClientRect().right;
-      if (derecha + fly.offsetWidth > window.innerWidth - 12) item.classList.add('flyout-left');
+      // al volver a abrir el submenú arranca limpio, sin la foto de la vez
+      // anterior (con el mouse entrando por la fila del estado, o con el teclado)
+      const sub = fly.parentElement;
+      sub?.addEventListener('pointerenter', () => {
+        if (!fly.matches(':hover')) limpiar();
+      });
+      sub?.querySelector('.nav-sub-btn')?.addEventListener('focus', limpiar);
     }
 
     // --- abrir/cerrar ---------------------------------------------------------
@@ -168,6 +295,10 @@ const grupos = (
     // --- sincronizar aria + lado del submenú con lo que hace la CSS -----------
     item.addEventListener('pointerenter', () => {
       if (tapMode()) return;
+      // las fotos de la vista previa recién se piden al abrir el menú por
+      // primera vez (hasta entonces van con display:none y el lazy-load no las
+      // baja): son unos KB que no tiene sentido cargar en cada página
+      item.classList.add('prev-lista');
       placeFlyout();
       setExpanded(true);
     });
@@ -176,6 +307,7 @@ const grupos = (
       setExpanded(false);
     });
     item.addEventListener('focusin', () => {
+      item.classList.add('prev-lista');
       placeFlyout();
       setExpanded(true);
     });

@@ -104,7 +104,7 @@ const pad = (n: number) => String(n).padStart(2, '0');
       <div class="ph-stage">
         <ul class="ph-axis" id="phAxis">
           {items.map((it, i) => (
-            <li class="ph-card" data-status={it.estado} data-index={i}>
+            <li class="ph-card" data-status={it.estado} data-index={i} data-slug={it.slug}>
               <a class="ph-link" href={`${base}/proyectos/${it.slug}/`} aria-label={`${it.nombre} — ver proyecto`}>
                 <span class="ph-thumb">
                   {it.portada ? (
@@ -223,7 +223,12 @@ const pad = (n: number) => String(n).padStart(2, '0');
 
     // ---- estado de la vista (cilindro 3D ⇄ grilla "ver todos") ----
     // 'cilindro' = helicoidal atado al scroll · 'grilla' = todos a la vista.
+    // Vista y filtro quedan además en data-vista / data-filtro de la sección:
+    // Transiciones.astro los anota al salir por una card, para rearmar todo
+    // igual si uno vuelve con "atrás" y la página se recarga.
     let viewMode: 'cilindro' | 'grilla' = 'cilindro';
+    section.dataset.vista = viewMode;
+    section.dataset.filtro = 'todos';
     let transitioning = false; // true mientras corre el desenrollado/reensamblado
     let flipTimer = 0;
     const is3d = () => section!.classList.contains('is-3d');
@@ -345,21 +350,23 @@ const pad = (n: number) => String(n).padStart(2, '0');
     const start = () => { if (!running) { running = true; loop(); } };
     const stop = () => { running = false; cancelAnimationFrame(rafId); };
 
-    // ---- traer una card al frente desplazando la página (foco por teclado) ----
-    function scrollToIndex(i: number) {
+    // ---- traer una card al frente desplazando la página ----
+    // (foco por teclado → animado; volver con "atrás" → salto seco)
+    function scrollToIndex(i: number, behavior?: ScrollBehavior) {
       // Mapea la card i al tramo pineado [headOffset .. offsetHeight-innerHeight]
       // (mismo modelo que updateTarget): i=0 cae en el arranque del helicoidal.
       const range = section!.offsetHeight - window.innerHeight - headOffset;
       const p = N > 1 ? i / (N - 1) : 0;
       window.scrollTo({
         top: section!.offsetTop + headOffset + p * range,
-        behavior: reduce.matches ? 'auto' : 'smooth',
+        behavior: behavior ?? (reduce.matches ? 'auto' : 'smooth'),
       });
     }
 
     // ---- filtros (sirven igual en 3D y en grilla) ----
     function applyFilter(filter: string) {
       if (transitioning) return; // no filtrar a mitad del desenrollado/reensamblado
+      section!.dataset.filtro = filter;
       filterBtns.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.filter === filter)));
       active = cards.filter((c) => filter === 'todos' || c.status === filter);
       cards.forEach((c) => {
@@ -447,6 +454,7 @@ const pad = (n: number) => String(n).padStart(2, '0');
 
     // ---- reflejar el modo en el botón (texto/estado/accesibilidad) ----
     function syncToggle() {
+      section!.dataset.vista = viewMode;
       if (!toggleBtn) return;
       const grilla = viewMode === 'grilla';
       toggleBtn.setAttribute('aria-pressed', String(grilla));
@@ -595,9 +603,24 @@ const pad = (n: number) => String(n).padStart(2, '0');
       dockControls(true);
       layout();
       updateTarget();
+      // se monta ya en su lugar: si la página arranca con el scroll a mitad del
+      // recorrido (volver con "atrás", un resize), sin esto el cilindro giraba
+      // desde la primera card hasta la que corresponde
+      scroll = targetScroll;
       lastActiveIdx = -1;
       render();
       start();
+    }
+
+    // ---- pasar a la grilla sin animación (restaurar la vista al volver) ----
+    function grillaSinAnimacion() {
+      stop();
+      viewMode = 'grilla';
+      syncToggle();
+      section!.classList.remove('is-3d', 'is-scrolling');
+      section!.classList.add('is-grid');
+      dockControls(false);
+      clearCylinderStyles();
     }
 
     // ---- interacciones (se enganchan UNA vez; cada handler se guarda por modo) ----
@@ -650,6 +673,7 @@ const pad = (n: number) => String(n).padStart(2, '0');
       enter3DInitial();
     } else {
       viewMode = 'grilla';
+      section.dataset.vista = viewMode;
     }
 
     // Responder si cambia la preferencia de movimiento O el lugar disponible
@@ -673,6 +697,7 @@ const pad = (n: number) => String(n).padStart(2, '0');
         dockControls(false);
         clearCylinderStyles();
         viewMode = 'grilla';
+        section!.dataset.vista = viewMode;
       } else {
         // vuelve a haber lugar y movimiento → reactivar cilindro y toggle
         section!.classList.add('is-toggleable');
@@ -681,6 +706,46 @@ const pad = (n: number) => String(n).padStart(2, '0');
         enter3DInitial();
       }
     };
+    // ---- volver con "atrás" desde la ficha de una card ----------------------
+    // Si la home quedó en el bfcache, el navegador la devuelve intacta y esto no
+    // corre. Si se recarga, Transiciones.astro dejó anotado en qué card se hizo
+    // click, con qué filtro y en qué vista: se rearma igual y esa card queda AL
+    // FRENTE — ahí aterriza la foto que vuelve de la ficha. Todo sincrónico, antes
+    // del primer cuadro (que es el que captura la transición).
+    type Restaurar = { slug?: string; filtro?: string; vista?: string; y?: number };
+    const w = window as unknown as { __e21Restaurar?: Restaurar; __e21Restaurado?: boolean };
+    const rest = w.__e21Restaurar;
+    if (rest?.slug) {
+      if (rest.filtro && filterBtns.some((b) => b.dataset.filter === rest.filtro)) applyFilter(rest.filtro);
+      if (rest.vista === 'grilla' && viewMode === 'cilindro') grillaSinAnimacion();
+      const idx = active.findIndex((c) => c.el.dataset.slug === rest.slug);
+      if (idx >= 0) {
+        if (is3d()) {
+          scrollToIndex(idx, 'instant');
+          updateTarget();
+          scroll = targetScroll;
+          lastActiveIdx = -1;
+          render();
+        } else {
+          // grilla: la card centrada en la pantalla
+          const r = active[idx].el.getBoundingClientRect();
+          const top = r.top + window.scrollY - (window.innerHeight - r.height) / 2;
+          window.scrollTo({ top: Math.max(0, top), behavior: 'instant' });
+        }
+        w.__e21Restaurado = true;
+      }
+    }
+    // la posición la restauró BaseLayout (volver desde otro lado que no es una
+    // card): acomodar el cilindro de golpe si cae en su tramo
+    document.addEventListener('e21:restaurado', () => {
+      if (!is3d() || transitioning) return;
+      layout();
+      updateTarget();
+      scroll = targetScroll;
+      lastActiveIdx = -1;
+      render();
+    });
+
     reduce.addEventListener?.('change', onCapabilityChange);
     roomMq.addEventListener?.('change', onCapabilityChange);
     // Igual que en immersive.ts: el `resize` es el salvavidas para los entornos

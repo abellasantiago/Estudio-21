@@ -191,27 +191,105 @@ const pad = (n: number) => String(n).padStart(2, '0');
       });
     }
 
-    function open(i: number, desde: HTMLElement | null) {
-      clearTimeout(hideTimer);
-      opener = desde;
+    // ---- la miniatura crece hasta el visor (y vuelve a su lugar al cerrar) ----
+    // Misma técnica que la foto que viaja de la card a la ficha, pero dentro de
+    // la página: `startViewTransition` saca una foto del estado actual, se abre
+    // (o cierra) el visor, y el navegador anima la miniatura hasta la foto
+    // grande. Sin soporte o con menos movimiento, el fundido de siempre.
+    const conVT = () =>
+      'startViewTransition' in document && !reduce.matches && !document.hidden;
+    let vtCorriendo = false;
+
+    function transicion(cambio: () => void, desde: HTMLElement | null, hasta: () => HTMLElement | null) {
+      vtCorriendo = true;
+      root.classList.add('vt-galeria');
+      if (desde) desde.style.viewTransitionName = 'gal-foto';
+      let destino: HTMLElement | null = null;
+      const t = document.startViewTransition(() => {
+        if (desde) desde.style.viewTransitionName = '';
+        cambio();
+        destino = hasta();
+        if (destino) destino.style.viewTransitionName = 'gal-foto';
+      });
+      t.finished.finally(() => {
+        if (destino) destino.style.viewTransitionName = '';
+        root.classList.remove('vt-galeria');
+        vtCorriendo = false;
+      });
+    }
+
+    /** ¿La miniatura se ve entera dentro de la tira? (si no, no hay adónde volver) */
+    const miniaturaALaVista = (a: HTMLElement) => {
+      const r = a.getBoundingClientRect();
+      const t = strip!.getBoundingClientRect();
+      return r.width > 0 && r.left >= t.left - 1 && r.right <= t.right + 1 && r.bottom > 0 && r.top < innerHeight;
+    };
+
+    function abrirVisor(i: number) {
       lbox!.hidden = false;
       root.classList.add('gal-open'); // bloquea el scroll de la página
       show(i);
+    }
+
+    function open(i: number, desde: HTMLElement | null) {
+      if (vtCorriendo) return;
+      clearTimeout(hideTimer);
+      opener = desde;
+      if (conVT() && desde) {
+        // La foto grande se pide y se decodifica ANTES de arrancar (con un tope
+        // corto, para que el click no se sienta lento): así llega al visor ya
+        // pintada y no se funde contra un recuadro vacío. La vista de destino
+        // igual es "en vivo": si tarda más, aparece durante el viaje.
+        vtCorriendo = true;
+        const pre = new Image();
+        pre.src = items[((i % items.length) + items.length) % items.length].href;
+        const lista = pre.decode().catch(() => {});
+        Promise.race([lista, new Promise((r) => setTimeout(r, 260))]).then(() => {
+          transicion(
+            () => {
+              // visible y abierto en el mismo cuadro: sin el fundido propio del
+              // visor, la entrada la hace la transición
+              lbox!.classList.add('is-open');
+              abrirVisor(i);
+              panel?.focus({ preventScroll: true });
+            },
+            desde,
+            () => visor,
+          );
+        });
+        return;
+      }
+      abrirVisor(i);
       // un frame de margen para que la transición de entrada se vea
       requestAnimationFrame(() => lbox!.classList.add('is-open'));
       panel?.focus();
     }
 
     function close() {
-      lbox!.classList.remove('is-open');
-      root.classList.remove('gal-open');
+      if (vtCorriendo) return;
+      const destino = items[cur];
       const ocultar = () => {
         lbox!.hidden = true;
         visor?.removeAttribute('src');
       };
-      if (reduce.matches) ocultar();
-      else hideTimer = window.setTimeout(ocultar, 260);
-      opener?.focus();
+      if (conVT() && destino) {
+        const vuelve = miniaturaALaVista(destino);
+        transicion(
+          () => {
+            lbox!.classList.remove('is-open');
+            root.classList.remove('gal-open');
+            ocultar();
+          },
+          visor,
+          () => (vuelve ? destino : null),
+        );
+      } else {
+        lbox!.classList.remove('is-open');
+        root.classList.remove('gal-open');
+        if (reduce.matches) ocultar();
+        else hideTimer = window.setTimeout(ocultar, 260);
+      }
+      opener?.focus({ preventScroll: true });
       opener = null;
     }
 

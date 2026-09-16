@@ -42,7 +42,14 @@ h1.proj-title{font-family:var(--font-display);font-weight:500;font-size:clamp(2.
   --cover-h:clamp(303px,44.33vw,560px);
   position:relative;height:var(--cover-h);aspect-ratio:var(--cover-ar,6/7);overflow:hidden;
   background:var(--paper-deep);border:1px solid var(--line);
+  /* por si llega con la foto de la card de fondo provisorio (Transiciones.astro) */
+  background-size:cover;background-position:50% 50%;
+  /* la foto que viaja desde la card de la home (y de vuelta), ver
+     transiciones.css. Transiciones.astro la apaga (`vt-sin-portada`) cuando
+     del otro lado no hay una foto de ESTE proyecto. */
+  view-transition-name:proj-foto;
 }
+html.vt-sin-portada .proj-cover{view-transition-name:none}
 .proj-cover picture,.proj-cover img{width:100%;height:100%}
 /* ×1.06: un toque de zoom parejo en TODAS las portadas, encima del --pz manual
    de cada foto — las fichas se sentían con demasiado aire de foto "de catálogo"

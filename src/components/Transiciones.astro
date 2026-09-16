@@ -1,0 +1,361 @@
+---
+/*
+ * Transiciones entre páginas (View Transitions nativas) + volver a donde uno
+ * estaba con "atrás". Va en el <head> de todas las páginas (BaseLayout).
+ *
+ * La animación en sí es CSS (src/styles/transiciones.css). Acá se resuelve lo
+ * que la CSS no puede saber:
+ *
+ *   · QUÉ FOTO VIAJA. Al irse (`pageswap`) la página vieja le pone nombre a la
+ *     foto de origen: la card clickeada, la vista previa del menú o su propia
+ *     portada si vuelve a la home. Al llegar (`pagereveal`) la nueva nombra la
+ *     de destino: su portada, o —en la home— la card de ese proyecto. Las dos
+ *     se pasan el dato por sessionStorage.
+ *   · HACIA DÓNDE VA EL TELÓN: sube al entrar a cualquier página, baja al
+ *     volver a la home (`data-vt` en <html>).
+ *   · DÓNDE ESTABA UNO. Si la home no quedó guardada en el navegador (bfcache),
+ *     "atrás" la vuelve a cargar de cero, y antes eso dejaba siempre en el hero.
+ *     Ahora al salir se anota la posición (y si fue desde una card: cuál, con
+ *     qué filtro y en qué vista) y al volver el helicoidal se rearma con esa
+ *     card al frente, que es donde la foto tiene que aterrizar.
+ *
+ * ⚠ La posición NO se anota con history.replaceState/pushState en el click.
+ * Medido en Chrome: si la entrada del historial cambia poco antes de navegar
+ * (300 ms) y la ficha estaba pre-renderizada, la transición se descarta. Hoy
+ * la precarga es sólo del HTML (prefetch, ver BaseLayout) y con eso no pasa,
+ * pero guardar fuera del historial no depende de eso: va en sessionStorage,
+ * con una clave por entrada del historial (ver `claveEntrada`).
+ *
+ * El `pagereveal` tiene que estar registrado ANTES del primer cuadro de la
+ * página: por eso es un script clásico en línea y no un módulo (los módulos
+ * corren recién al terminar de leer el documento).
+ */
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+---
+
+<script is:inline define:vars={{ base }}>
+  (function () {
+    var root = document.documentElement;
+
+    /** Qué es una URL del sitio: la home, la ficha de un proyecto u otra cosa. */
+    function tipoDe(url) {
+      var p;
+      try {
+        p = new URL(url, location.href).pathname;
+      } catch (e) {
+        return { tipo: 'otra' };
+      }
+      if (base && p.indexOf(base) === 0) p = p.slice(base.length);
+      if (p === '' || p === '/' || p === '/index.html') return { tipo: 'home' };
+      var m = p.match(/^\/proyectos\/([^/]+)\/?$/);
+      if (m) return { tipo: 'proyecto', slug: decodeURIComponent(m[1]) };
+      return { tipo: 'otra' };
+    }
+
+    /** Identifica ESTA entrada del historial, para guardar y recuperar su
+        posición. Con la Navigation API (Chrome, Edge) es su `key`; sin ella, un
+        id propio en history.state que el módulo pone al cargar (ahí no hay
+        precarga que se rompa). */
+    function claveEntrada() {
+      try {
+        var n = window.navigation;
+        if (n && n.currentEntry && n.currentEntry.key) return 'n:' + n.currentEntry.key;
+      } catch (e) {}
+      try {
+        var s = history.state;
+        if (s && s.e21id) return 'h:' + s.e21id;
+      } catch (e) {}
+      return null;
+    }
+    function leerPosiciones() {
+      try {
+        return JSON.parse(sessionStorage.getItem('e21-pos') || '{}') || {};
+      } catch (e) {
+        return {};
+      }
+    }
+
+    /** Saca los nombres y marcas de una transición anterior. */
+    function limpiar() {
+      root.removeAttribute('data-vt');
+      root.classList.remove('vt-sin-portada');
+      var nombrados = document.querySelectorAll('[data-vt-nombre]');
+      for (var i = 0; i < nombrados.length; i++) {
+        nombrados[i].style.viewTransitionName = '';
+        nombrados[i].removeAttribute('data-vt-nombre');
+      }
+      var origenes = document.querySelectorAll('.vt-origen');
+      for (var j = 0; j < origenes.length; j++) origenes[j].classList.remove('vt-origen');
+    }
+
+    function nombrar(el, nombre) {
+      el.style.viewTransitionName = nombre || 'proj-foto';
+      el.setAttribute('data-vt-nombre', '');
+    }
+
+    /** La card entera viaja aparte de su foto (`proj-card`): así, cuando la foto
+        se despega, el resto de la card se desvanece en vez de quedar en la
+        página vieja como un marco vacío. */
+    function nombrarCard(card, thumb) {
+      nombrar(thumb, 'proj-foto');
+      var link = card.querySelector('.ph-link');
+      if (link) nombrar(link, 'proj-card');
+      card.classList.add('vt-origen');
+    }
+
+    /** ¿Se ve lo suficiente como para que una foto aterrice ahí? */
+    function aLaVista(el, opacoDesde) {
+      if (!el || !el.getClientRects().length) return false; // display:none (p. ej. filtrada)
+      var r = el.getBoundingClientRect();
+      var ix = Math.min(r.right, innerWidth) - Math.max(r.left, 0);
+      var iy = Math.min(r.bottom, innerHeight) - Math.max(r.top, 0);
+      if (ix <= 0 || iy <= 0 || ix * iy < 0.5 * r.width * r.height) return false;
+      // en el cilindro, las cards del fondo son casi transparentes
+      return !opacoDesde || !(parseFloat(getComputedStyle(opacoDesde).opacity) < 0.5);
+    }
+
+    // lo reutiliza el módulo de abajo (pageswap y el guardado de la posición)
+    window.__e21Vt = {
+      tipoDe: tipoDe,
+      claveEntrada: claveEntrada,
+      leerPosiciones: leerPosiciones,
+      limpiar: limpiar,
+      nombrar: nombrar,
+      nombrarCard: nombrarCard,
+      aLaVista: aLaVista,
+    };
+
+    // ---- "atrás" sin bfcache: restaurar la posición ----------------------------
+    // La aplican los módulos de la página (el helicoidal y BaseLayout) apenas
+    // corren; acá sólo se avisa y se frena el primer cuadro hasta que el
+    // documento esté leído entero (#e21-fin es lo último del <body>).
+    try {
+      var nav = performance.getEntriesByType('navigation')[0];
+      var clave = claveEntrada();
+      var guardado = clave && leerPosiciones()[clave];
+      if (nav && nav.type === 'back_forward' && guardado) {
+        window.__e21Restaurar = guardado;
+        var espera = document.createElement('link');
+        espera.rel = 'expect';
+        espera.href = '#e21-fin';
+        espera.setAttribute('blocking', 'render');
+        document.head.appendChild(espera);
+      }
+    } catch (e) {}
+
+    // ---- llegada: nombrar la foto de destino y la dirección del telón ---------
+    addEventListener('pagereveal', function (e) {
+      limpiar(); // restos de la ida, si la página vuelve del bfcache
+      var vt = e.viewTransition;
+      if (!vt) return;
+
+      var aqui = tipoDe(location.href);
+      var h = null;
+      try {
+        h = JSON.parse(sessionStorage.getItem('e21-vt') || 'null');
+        sessionStorage.removeItem('e21-vt');
+        if (h && !(Date.now() - h.t < 10000)) h = null;
+      } catch (x) {}
+      var foto = h && h.foto;
+
+      root.setAttribute('data-vt', aqui.tipo === 'home' ? 'vuelta' : 'ida');
+
+      if (aqui.tipo === 'proyecto' && foto === aqui.slug) {
+        // Si la portada todavía no bajó, la foto de la card (que ya está en la
+        // caché del navegador) queda de fondo provisorio: la foto aterriza sobre
+        // una imagen, no sobre un recuadro vacío, y la definitiva la reemplaza
+        // apenas llega.
+        var portada = document.getElementById('portada');
+        var img = portada && portada.querySelector('img');
+        if (portada && h.src && !(img && img.complete && img.naturalWidth)) {
+          portada.style.backgroundImage = 'url("' + String(h.src).replace(/"/g, '%22') + '")';
+          portada.addEventListener(
+            'load',
+            function () {
+              portada.style.backgroundImage = '';
+            },
+            { capture: true, once: true },
+          );
+        }
+      } else {
+        // la portada de la ficha sólo viaja si viene una foto de ESTE proyecto
+        root.classList.add('vt-sin-portada');
+      }
+
+      // En la home, la foto vuelve a su card si la card está a la vista. Si la
+      // home se está recargando para volver a esa card, puede que el helicoidal
+      // todavía no la haya puesto al frente (el navegador llega a pintar antes
+      // de que corran los módulos): se nombra igual, porque el destino de la
+      // foto se sigue EN VIVO — en cuanto el cilindro se arma, la foto corrige
+      // el rumbo, y a esa altura apenas empezó a moverse.
+      if (aqui.tipo === 'home' && foto) {
+        var card = document.querySelector('.ph-card[data-slug="' + CSS.escape(foto) + '"]');
+        var thumb = card && card.querySelector('.ph-thumb');
+        var r = window.__e21Restaurar;
+        var enCamino = !!(r && r.slug === foto && !window.__e21Restaurado);
+        if (thumb && (enCamino || aLaVista(thumb, card))) nombrarCard(card, thumb);
+      }
+
+      vt.finished.finally(limpiar);
+    });
+  })();
+</script>
+
+<script>
+  type Posicion = { y: number; slug?: string; filtro?: string; vista?: string };
+  type Vt = {
+    tipoDe: (url: string) => { tipo: 'home' | 'proyecto' | 'otra'; slug?: string };
+    claveEntrada: () => string | null;
+    leerPosiciones: () => Record<string, Posicion>;
+    limpiar: () => void;
+    nombrar: (el: Element, nombre?: string) => void;
+    nombrarCard: (card: Element, thumb: Element) => void;
+    aLaVista: (el: Element | null, opacoDesde?: Element | null) => boolean;
+  };
+  const vt = (window as unknown as { __e21Vt?: Vt }).__e21Vt;
+  const root = document.documentElement;
+
+  if (vt) {
+    // ---- clave de la entrada sin Navigation API (Safari, Firefox) -------------
+    // Se pone una sola vez, al cargar: lejos de cualquier navegación.
+    if (!vt.claveEntrada()) {
+      try {
+        history.replaceState({ ...(history.state ?? {}), e21id: Math.random().toString(36).slice(2) }, '');
+      } catch {
+        /* sin history → sin restauración */
+      }
+    }
+
+    // ---- posición de esta entrada ----------------------------------------------
+    const guardar = (pos: Posicion) => {
+      const clave = vt.claveEntrada();
+      if (!clave) return;
+      const todas = vt.leerPosiciones();
+      delete todas[clave]; // al final: las más viejas son las que se descartan
+      todas[clave] = pos;
+      const claves = Object.keys(todas);
+      for (let i = 0; i < claves.length - 20; i++) delete todas[claves[i]];
+      try {
+        sessionStorage.setItem('e21-pos', JSON.stringify(todas));
+      } catch {
+        /* storage lleno o bloqueado: sin restauración */
+      }
+    };
+    const posicionActual = (card?: HTMLElement | null): Posicion => {
+      const pos: Posicion = { y: Math.round(window.scrollY) };
+      const sec = document.getElementById('proyectos');
+      if (card?.dataset.slug && sec) {
+        pos.slug = card.dataset.slug;
+        pos.filtro = sec.dataset.filtro;
+        pos.vista = sec.dataset.vista;
+      }
+      return pos;
+    };
+
+    // ---- el último link clickeado ----------------------------------------------
+    // Chrome dice en `pageswap` a dónde se va (`activation`); Safari no, así que
+    // el destino se deduce del último click. De paso se anota dónde estaba el
+    // visitante, para que "atrás" lo devuelva ahí aunque la página se recargue.
+    let ultimoLink: HTMLAnchorElement | null = null;
+    let ultimoLinkT = 0;
+    const linkReciente = () => (ultimoLink && performance.now() - ultimoLinkT < 8000 ? ultimoLink : null);
+
+    document.addEventListener(
+      'click',
+      (e) => {
+        const a = (e.target as Element | null)?.closest?.('a[href]') as HTMLAnchorElement | null;
+        if (!a) return;
+        ultimoLink = a;
+        ultimoLinkT = performance.now();
+        // sólo si esta página se va de verdad (no un ancla de la misma página,
+        // ni una pestaña nueva, ni otro sitio)
+        if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+        if (a.target && a.target !== '_self') return;
+        const url = new URL(a.href, location.href);
+        if (url.origin !== location.origin) return;
+        if (url.pathname === location.pathname && url.search === location.search) return;
+        guardar(posicionActual(a.closest<HTMLElement>('.ph-card')));
+      },
+      true,
+    );
+    // salir sin click (atrás/adelante, la barra de direcciones): se actualiza la
+    // posición; la card anotada se conserva sólo si no hubo scroll desde el
+    // click (si lo hubo, ya no es "volver a esa card")
+    window.addEventListener('pagehide', () => {
+      const clave = vt.claveEntrada();
+      const prev = clave ? vt.leerPosiciones()[clave] : undefined;
+      if (prev?.slug && Math.abs(prev.y - window.scrollY) < 2) return;
+      guardar(posicionActual(null));
+    });
+    // una vez usada, la card anotada ya cumplió: si después uno se va sin tocar
+    // una card, al volver se restaura la posición, no esa card
+    window.addEventListener('pageshow', () => {
+      const clave = vt.claveEntrada();
+      const prev = clave ? vt.leerPosiciones()[clave] : undefined;
+      if (prev?.slug) guardar({ y: prev.y });
+    });
+
+    // ---- salida: nombrar la foto de origen -------------------------------------
+    const origenDe = (slug: string): { foto: Element; card?: Element } | null => {
+      const reciente = linkReciente();
+      if (reciente && vt.tipoDe(reciente.href).slug === slug) {
+        const card = reciente.closest('.ph-card');
+        const thumb = card?.querySelector('.ph-thumb');
+        if (card && thumb && vt.aLaVista(thumb)) return { foto: thumb, card };
+        // vista previa del menú: sólo si efectivamente se está viendo
+        const prev = reciente.querySelector<HTMLElement>('.nav-prev');
+        const foto = prev?.querySelector('.nav-prev-foto');
+        if (prev && foto) {
+          const cs = getComputedStyle(prev);
+          if (cs.display !== 'none' && cs.visibility === 'visible' && parseFloat(cs.opacity) > 0.5) {
+            return { foto };
+          }
+        }
+      }
+      // sin click que lo explique: la card de ese proyecto, si se ve
+      const card = document.querySelector(`.ph-card[data-slug="${CSS.escape(slug)}"]`);
+      const thumb = card?.querySelector('.ph-thumb') ?? null;
+      return card && thumb && vt.aLaVista(thumb, card) ? { foto: thumb, card } : null;
+    };
+
+    window.addEventListener('pageswap', (ev) => {
+      const e = ev as Event & {
+        viewTransition: ViewTransition | null;
+        activation: { entry?: { url?: string } } | null;
+      };
+      vt.limpiar();
+      if (!e.viewTransition) return;
+
+      const destinoUrl = e.activation?.entry?.url ?? linkReciente()?.href ?? null;
+      const destino = destinoUrl ? vt.tipoDe(destinoUrl) : null;
+      const aqui = vt.tipoDe(location.href);
+      let foto: string | null = null;
+      let src: string | null = null;
+
+      if (destino?.tipo === 'proyecto' && destino.slug) {
+        // a una ficha: viaja la card o la vista previa; la portada propia (si
+        // estamos en otra ficha) no — serían dos fotos distintas fundiéndose
+        root.classList.add('vt-sin-portada');
+        const origen = origenDe(destino.slug);
+        if (origen) {
+          if (origen.card) vt.nombrarCard(origen.card, origen.foto);
+          else vt.nombrar(origen.foto);
+          foto = destino.slug;
+          src = origen.foto.querySelector('img')?.currentSrc || null;
+        }
+      } else if (aqui.tipo === 'proyecto' && (!destino || destino.tipo === 'home')) {
+        // de una ficha a la home (o "atrás" en Safari, que no dice a dónde):
+        // viaja la portada, que ya lleva el nombre por CSS
+        foto = aqui.slug ?? null;
+      } else {
+        root.classList.add('vt-sin-portada');
+      }
+
+      try {
+        sessionStorage.setItem('e21-vt', JSON.stringify({ foto, src, t: Date.now() }));
+      } catch {
+        /* sin storage: la página nueva no nombra nada y queda sólo el telón */
+      }
+    });
+  }
+</script>

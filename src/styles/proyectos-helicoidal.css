@@ -101,7 +101,15 @@
 .ph-thumb{
   position:relative;display:block;flex:0 0 auto;aspect-ratio:6/7;
   background:var(--paper-deep);overflow:hidden;border-bottom:1px solid var(--line);
+  /* Las esquinas redondeadas las recorta la card (.ph-link), pero la foto que
+     viaja a la ficha (transiciones.css) se captura del thumb SOLO, sin ese
+     recorte: repetir acá el radio interno evita que arranque con esquinas
+     rectas. En pantalla no cambia nada. */
+  border-radius:7px 7px 0 0;
 }
+/* la card de la que sale la foto: sin el "Ver proyecto" del hover encima (si
+   no, el degradé oscuro y el texto viajarían estirados hasta la portada) */
+.ph-card.vt-origen .ph-cta{opacity:0!important;transition:none!important}
 /* Encuadre manual por proyecto (frontmatter `portadaFoco`/`portadaZoom`, ver
    content.config.ts): --pf mueve el foco de recorte del `cover` (qué parte de
    la foto se ve) y --pz agrega zoom extra centrado en ese mismo punto (mismo
@@ -327,7 +335,7 @@
 .ph.is-3d .ph-link::after{height:6px}
 /* foto protagonista: ocupa todo el alto sobrante de la card; la ficha queda
    compacta abajo (más foto, menos data) */
-.ph.is-3d .ph-thumb{flex:1 1 auto;aspect-ratio:auto;min-height:0;border-bottom-width:2px}
+.ph.is-3d .ph-thumb{flex:1 1 auto;aspect-ratio:auto;min-height:0;border-bottom-width:2px;border-radius:14px 14px 0 0}
 .ph.is-3d .ph-ph{font-size:1.24rem;background-size:48px 48px}
 .ph.is-3d .ph-meta{flex:0 0 auto;padding:1rem 1.44rem 1.2rem;gap:.36rem}
 /* ficha más chica: título, ubicación/año y estado en cuerpo reducido (×2) */

@@ -165,6 +165,36 @@ html.gal-open{overflow:hidden}
   .lbox-close{top:0;right:0;transform:translate(35%,-115%)}
 }
 
+/* ============================================================
+   MINIATURA ⇄ VISOR (View Transition dentro de la página)
+   El script nombra la miniatura y la foto del visor `gal-foto`; mientras
+   dura, <html> lleva `vt-galeria`.
+   ============================================================ */
+/* Navbar, WhatsApp y portada llevan nombre propio para las transiciones entre
+   páginas (transiciones.css). Acá quedan DEBAJO del velo del visor, y con
+   nombre se pintarían encima durante la animación y recién al final
+   "caerían" detrás: mientras corre la galería, son parte de la página. */
+html.vt-galeria #header,
+html.vt-galeria .wa-float,
+html.vt-galeria .proj-cover{view-transition-name:none}
+
+/* el velo entra (o se va) con el fundido de la página, a la par de la foto */
+html.vt-galeria::view-transition-old(root),
+html.vt-galeria::view-transition-new(root){animation-duration:.34s}
+
+html.vt-galeria::view-transition-group(gal-foto){
+  animation-duration:.56s;
+  animation-timing-function:cubic-bezier(.3,.7,.1,1);
+}
+/* la foto de origen queda entera y la de destino se funde encima: si la grande
+   todavía no terminó de bajar, se sigue viendo la miniatura y no un recuadro
+   vacío (la de destino es en vivo: aparece apenas llega) */
+html.vt-galeria::view-transition-old(gal-foto){animation:none;opacity:1}
+html.vt-galeria::view-transition-new(gal-foto){animation:gal-vt-aparece .56s linear both}
+html.vt-galeria::view-transition-old(gal-foto):only-child{animation:gal-vt-se-va .3s ease both}
+@keyframes gal-vt-aparece{0%,20%{opacity:0}60%,100%{opacity:1}}
+@keyframes gal-vt-se-va{to{opacity:0}}
+
 @media(prefers-reduced-motion:reduce){
   .gal-item,.lbox-veil,.lbox-panel{transition:none}
   .gal-item:hover{transform:none}

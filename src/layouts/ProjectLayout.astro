@@ -106,6 +106,11 @@ const ficha = [
 ---
 
 <BaseLayout title={title} description={description} image={ogImage} jsonLd={jsonLd}>
+  {/* La foto que llega desde la card aterriza en la portada: el primer cuadro
+      de la ficha (el que captura la transición) espera a que la portada exista
+      en el documento. Es de las primeras cosas del <body>, así que la espera es
+      mínima; los navegadores que no conocen `expect` lo ignoran. */}
+  <link slot="head" rel="expect" href="#portada" blocking="render" />
   <article class="proj-hero">
     <div class="wrap">
       <a class="back-link" href={`${base}/#proyectos`}>Volver a proyectos</a>
@@ -123,7 +128,7 @@ const ficha = [
           Regimiento, muy apaisada: el 6/7 le recortaba demasiado). */}
       <div class="proj-top">
         {portada ? (
-          <div class="proj-cover" style={`--cover-ar:${portadaAspecto ?? '6/7'}`}>
+          <div class="proj-cover" id="portada" style={`--cover-ar:${portadaAspecto ?? '6/7'}`}>
             <Picture
               src={portada}
               formats={['avif', 'webp']}
@@ -136,7 +141,7 @@ const ficha = [
             />
           </div>
         ) : (
-          <div class="proj-cover is-placeholder">
+          <div class="proj-cover is-placeholder" id="portada">
             <span class="cover-ph">imagen pendiente</span>
           </div>
         )}
@@ -161,3 +166,43 @@ const ficha = [
     </div>
   </article>
 </BaseLayout>
+
+<script>
+  /*
+   * "Volver a proyectos" = "atrás", cuando se llegó desde la home.
+   * El link apunta a /#proyectos, que carga la home de nuevo con el helicoidal
+   * en su primera card. Si la entrada anterior del historial ES la home, volver
+   * con el historial la devuelve tal cual estaba (la card de este proyecto al
+   * frente, el filtro puesto) y la portada vuelve volando a su card. Si se
+   * llegó de otro lado (un link compartido, otra ficha), el link hace lo de
+   * siempre. Ctrl/cmd-click para abrir en otra pestaña tampoco se toca.
+   */
+  const volver = document.querySelector<HTMLAnchorElement>('.back-link');
+  const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+  const esHome = (url: string) => {
+    try {
+      const p = new URL(url, location.href).pathname;
+      return p === `${base}/` || p === base || p === `${base}/index.html`;
+    } catch {
+      return false;
+    }
+  };
+  const vieneDeLaHome = () => {
+    const nav = (window as unknown as {
+      navigation?: { currentEntry?: { index: number }; entries?: () => { url: string | null }[] };
+    }).navigation;
+    if (nav?.currentEntry && nav.entries) {
+      const anterior = nav.entries()[nav.currentEntry.index - 1];
+      return !!anterior?.url && esHome(anterior.url);
+    }
+    // sin Navigation API (Safari): el referrer dice de dónde se vino
+    return history.length > 1 && !!document.referrer && esHome(document.referrer) &&
+      new URL(document.referrer).origin === location.origin;
+  };
+  volver?.addEventListener('click', (e) => {
+    if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    if (!vieneDeLaHome()) return;
+    e.preventDefault();
+    history.back();
+  });
+</script>

@@ -32,9 +32,26 @@ header.scrolled{border-bottom-color:var(--line);background:var(--paper);backgrou
   font-family:var(--font-mono);font-size:.78rem;letter-spacing:.06em;text-transform:uppercase;
   color:var(--concrete);position:relative;padding:.3rem 0;transition:color .25s ease;
 }
-.nav-links a::after{content:"";position:absolute;left:0;bottom:-1px;width:0;height:1px;background:var(--ink);transition:width .28s ease}
+/* Subrayado que ENTRA por la izquierda y SALE por la derecha (en vez de
+   encogerse hacia donde vino). Es una línea a ancho completo escalada en X; lo
+   que cambia de un lado al otro es su `transform-origin`, y el truco está en
+   CUÁNDO cambia: con `0s` de duración y un retardo igual al del trazo, el
+   origen recién salta cuando la línea ya terminó de dibujarse (o de irse), o
+   sea cuando el salto no se ve.
+   · entrar: crece desde la izquierda y, completa, pasa a anclarse a la derecha.
+   · salir: se retira hacia la derecha y, ya invisible, vuelve a la izquierda.
+   · si se interrumpe a mitad de camino (barrer el mouse por los links), el
+     cambio de origen pendiente se cancela solo — el valor de destino vuelve a
+     ser el que ya tenía — y la línea desanda el trazo desde donde estaba, sin
+     teletransportarse al otro extremo. */
+.nav-links a::after{
+  content:"";position:absolute;left:0;right:0;bottom:-1px;height:1px;background:var(--ink);
+  transform:scaleX(0);transform-origin:left center;
+  transition:transform .5s cubic-bezier(.65,.05,.25,1),transform-origin 0s .5s;
+}
 .nav-links a:hover{color:var(--ink)}
-.nav-links a:hover::after{width:100%}
+.nav-links a:hover::after,
+.nav-links a:focus-visible::after{transform:scaleX(1);transform-origin:right center}
 /* ---------- desplegable de "Proyectos" (submenú anidado) ----------
    Abre con :hover y con :focus-within → funciona sin JS y se recorre con el
    teclado. El script sólo agrega el modo tap, el Escape y decide de qué lado
@@ -47,6 +64,15 @@ header.scrolled{border-bottom-color:var(--line);background:var(--paper);backgrou
 .nav-item:hover .nav-trigger .nav-caret,
 .nav-item:focus-within .nav-trigger .nav-caret,
 .nav-item.is-open .nav-trigger .nav-caret{color:var(--ink);transform:rotate(180deg)}
+/* con el desplegable abierto "Proyectos" queda subrayado aunque el mouse ya
+   esté recorriendo el panel: marca de dónde cuelga lo que se está viendo, y la
+   línea se va (hacia la derecha) recién al salir de todo el menú */
+.nav-item:hover > .nav-trigger,
+.nav-item:focus-within > .nav-trigger,
+.nav-item.is-open > .nav-trigger{color:var(--ink)}
+.nav-item:hover > .nav-trigger::after,
+.nav-item:focus-within > .nav-trigger::after,
+.nav-item.is-open > .nav-trigger::after{transform:scaleX(1);transform-origin:right center}
 
 .nav-menu{
   /* +1px: arranca DEBAJO del borde inferior del header, sin taparlo */
@@ -121,6 +147,110 @@ header.scrolled{border-bottom-color:var(--line);background:var(--paper);backgrou
 .nav-links .nav-flyout a:hover{background:var(--paper-deep);color:var(--ink)}
 .nav-proj-anio{font-family:var(--font-mono);font-size:.66rem;color:var(--concrete-soft);flex:0 0 auto}
 
+/* ---------- vista previa: el submenú como mini catálogo ----------
+   Al recorrer los proyectos aparece, del lado de afuera del submenú, su portada
+   chica con el chip de estado, y cambia con un fundido de uno a otro.
+   · Sólo con mouse y navbar horizontal: en touch el link navega al primer toque
+     (no hay "pasar por encima") y en el acordeón mobile no hay costado.
+   · El MARCO (fondo, filete, sombra) es uno solo por submenú (`::before`) y las
+     fotos se funden ADENTRO. Si cada vista previa llevara su propio marco, a
+     mitad del fundido habría dos papeles al 50% encimados: la sombra y el fondo
+     parpadearían en cada cambio.
+   · Marco y vistas previas comparten la geometría exacta (ver los tokens): así
+     el mouse sobre cualquier punto del marco está sobre la foto activa, que es
+     parte del link, y el submenú no se cierra ni la foto se va.
+   · El proyecto activo lo marca el script (`.is-prev`, el último que tocó el
+     mouse o el foco); sin JS resuelve `:hover`. */
+.nav-prev{display:none}
+
+@media (hover:hover) and (pointer:fine) and (min-width:761px){
+  .nav-flyout{
+    /* ⚠ --prev-foto-w = PREV_FOTO_W en Header.astro (qué tamaños se piden) */
+    --prev-foto-w:208px;
+    --prev-foto-h:calc(var(--prev-foto-w) * 7 / 6);   /* 6/7, como las cards y la ficha */
+    --prev-pie-h:2.7rem;
+    --prev-pad:.35rem;                                  /* mismo aire que panel y submenú */
+    --prev-w:calc(var(--prev-foto-w) + 2 * var(--prev-pad) + 2px);
+    --prev-h:calc(var(--prev-foto-h) + var(--prev-pie-h) + 2 * var(--prev-pad) + 2px);
+  }
+  /* la vista previa se ubica contra el submenú, no contra la fila del link */
+  .nav-links .nav-flyout a{position:static}
+
+  /* `top:-1px` y `left:100%` (medidos desde el borde interno del submenú) dejan
+     los filetes superpuestos, igual que el submenú con el panel */
+  .nav-flyout::before,
+  .nav-prev{
+    position:absolute;top:-1px;left:100%;
+    box-sizing:border-box;width:var(--prev-w);height:var(--prev-h);
+    opacity:0;visibility:hidden;
+  }
+  .nav-flyout::before{
+    content:"";pointer-events:none;
+    background:var(--paper-2);
+    background:color-mix(in srgb, var(--paper-2) 97%, transparent);
+    border:1px solid var(--line);border-radius:2px;
+    box-shadow:0 26px 48px -32px rgba(26,25,22,.6);
+    transition:opacity .28s ease, visibility 0s linear .28s;
+  }
+  .nav-prev{
+    display:flex;flex-direction:column;z-index:0;
+    padding:calc(var(--prev-pad) + 1px);   /* +1px: el filete lo dibuja el marco */
+    transition:opacity .34s ease, visibility 0s linear .34s;
+  }
+  .nav-prev-foto{
+    position:relative;display:block;flex:0 0 auto;height:var(--prev-foto-h);
+    overflow:hidden;background:var(--paper-deep);border:1px solid var(--line);
+  }
+  /* Encuadre compartido con las cards (portadaFoco / portadaZoom). La foto entra
+     apenas acercada y se asienta mientras aparece: un movimiento chico y lento
+     que se lee como "se acomoda", no como un zoom. */
+  .nav-prev-foto img{
+    display:none;width:100%;height:100%;
+    object-fit:cover;object-position:var(--pf,50% 50%);
+    transform:scale(calc(var(--pz,1) * 1.06));transform-origin:var(--pf,50% 50%);
+    transition:transform 1.1s cubic-bezier(.2,.7,.2,1);
+  }
+  .nav-item.prev-lista .nav-prev-foto img,
+  .nav-item:is(:hover,:focus-within) .nav-prev-foto img{display:block}
+  .nav-prev-ph{
+    position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+    font-family:var(--font-mono);font-size:.6rem;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--concrete-soft);
+    background-image:linear-gradient(var(--line-soft) 1px,transparent 1px),linear-gradient(90deg,var(--line-soft) 1px,transparent 1px);
+    background-size:20px 20px;
+  }
+  .nav-prev-pie{
+    display:flex;align-items:center;justify-content:space-between;gap:.7rem;
+    flex:1 1 auto;min-height:0;padding:0 .2rem;line-height:1.2;
+  }
+  .nav-prev .status{flex:0 0 auto}
+  .nav-prev-loc{
+    font-family:var(--font-mono);font-size:.62rem;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--concrete);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+
+  /* proyecto activo: su vista previa arriba de las que se están yendo */
+  .nav-flyout.js-prev .nav-proj.is-prev .nav-prev,
+  .nav-flyout:not(.js-prev) .nav-proj:is(:hover,:focus-visible) .nav-prev{
+    opacity:1;visibility:visible;z-index:1;
+    transition:opacity .34s ease, visibility 0s;
+  }
+  .nav-flyout.js-prev .nav-proj.is-prev .nav-prev-foto img,
+  .nav-flyout:not(.js-prev) .nav-proj:is(:hover,:focus-visible) .nav-prev-foto img{transform:scale(var(--pz,1))}
+  .nav-flyout.js-prev.tiene-prev::before,
+  .nav-flyout:not(.js-prev):has(.nav-proj:is(:hover,:focus-visible))::before{
+    opacity:1;visibility:visible;
+    transition:opacity .28s ease, visibility 0s;
+  }
+
+  /* submenú hacia la izquierda → la vista previa también */
+  .nav-item.flyout-left .nav-flyout::before,
+  .nav-item.flyout-left .nav-prev{left:auto;right:100%}
+  /* no entra de ningún lado (lo mide el script) → sin vista previa */
+  .nav-item.sin-preview .nav-flyout::before,
+  .nav-item.sin-preview .nav-prev{display:none}
+}
+
 /* El botón mide 44×44 (el mínimo cómodo para un dedo) aunque el dibujo siga
    siendo el de 30×24: las barras van centradas adentro y el margen negativo
    compensa el ancho de más, así el ícono queda ópticamente donde estaba
@@ -182,4 +312,14 @@ body.menu-open .burger span:nth-child(3){top:21px;transform:rotate(-45deg)}
     border-bottom:1px solid var(--line-soft);background:none;
   }
   .nav-flyout ul li:last-child a{border-bottom:0}
+}
+
+/* con menos movimiento el subrayado aparece y se va sin trazo, y la vista
+   previa cambia sin fundido ni acomodo de la foto */
+@media(prefers-reduced-motion:reduce){
+  .nav-links a::after,
+  .nav-flyout::before,
+  .nav-prev,
+  .nav-prev-foto img{transition:none}
+  .nav-prev-foto img{transform:scale(var(--pz,1))}
 }

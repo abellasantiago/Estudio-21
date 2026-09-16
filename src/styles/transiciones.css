@@ -1,0 +1,205 @@
+/* ============================================================
+   TRANSICIONES ENTRE PÁGINAS — View Transitions nativas
+   ------------------------------------------------------------
+   El navegador saca una foto de la página que se va, arma la nueva y
+   anima entre las dos con pseudo-elementos (::view-transition-*). Casi
+   todo es CSS; el script (Transiciones.astro) sólo decide QUÉ foto viaja
+   y hacia dónde.
+
+   · La página nueva SUBE como el telón del preloader: un borde que barre
+     de abajo hacia arriba, con el mismo corrimiento de 40px y la misma
+     curva. La que se va queda debajo, empujada apenas hacia arriba.
+   · Volver a la home es el gesto inverso: el borde baja.
+   · La portada del proyecto (`proj-foto`) viaja aparte, por encima del
+     telón: de la card (o de la vista previa del menú) a la portada de la
+     ficha, y de vuelta a su card.
+   · El navbar y el botón de WhatsApp son iguales en todas las páginas:
+     con nombre propio quedan QUIETOS mientras el telón pasa por debajo,
+     como la barra de una app.
+
+   Donde el navegador no lo soporta (Firefox hoy, Safari < 18.2) se navega
+   como siempre. Con `prefers-reduced-motion`, también.
+   ============================================================ */
+
+@view-transition {
+  navigation: auto;
+}
+@media (prefers-reduced-motion: reduce) {
+  @view-transition {
+    navigation: none;
+  }
+}
+
+:root {
+  --vt-dur: 0.95s;
+  /* la curva del telón del preloader (pl-wipe-up), para que sea el mismo gesto */
+  --vt-telon: cubic-bezier(0.62, 0, 0.2, 1);
+  /* la foto arranca a moverse un toque antes que el telón: responde al click */
+  --vt-foto: cubic-bezier(0.5, 0, 0.1, 1);
+  --vt-empuje: 40px;
+}
+
+#header {
+  view-transition-name: e21-header;
+}
+.wa-float {
+  view-transition-name: e21-whatsapp;
+}
+
+/* Debajo de todo, papel: si en algún cuadro el borde del telón y el empuje de
+   la página vieja dejan una rendija, se ve papel y no un hueco. */
+::view-transition {
+  background: var(--paper);
+}
+
+/* ---------- telón ---------- */
+html[data-vt]::view-transition-old(root),
+html[data-vt]::view-transition-new(root) {
+  animation-duration: var(--vt-dur);
+  animation-timing-function: var(--vt-telon);
+  animation-fill-mode: both;
+}
+/* ida (home → ficha, y en general cualquier página que no sea la home):
+   la nueva sube desde abajo */
+html[data-vt='ida']::view-transition-old(root) {
+  animation-name: vt-empuje-arriba;
+}
+html[data-vt='ida']::view-transition-new(root) {
+  animation-name: vt-telon-sube;
+}
+/* vuelta (→ home): el borde baja */
+html[data-vt='vuelta']::view-transition-old(root) {
+  animation-name: vt-empuje-abajo;
+}
+html[data-vt='vuelta']::view-transition-new(root) {
+  animation-name: vt-telon-baja;
+}
+
+@keyframes vt-telon-sube {
+  from {
+    clip-path: inset(100% 0 0 0);
+    transform: translateY(var(--vt-empuje));
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+    transform: none;
+  }
+}
+@keyframes vt-empuje-arriba {
+  to {
+    transform: translateY(calc(-1 * var(--vt-empuje)));
+  }
+}
+@keyframes vt-telon-baja {
+  from {
+    clip-path: inset(0 0 100% 0);
+    transform: translateY(calc(-1 * var(--vt-empuje)));
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+    transform: none;
+  }
+}
+@keyframes vt-empuje-abajo {
+  to {
+    transform: translateY(var(--vt-empuje));
+  }
+}
+
+/* ---------- la foto que viaja ---------- */
+/* La caja (grupo) viaja de un lugar al otro cambiando de tamaño. Adentro, las
+   dos fotos van en `cover`: la card y la portada tienen proporciones
+   distintas, y sin esto la del medio se estiraría. */
+html[data-vt]::view-transition-group(proj-foto) {
+  animation-duration: var(--vt-dur);
+  animation-timing-function: var(--vt-foto);
+}
+html[data-vt]::view-transition-old(proj-foto),
+html[data-vt]::view-transition-new(proj-foto) {
+  height: 100%;
+  object-fit: cover;
+  overflow: clip;
+  animation-duration: var(--vt-dur);
+  animation-timing-function: linear;
+  animation-fill-mode: both;
+}
+/* No es el fundido cruzado de fábrica (las dos a la vez al 50% dejan ver el
+   papel a través de la foto a mitad de camino): la de origen queda entera y
+   la de destino se funde ENCIMA, en el tramo del medio. Además la de destino
+   es "en vivo": si la foto grande termina de bajar durante el viaje, aparece. */
+html[data-vt]::view-transition-old(proj-foto) {
+  animation-name: vt-foto-queda;
+}
+html[data-vt]::view-transition-new(proj-foto) {
+  animation-name: vt-foto-aparece;
+}
+/* sin pareja del otro lado (p. ej. se vuelve a la home pero la card no quedó
+   a la vista): la foto no se queda flotando, se desvanece enseguida */
+html[data-vt]::view-transition-old(proj-foto):only-child {
+  animation: vt-foto-se-va 0.35s ease both;
+}
+html[data-vt]::view-transition-new(proj-foto):only-child {
+  animation: vt-foto-aparece var(--vt-dur) linear both;
+}
+
+/* ---------- el resto de la card ---------- */
+/* Viaja aparte de su foto: al despegarse la foto, la card (ya sin ella) se
+   desvanece enseguida; al volver, aparece alrededor de la foto justo cuando
+   ésta aterriza. Sin esto, en la página vieja quedaba un marco vacío. */
+html[data-vt]::view-transition-group(proj-card) {
+  animation-duration: var(--vt-dur);
+  animation-timing-function: var(--vt-foto);
+}
+html[data-vt]::view-transition-old(proj-card):only-child {
+  animation: vt-foto-se-va 0.3s ease both;
+}
+html[data-vt]::view-transition-new(proj-card):only-child {
+  animation: vt-card-aparece var(--vt-dur) linear both;
+}
+@keyframes vt-card-aparece {
+  0%,
+  62% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+/* orden de apilado: la foto por encima de su card; navbar y WhatsApp arriba de
+   todo, como en la página */
+html[data-vt]::view-transition-group(proj-card) {
+  z-index: 1;
+}
+html[data-vt]::view-transition-group(proj-foto) {
+  z-index: 2;
+}
+html[data-vt]::view-transition-group(e21-header),
+html[data-vt]::view-transition-group(e21-whatsapp) {
+  z-index: 3;
+}
+
+@keyframes vt-foto-queda {
+  from,
+  to {
+    opacity: 1;
+  }
+}
+/* El relevo entre las dos fotos es corto y cae en el tramo más rápido del
+   viaje: son la misma foto con encuadres apenas distintos (la card y la
+   portada no recortan igual), y un fundido largo deja ver las dos corridas. */
+@keyframes vt-foto-aparece {
+  0%,
+  36% {
+    opacity: 0;
+  }
+  58%,
+  100% {
+    opacity: 1;
+  }
+}
+@keyframes vt-foto-se-va {
+  to {
+    opacity: 0;
+  }
+}

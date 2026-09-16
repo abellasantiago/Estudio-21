@@ -14,6 +14,7 @@ import sg700 from '@fontsource/space-grotesk/files/space-grotesk-latin-700-norma
 import inter400 from '@fontsource/inter/files/inter-latin-400-normal.woff2?url';
 import mono400 from '@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-400-normal.woff2?url';
 import '../styles/global.css';
+import '../styles/transiciones.css';
 
 // SÓLO los pesos que el sitio realmente pinta. Cada entrada acá es un preload
 // que compite por ancho de banda justo cuando el primer paint está esperando
@@ -42,6 +43,7 @@ import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import FloatingWhatsApp from '../components/FloatingWhatsApp.astro';
 import Preloader from '../components/Preloader.astro';
+import Transiciones from '../components/Transiciones.astro';
 
 interface Props {
   title: string;
@@ -57,6 +59,22 @@ const { title, description, image, jsonLd, immersive = false } = Astro.props;
 // Se agrega `is-immersive` lo antes posible (antes del primer paint) para evitar
 // el flash del layout de fallback. El motor (immersive.ts) toma el control en runtime.
 const immersiveBoot = `(function(){try{var m=window.matchMedia;if(m&&!m('(prefers-reduced-motion: reduce)').matches&&m('(pointer: fine)').matches&&m('(min-width: 900px)').matches){document.documentElement.classList.add('is-immersive')}}catch(e){}})()`;
+
+// Precarga de fichas: cuando el mouse se apoya en un link a un proyecto (card,
+// menú), Chrome baja el HTML de la ficha por adelantado, y al hacer click la
+// transición arranca sin esperar a la red. `moderate` = recién al pasar el
+// mouse ~200 ms (o al tocar), no por cada link de la página.
+// ⚠ `prefetch` y no `prerender`. Pre-renderizar la ficha entera dejaría la
+// portada ya pintada, pero es mucho más caro (una página armándose por detrás)
+// y, medido en Chrome, choca con cualquier cambio reciente del historial —p. ej.
+// un click en "Proyectos" del navbar, que es un #ancla—: la transición se
+// descartaba. Si la portada no llegó a bajar, Transiciones.astro pone de fondo
+// provisorio la foto de la card, que ya está en caché.
+// Los navegadores sin soporte ignoran el bloque.
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const speculationRules = JSON.stringify({
+  prefetch: [{ where: { href_matches: `${base}/proyectos/*` }, eagerness: 'moderate' }],
+});
 ---
 
 <!doctype html>
@@ -72,6 +90,8 @@ const immersiveBoot = `(function(){try{var m=window.matchMedia;if(m&&!m('(prefer
     <style is:inline set:html={fontFaceCss} />
     <BaseHead title={title} description={description} image={image} jsonLd={jsonLd} />
     {immersive && <script is:inline set:html={immersiveBoot} />}
+    <Transiciones />
+    <script is:inline type="speculationrules" set:html={speculationRules} />
     <slot name="head" />
   </head>
   <body>
@@ -83,14 +103,36 @@ const immersiveBoot = `(function(){try{var m=window.matchMedia;if(m&&!m('(prefer
     </main>
     <Footer />
     <FloatingWhatsApp />
+    {/* marca de "documento leído": al volver con "atrás" el primer cuadro espera
+        hasta acá (ver Transiciones.astro) */}
+    <span id="e21-fin" hidden></span>
 
     <script>
       // ----- recargar arranca arriba (en la home, el hero) -----
       // Por defecto el navegador restaura la posición de scroll al recargar; lo
       // desactivamos para volver siempre al inicio, salvo que se llegue con un
       // ancla (#seccion), donde respetamos el destino del fragmento.
+      // Volver con "atrás" es otra cosa: ahí se vuelve a donde uno estaba. Si la
+      // página quedó en el bfcache el navegador ya la devuelve intacta y esto ni
+      // corre; si se recarga, la posición la anotó Transiciones.astro al salir.
+      // El helicoidal corre antes (va antes en el documento): si volvimos desde
+      // una de sus cards ya dejó esa card al frente y marca `__e21Restaurado`.
       if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
-      if (!window.location.hash) window.scrollTo(0, 0);
+      const w = window as unknown as {
+        __e21Restaurar?: { y?: number };
+        __e21Restaurado?: boolean;
+      };
+      if (!w.__e21Restaurado) {
+        const y = w.__e21Restaurar?.y;
+        if (typeof y === 'number') {
+          window.scrollTo({ top: y, behavior: 'instant' });
+          // el helicoidal (si la posición cae en su tramo) se acomoda de golpe
+          // en vez de girar desde la primera card
+          document.dispatchEvent(new Event('e21:restaurado'));
+        } else if (!window.location.hash) {
+          window.scrollTo(0, 0);
+        }
+      }
 
       // ----- capa inmersiva (no-op fuera de la home) -----
       import { initImmersive } from '../scripts/immersive';
