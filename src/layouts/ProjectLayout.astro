@@ -129,9 +129,17 @@ const ficha = [
       <div class="proj-top">
         {portada ? (
           <div class="proj-cover" id="portada" style={`--cover-ar:${portadaAspecto ?? '6/7'}`}>
+            {/* `fallbackFormat` = el formato del <img> de adentro del <picture>,
+                el que se usa cuando ninguna <source> sirve. Por defecto Astro deja
+                el formato ORIGINAL (jpg/png), y eso obliga a generar cada ancho
+                TAMBIÉN en jpg/png: 82 MB de los 155 MB del build eran fallbacks que
+                ningún navegador llegaba a pedir. Con webp el fallback pesa una
+                fracción y lo entiende todo lo que exista desde ~2020 (antes de eso
+                tampoco andaría el resto del sitio). */}
             <Picture
               src={portada}
               formats={['avif', 'webp']}
+              fallbackFormat="webp"
               alt={`Portada del proyecto ${nombre}`}
               widths={coverWidths}
               sizes={`${coverRender}px`}

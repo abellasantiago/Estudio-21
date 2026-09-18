@@ -21,9 +21,12 @@ const RETRATO_SIZES = '264px';
 <div class="person reveal" data-d={d}>
   {foto ? (
     <div class="portrait">
+      {/* fallbackFormat: ver el porqué en ProjectLayout. Acá pesa el doble,
+          porque los retratos son PNG y el fallback PNG salía carísimo. */}
       <Picture
         src={foto}
         formats={['avif', 'webp']}
+        fallbackFormat="webp"
         alt={`Retrato de ${persona.nombre}, ${persona.rol}`}
         widths={[264, 396, 528]}
         sizes={RETRATO_SIZES}

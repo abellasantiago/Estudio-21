@@ -650,9 +650,27 @@ const pad = (n: number) => String(n).padStart(2, '0');
     );
 
     // foco por teclado → rotar el cilindro para mostrar la card enfocada
+    // ⚠ SÓLO con el teclado (`:focus-visible`). Al hacer click con el mouse el
+    // link TAMBIÉN recibe el foco, y ahí esto arrancaba un scroll suave de
+    // cientos de px justo en el momento del click: la card se iba moviendo y
+    // creciendo bajo el cursor mientras se la abría. Con las transiciones entre
+    // páginas eso pasó de rareza a error visible, porque la foto que viaja se
+    // captura en ese instante (salía de donde la card había quedado, no de
+    // donde se hizo click) y porque el corrimiento de scroll le hacía perder a
+    // Transiciones.astro la anotación de QUÉ card se abrió — al volver, el
+    // cilindro ya no la traía al frente y la foto no tenía dónde aterrizar.
+    // Los navegadores sin `:focus-visible` caen en el comportamiento de antes.
+    const focoDeTeclado = (el: Element) => {
+      try {
+        return el.matches(':focus-visible');
+      } catch {
+        return true;
+      }
+    };
     cards.forEach((c) => {
-      c.el.querySelector('a')?.addEventListener('focus', () => {
-        if (!is3d() || transitioning) return;
+      const enlace = c.el.querySelector('a');
+      enlace?.addEventListener('focus', () => {
+        if (!is3d() || transitioning || !focoDeTeclado(enlace)) return;
         const vi = active.indexOf(c);
         if (vi >= 0) scrollToIndex(vi);
       });

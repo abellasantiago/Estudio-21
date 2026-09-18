@@ -146,16 +146,22 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
     // ---- llegada: nombrar la foto de destino y la dirección del telón ---------
     addEventListener('pagereveal', function (e) {
       limpiar(); // restos de la ida, si la página vuelve del bfcache
-      var vt = e.viewTransition;
-      if (!vt) return;
 
-      var aqui = tipoDe(location.href);
+      // El dato de la ida se consume SIEMPRE, haya transición o no: si se
+      // descartara sólo cuando la hay, un navegador sin transiciones (o con
+      // "menos movimiento") lo dejaría ahí y la siguiente navegación —dentro de
+      // la ventana de 10 s— nombraría una foto que ya no viene de ningún lado.
       var h = null;
       try {
         h = JSON.parse(sessionStorage.getItem('e21-vt') || 'null');
         sessionStorage.removeItem('e21-vt');
         if (h && !(Date.now() - h.t < 10000)) h = null;
       } catch (x) {}
+
+      var vt = e.viewTransition;
+      if (!vt) return;
+
+      var aqui = tipoDe(location.href);
       var foto = h && h.foto;
 
       root.setAttribute('data-vt', aqui.tipo === 'home' ? 'vuelta' : 'ida');
@@ -259,6 +265,9 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
     let ultimoLink: HTMLAnchorElement | null = null;
     let ultimoLinkT = 0;
     const linkReciente = () => (ultimoLink && performance.now() - ultimoLinkT < 8000 ? ultimoLink : null);
+    // cuándo fue el último click que anotó una card (0 = todavía ninguno)
+    let cardAnotadaT = 0;
+    const cardRecienAnotada = () => cardAnotadaT > 0 && performance.now() - cardAnotadaT < 8000;
 
     document.addEventListener(
       'click',
@@ -274,22 +283,28 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
         const url = new URL(a.href, location.href);
         if (url.origin !== location.origin) return;
         if (url.pathname === location.pathname && url.search === location.search) return;
-        guardar(posicionActual(a.closest<HTMLElement>('.ph-card')));
+        const card = a.closest<HTMLElement>('.ph-card');
+        guardar(posicionActual(card));
+        cardAnotadaT = card?.dataset.slug ? performance.now() : 0;
       },
       true,
     );
     // salir sin click (atrás/adelante, la barra de direcciones): se actualiza la
-    // posición; la card anotada se conserva sólo si no hubo scroll desde el
-    // click (si lo hubo, ya no es "volver a esa card")
+    // posición, y ahí la card anotada ya no vale — no estamos yendo a su ficha.
+    // ⚠ NO alcanza con mirar si el scroll se movió desde el click: entre el
+    // click y el `pagehide` la página puede seguir moviéndose sola (inercia del
+    // trackpad, un scroll suave todavía frenando) y eso borraba la card de un
+    // click que SÍ fue a su ficha. Lo que decide es si nos vamos por ese click.
     window.addEventListener('pagehide', () => {
       const clave = vt.claveEntrada();
       const prev = clave ? vt.leerPosiciones()[clave] : undefined;
-      if (prev?.slug && Math.abs(prev.y - window.scrollY) < 2) return;
+      if (prev?.slug && (cardRecienAnotada() || Math.abs(prev.y - window.scrollY) < 2)) return;
       guardar(posicionActual(null));
     });
     // una vez usada, la card anotada ya cumplió: si después uno se va sin tocar
     // una card, al volver se restaura la posición, no esa card
     window.addEventListener('pageshow', () => {
+      cardAnotadaT = 0; // volvimos (bfcache incluido): el click de ida ya se usó
       const clave = vt.claveEntrada();
       const prev = clave ? vt.leerPosiciones()[clave] : undefined;
       if (prev?.slug) guardar({ y: prev.y });

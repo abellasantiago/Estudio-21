@@ -75,9 +75,11 @@ const pad = (n: number) => String(n).padStart(2, '0');
               data-h={it.img.height}
               aria-label={`Ampliar foto ${i + 1} de ${fotos.length}`}
             >
+              {/* fallbackFormat: ver el porqué en ProjectLayout */}
               <Picture
                 src={it.img}
                 formats={['avif', 'webp']}
+                fallbackFormat="webp"
                 alt={`${nombre} — foto ${i + 1}`}
                 widths={[it.ancho, Math.min(it.ancho * 2, it.img.width)]}
                 sizes={`${it.ancho}px`}

@@ -123,6 +123,25 @@ mismo orden editorial que la sección de proyectos. Detalles a respetar:
 - En **mobile** (≤760px) no hay hover: el desplegable pasa a **acordeón** dentro del
   menú hamburguesa (los paneles entran en el flujo, indentados) y `.nav-links` scrollea
   solo (`max-height` + `overflow-y`) por si la lista abierta pasa el alto de pantalla.
+- Cada proyecto del submenú muestra su **vista previa** del lado de afuera: portada
+  chica + chip de estado + barrio, que se funde de un proyecto a otro (`.nav-prev`).
+  Sólo con mouse y navbar horizontal. Tres cosas que parecen detalle y no lo son:
+  el **marco es uno solo por submenú** (`::before`) y las fotos se funden adentro —si
+  cada una llevara su marco, a mitad del fundido habría dos papeles al 50% encimados
+  y la sombra parpadearía—; el proyecto activo lo marca el script (`.is-prev`, el
+  último que tocó el mouse) y **no `:hover`**, con una "puntería" que espera un
+  instante mientras el puntero va en diagonal hacia la foto (si no, la vista previa
+  cambiaba justo mientras uno iba a mirarla); y `placeFlyout()` busca un lado donde
+  entren **submenú + vista previa juntos**, y si no entra en ninguno deja el submenú
+  donde quepa y esconde la previa (`.sin-preview`).
+- Las fotos de la previa recién se piden al abrir el menú por primera vez
+  (`.prev-lista`; hasta entonces van con `display:none` y el lazy-load no las baja):
+  son unos KB que no tiene sentido cargar en cada página.
+- El **subrayado de los links entra por la izquierda y sale por la derecha** — una
+  línea a ancho completo escalada en X, donde lo que cambia de lado es el
+  `transform-origin`, con `0s` de duración y el retardo del propio trazo para que el
+  salto de origen caiga cuando la línea ya no se ve. Con el desplegable abierto,
+  "Proyectos" queda subrayado aunque el mouse esté recorriendo el panel.
 
 El `.nav` **no** usa `.wrap` (el contenedor centrado a `--maxw`
 del resto del sitio): con esa centrado el margen crece mucho más rápido que el ancho
@@ -730,12 +749,50 @@ Orden de la página: **título · (portada | descripción) · ficha técnica · 
   levanta el visor. El `<img>` del visor arranca sin `src` → no se descarga
   ninguna foto grande hasta que se abre.
 
+## Transiciones entre páginas
+
+`Transiciones.astro` (en el `<head>` de todas las páginas) + `transiciones.css`.
+Usa **View Transitions nativas de navegación** (`@view-transition`), no una librería:
+el navegador saca una foto de la página que se va, arma la nueva y anima entre las
+dos. Donde no hay soporte (Firefox hoy) o con `prefers-reduced-motion`, se navega
+como siempre y no se pierde nada.
+
+- **El telón**: la página nueva sube como el del preloader (mismo corrimiento de
+  40px y misma curva); volver a la home es el gesto inverso, el borde baja. La
+  dirección la dice `data-vt` en `<html>` (`ida` / `vuelta`), que la pone la página
+  que LLEGA en `pagereveal`.
+- **La foto que viaja** (`proj-foto`): de la card del helicoidal —o de la vista
+  previa del menú— a la portada de la ficha, y de vuelta a su card. El CSS no puede
+  saber CUÁL foto viaja: la de origen la nombra la página que se va (`pageswap`) y
+  la de destino la que llega (`pagereveal`), pasándose el dato por `sessionStorage`.
+  La card entera viaja aparte (`proj-card`) para que, al despegarse la foto, el
+  resto de la card se desvanezca en vez de quedar como un marco vacío.
+- **Volver a la card**: si la home quedó en el bfcache el navegador la devuelve
+  intacta y no hace falta nada. Si se recarga, al salir se anotó la posición —y, si
+  se salió por una card, CUÁL, con qué filtro y en qué vista— y el helicoidal se
+  rearma con esa card al frente, que es donde la foto tiene que aterrizar. La
+  anotación va en `sessionStorage` con una clave por entrada del historial
+  (`navigation.currentEntry.key`, o un id propio en `history.state` donde no hay
+  Navigation API).
+- **"Volver a proyectos"** en la ficha hace `history.back()` cuando la entrada
+  anterior ES la home (así se aprovecha el bfcache y la foto vuelve volando); si se
+  llegó de otro lado, es el link normal a `/#proyectos`.
+- Dentro de la ficha, la **galería** usa la misma técnica pero en la misma página
+  (`startViewTransition`): la miniatura crece hasta el visor y vuelve a su lugar al
+  cerrar. Mientras dura, `<html>` lleva `vt-galeria` y el navbar/WhatsApp/portada
+  sueltan su `view-transition-name` (con nombre se pintarían por encima del velo).
+- Las fichas se **precargan** al apoyar el mouse en un link de proyecto
+  (`speculationrules`, `prefetch` + `eagerness: moderate`). `prefetch` y NO
+  `prerender`: pre-renderizar es mucho más caro y, medido en Chrome, choca con
+  cualquier cambio reciente del historial y la transición se descarta.
+
 ## Interacciones globales y SEO
 
 - **JS global** (`BaseLayout.astro`): menú móvil, sombra del header al scrollear
   (`.scrolled` / `.past-hero`), reveal-on-scroll (`IntersectionObserver`), y la capa
   inmersiva. **Al recargar se vuelve al hero:** `history.scrollRestoration='manual'` +
-  `scrollTo(0,0)` si no hay ancla (respeta `/#seccion`).
+  `scrollTo(0,0)` si no hay ancla (respeta `/#seccion`). **"Atrás" es la excepción**:
+  ahí se vuelve a donde uno estaba (ver "Transiciones entre páginas").
 - **SEO/accesibilidad:** `BaseHead` (meta únicos, canonical, OG/Twitter, JSON-LD),
   sitemap, robots.txt; skip-link, focus-visible, `alt`, y todo respeta
   `prefers-reduced-motion`. OG: la home usa `og-default.png`; cada proyecto con
@@ -859,6 +916,28 @@ fantasmas "21" sangran a propósito; verificado que no se pueda scrollear en x d
   cada filtro, y con el panel pegado leía p.ej. 4032 en vez de 247 → `range` quedaba
   en ~0 y el progreso clavado en 0. Si se agrega otro cálculo de layout ahí, medirlo
   siempre contra un elemento que no sea sticky.
+- **`focus` NO es "el usuario llegó con el teclado".** Al hacer click con el mouse el
+  link también recibe el foco. En el helicoidal, el handler de `focus` que rota el
+  cilindro hasta la card enfocada se disparaba con cada click: arrancaba un scroll
+  suave de cientos de px justo en el momento de abrir la card —la card se movía y
+  crecía bajo el cursor— y, con las transiciones, la foto que viaja salía de donde la
+  card había quedado y no de donde se hizo click; peor todavía, el corrimiento de
+  scroll le hacía perder a `Transiciones.astro` la anotación de QUÉ card se abrió, así
+  que al volver el cilindro no la traía al frente y la foto no tenía dónde aterrizar.
+  Para "sólo con el teclado" hay que chequear **`:focus-visible`**, no `focus`.
+- **La card anotada no se decide mirando si el scroll se movió.** Entre el click y el
+  `pagehide` la página puede seguir moviéndose sola (inercia del trackpad, un scroll
+  suave frenando). Lo que decide es si nos estamos yendo POR ese click — por eso se
+  anota cuándo fue el último click que marcó una card, y no se compara `scrollY`.
+- **`fallbackFormat` en `<Picture>`**: el `<img>` de adentro del `<picture>` (el que
+  se usa si ninguna `<source>` sirve) por defecto sale en el formato ORIGINAL, y eso
+  obliga a generar cada ancho TAMBIÉN en jpg/png. Eran ~40 MB de un build de 155 MB
+  que ningún navegador llegaba a pedir. Con `fallbackFormat="webp"` el build queda en
+  ~108 MB sin que cambie un solo byte de lo que descarga un visitante.
+- **El build emite igual el original de cada foto** (~30 MB): `images.ts` las importa
+  con `import.meta.glob(..., { eager: true })` para que aparezcan solas por
+  convención de carpetas, y Vite emite todo lo importado. No lo descarga nadie —es
+  peso del artefacto de deploy, no del visitante— y es el precio de esa comodidad.
 
 ## Pendientes antes de publicar
 

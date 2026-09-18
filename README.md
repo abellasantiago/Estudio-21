@@ -52,9 +52,11 @@ src/
 ├─ components/
 │  ├─ BaseHead.astro     SEO: title/description, canonical, OG/Twitter, JSON-LD
 │  ├─ Header.astro · Footer.astro · FloatingWhatsApp.astro · Preloader.astro
-│  ├─ ProyectosHelicoidal.astro · TeamMember.astro
+│  ├─ ProyectosHelicoidal.astro · TeamMember.astro · Galeria.astro
 │  ├─ LivingBackground.astro · HeroWireframe.astro · ProgressRail.astro
-│  └─ sections/          Hero · Nosotros · Proyectos · Estudio · Contacto
+│  ├─ Axonometria.astro  la lámina que se dibuja con el scroll en "Quiénes somos"
+│  ├─ Transiciones.astro transiciones entre páginas (va en el <head> de todas)
+│  └─ sections/          Hero · Presentacion · Nosotros · Estudio · Contacto
 ├─ content/proyectos/    un .md por proyecto (datos + descripción)
 ├─ content.config.ts     colección "proyectos" + schema Zod
 ├─ data/
@@ -63,7 +65,10 @@ src/
 ├─ layouts/
 │  ├─ BaseLayout.astro   shell + fuentes + JS global (menú, scroll, reveal)
 │  └─ ProjectLayout.astro  detalle de proyecto
-├─ lib/images.ts         descubre fotos por convención de carpetas
+├─ lib/
+│  ├─ images.ts          descubre fotos por convención de carpetas
+│  └─ axonometria/       el modelo de la lámina (casa, niveles, piezas, motor)
+├─ scripts/immersive.ts  motor de la home inmersiva
 ├─ pages/
 │  ├─ index.astro            home
 │  ├─ proyectos/[slug].astro detalle por proyecto (getStaticPaths)

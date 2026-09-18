@@ -110,6 +110,12 @@
 /* la card de la que sale la foto: sin el "Ver proyecto" del hover encima (si
    no, el degradé oscuro y el texto viajarían estirados hasta la portada) */
 .ph-card.vt-origen .ph-cta{opacity:0!important;transition:none!important}
+/* ...y a plena luz: en el cilindro también se pueden clickear las cards
+   vecinas, que viajan semitransparentes y con desenfoque (las escribe `render`
+   como estilo inline, de ahí los !important). Sin esto la foto salía volando
+   desvaída y borrosa hacia una portada nítida. El cambio vive un solo cuadro
+   —el que el navegador fotografía al irse—, así que no se llega a ver. */
+.ph-card.vt-origen{opacity:1!important;filter:none!important}
 /* Encuadre manual por proyecto (frontmatter `portadaFoco`/`portadaZoom`, ver
    content.config.ts): --pf mueve el foco de recorte del `cover` (qué parte de
    la foto se ve) y --pz agrega zoom extra centrado en ese mismo punto (mismo
