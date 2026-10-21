@@ -964,7 +964,10 @@ en la card correcta, sin telón entre páginas.
 ## Pendientes antes de publicar
 
 - **Dominio real** en `site` (`astro.config.mjs`) + `public/robots.txt` — de ahí salen canonical, sitemap y URLs absolutas de OG. Hoy es el placeholder `estudio21arq.com`.
-- **Fotos de Sushi WOK Perú**: es el **único** proyecto sin portada ni galería (los otros 9 ya tienen). Van en `src/assets/proyectos/sushi-wok/`.
+- **Sushi WOK Perú** está terminado (octubre de 2026) y tiene portada en
+  `src/assets/proyectos/sushi-wok/portada.webp`, compartida por card, ficha y
+  vista previa del menú. Quedan pendientes sólo sus fotos de galería
+  (`galeria-NN.*` en esa misma carpeta).
 - **Años estimados** de Villa Platero, Vila Rodona y Chana I; m² (área construida) de esos tres. m² de Cavas de Haedo también es **estimado** (no oficial).
 - Vila Rodona: confirmar mix de dormitorios y total de unidades.
 - Sushi WOK: la ficha muestra "Unidades: Pendiente" por ser un local gastronómico — debería decir **"No aplica"**, que no es lo mismo que un dato que falta.

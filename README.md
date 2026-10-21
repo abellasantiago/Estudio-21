@@ -173,7 +173,7 @@ pisar nada: `node scripts/generar-marca.mjs <carpeta>`.
 - [ ] **Dominio:** cambiar `site` en [`astro.config.mjs`](astro.config.mjs) y la
       línea `Sitemap:` en [`public/robots.txt`](public/robots.txt) por el dominio real.
 - [ ] **Datos de proyectos:** unidades y m² de los cuatro proyectos nuevos.
-- [ ] **Fotos:** portada y galería de Sushi WOK Perú (es el único sin fotos).
+- [ ] **Fotos:** galería de Sushi WOK Perú; la portada ya está cargada.
 - [ ] **Contacto opcional:** teléfono / WhatsApp / Instagram en `src/data/site.ts`
       (si los completás, aparecen solos en la sección de contacto).
 

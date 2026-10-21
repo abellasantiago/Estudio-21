@@ -1,10 +1,10 @@
 ---
 nombre: Sushi WOK Perú
 slug: sushi-wok
-estado: en-proceso
+estado: terminado
 ubicacion: Montevideo
 barrio: Carrasco
-anio: 2026 # período de ejecución de obra: set/2025 a mar/2026 (memoria BPS)
+anio: 2026 # finalizado en octubre de 2026
 metros: 253 # área afectada a la obra (memoria BPS)
 # unidades: no aplica — es un local gastronómico, no un desarrollo de viviendas
 portadaFoco: "50% 50%"
@@ -15,7 +15,7 @@ Sushi WOK Perú es la nueva casa en Carrasco de la propuesta gastronómica que
 combina sushi y cocina peruana, un segundo local que se suma al ya consolidado
 en Pocitos.
 
-En Boston 6208, Estudio 21 lleva adelante la reforma integral de una
+En Boston 6208, Estudio 21 realizó la reforma integral de una
 construcción existente de dos niveles para alojar el restaurante: en planta
 baja, el salón gastronómico con cocina, baños para clientes y personal y
 parrillero; en planta alta, una vivienda de un dormitorio con living-comedor y
