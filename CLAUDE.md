@@ -79,6 +79,12 @@ Pages queda como preview/staging gratis y no hace falta tocar nada de esto.
   y aparecen solas, sin listarlas. Hasta que existan, se muestra un placeholder.
   La columna gráfica de "Quiénes somos" **no** es una foto: es la axonometría que se
   genera en el build (ver "Axonometría de Quiénes somos").
+- **Sushi WOK Perú** está terminado (octubre de 2026). Su carpeta de imágenes
+  conserva `portada.webp` para card, ficha y vista previa del menú, y ocho fotos
+  retocadas en WebP (`galeria-01.webp` a `galeria-08.webp`). Orden: fachada diurna,
+  salón principal, salón con hormigón visto, salón con parquet, detalle de escalera,
+  barra, cocina y fachada nocturna. La galería conserva las proporciones de cada
+  toma y carga las versiones grandes al abrir el visor.
 - **Piezas de marca derivadas** (`scripts/generar-marca.mjs`): `public/favicon.png`,
   `apple-touch-icon.png` y `og-default.png` **no se editan a mano** — se generan del
   logo real (`src/assets/marca/banner_negro.png`) con la paleta del sitio. Ver
@@ -964,10 +970,6 @@ en la card correcta, sin telón entre páginas.
 ## Pendientes antes de publicar
 
 - **Dominio real** en `site` (`astro.config.mjs`) + `public/robots.txt` — de ahí salen canonical, sitemap y URLs absolutas de OG. Hoy es el placeholder `estudio21arq.com`.
-- **Sushi WOK Perú** está terminado (octubre de 2026) y tiene portada en
-  `src/assets/proyectos/sushi-wok/portada.webp`, compartida por card, ficha y
-  vista previa del menú. Quedan pendientes sólo sus fotos de galería
-  (`galeria-NN.*` en esa misma carpeta).
 - **Años estimados** de Villa Platero, Vila Rodona y Chana I; m² (área construida) de esos tres. m² de Cavas de Haedo también es **estimado** (no oficial).
 - Vila Rodona: confirmar mix de dormitorios y total de unidades.
 - Sushi WOK: la ficha muestra "Unidades: Pendiente" por ser un local gastronómico — debería decir **"No aplica"**, que no es lo mismo que un dato que falta.
