@@ -137,7 +137,7 @@ const PREV_FOTO_W = 208;
    * también se recorre con el teclado). Acá se agrega lo que la CSS no puede:
    *   · modo tap (mobile / punteros gruesos): el link no navega, despliega.
    *   · de qué lado abre el submenú, según el lugar que quede en pantalla.
-   *   · Escape y click afuera para cerrar; aria-expanded siempre sincronizado.
+   *   · cierre completo al salir, Escape y click afuera; aria sincronizado.
    */
   const items = Array.from(document.querySelectorAll<HTMLElement>('[data-nav-menu]'));
 
@@ -150,12 +150,15 @@ const PREV_FOTO_W = 208;
     // punteros sin hover (o el menú hamburguesa) → el desplegable abre con tap
     const tapMode = () => window.matchMedia('(max-width: 760px), (hover: none)').matches;
     const setExpanded = (v: boolean) => trigger.setAttribute('aria-expanded', String(v));
+    const limpiarPreviews = new Map<HTMLElement, () => void>();
 
+    function closeSub(sub: HTMLElement) {
+      sub.classList.remove('is-open');
+      sub.querySelector('.nav-sub-btn')?.setAttribute('aria-expanded', 'false');
+      limpiarPreviews.get(sub)?.();
+    }
     function closeSubs() {
-      for (const s of subs) {
-        s.classList.remove('is-open');
-        s.querySelector('.nav-sub-btn')?.setAttribute('aria-expanded', 'false');
-      }
+      for (const sub of subs) closeSub(sub);
     }
     function close() {
       item.classList.remove('is-open');
@@ -205,6 +208,8 @@ const PREV_FOTO_W = 208;
         clearTimeout(pendiente);
         fly.classList.remove('tiene-prev');
         for (const l of links) l.classList.remove('is-prev');
+        rastro.length = 0;
+        ultimoMov = 0;
       };
 
       /* "Puntería" hacia la foto: quien va con el mouse hasta la vista previa
@@ -259,12 +264,10 @@ const PREV_FOTO_W = 208;
         });
         a.addEventListener('focus', () => activar(a));
       }
-      // al volver a abrir el submenú arranca limpio, sin la foto de la vez
-      // anterior (con el mouse entrando por la fila del estado, o con el teclado)
-      const sub = fly.parentElement;
-      sub?.addEventListener('pointerenter', () => {
-        if (!fly.matches(':hover')) limpiar();
-      });
+      // Cerrar también borra el proyecto activo, los timers y el rastro del
+      // puntero. Ninguna foto de la visita anterior queda esperando oculta.
+      const sub = fly.parentElement!;
+      limpiarPreviews.set(sub, limpiar);
       sub?.querySelector('.nav-sub-btn')?.addEventListener('focus', limpiar);
     }
 
@@ -282,13 +285,33 @@ const PREV_FOTO_W = 208;
     for (const sub of subs) {
       const btn = sub.querySelector<HTMLButtonElement>('.nav-sub-btn');
       if (!btn || btn.disabled) continue;
+      const openSub = () => {
+        for (const other of subs) if (other !== sub) closeSub(other);
+        sub.classList.add('is-open');
+        btn.setAttribute('aria-expanded', 'true');
+      };
+      sub.addEventListener('pointerenter', () => {
+        if (!tapMode()) openSub();
+      });
+      sub.addEventListener('pointerleave', () => {
+        if (tapMode()) return;
+        const focused = document.activeElement;
+        if (focused && sub.contains(focused) && focused.matches(':focus-visible')) return;
+        closeSub(sub);
+      });
+      sub.addEventListener('focusin', () => {
+        if (!tapMode()) openSub();
+      });
+      sub.addEventListener('focusout', (e) => {
+        if (sub.contains(e.relatedTarget as Node)) return;
+        if (!tapMode() && sub.matches(':hover')) return;
+        closeSub(sub);
+      });
       btn.addEventListener('click', () => {
+        if (!tapMode()) return openSub();
         const abierto = sub.classList.contains('is-open');
         closeSubs();
-        if (!abierto) {
-          sub.classList.add('is-open');
-          btn.setAttribute('aria-expanded', 'true');
-        }
+        if (!abierto) openSub();
       });
     }
 
@@ -300,26 +323,35 @@ const PREV_FOTO_W = 208;
       // baja): son unos KB que no tiene sentido cargar en cada página
       item.classList.add('prev-lista');
       placeFlyout();
+      item.classList.add('is-open');
       setExpanded(true);
     });
     item.addEventListener('pointerleave', () => {
-      if (tapMode() || item.classList.contains('is-open')) return;
-      setExpanded(false);
+      if (tapMode()) return;
+      const focused = document.activeElement;
+      // El teclado puede seguir recorriendo el menú aunque el mouse se vaya.
+      // Un foco dejado por un click, en cambio, no lo mantiene abierto.
+      if (focused && item.contains(focused) && focused.matches(':focus-visible')) return;
+      close();
+      if (focused instanceof HTMLElement && item.contains(focused)) focused.blur();
     });
     item.addEventListener('focusin', () => {
       item.classList.add('prev-lista');
       placeFlyout();
+      if (tapMode()) return;
+      item.classList.add('is-open');
       setExpanded(true);
     });
     item.addEventListener('focusout', (e) => {
       if (item.contains(e.relatedTarget as Node)) return;
+      if (!tapMode() && item.matches(':hover')) return;
       close();
     });
 
     item.addEventListener('keydown', (e) => {
       if (e.key !== 'Escape') return;
-      close();
       trigger.focus();
+      close(); // después del foco: focusin no debe volver a abrirlo
     });
 
     window.addEventListener(
@@ -331,20 +363,13 @@ const PREV_FOTO_W = 208;
       { passive: true },
     );
 
+    document.addEventListener('click', (e) => {
+      if (!item.contains(e.target as Node)) close();
+    });
+
+    // Con JS, sólo .is-open habilita los paneles y su hit testing. Los :hover
+    // quedan como fallback sin JS; así un descendiente oculto no los revive.
+    item.classList.add('js-nav');
     placeFlyout();
   }
-
-  // click afuera → cerrar (los handlers de arriba ya corrieron: si el click fue
-  // adentro, el item lo contiene y no se toca)
-  document.addEventListener('click', (e) => {
-    for (const item of items) {
-      if (item.contains(e.target as Node)) continue;
-      item.classList.remove('is-open');
-      item.querySelector('.nav-trigger')?.setAttribute('aria-expanded', 'false');
-      item.querySelectorAll('[data-nav-sub].is-open').forEach((s) => {
-        s.classList.remove('is-open');
-        s.querySelector('.nav-sub-btn')?.setAttribute('aria-expanded', 'false');
-      });
-    }
-  });
 </script>

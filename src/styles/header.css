@@ -54,24 +54,21 @@ header.scrolled{border-bottom-color:var(--line);background:var(--paper);backgrou
 .nav-links a:focus-visible::after{transform:scaleX(1);transform-origin:right center}
 /* ---------- desplegable de "Proyectos" (submenú anidado) ----------
    Abre con :hover y con :focus-within → funciona sin JS y se recorre con el
-   teclado. El script sólo agrega el modo tap, el Escape y decide de qué lado
-   sale el submenú. `.nav-item` se estira a los 58px del navbar para que el panel
+   teclado. Con JS, .is-open controla cada nivel y limpia el estado al salir.
+   `.nav-item` se estira a los 58px del navbar para que el panel
    (top:100%) arranque pegado al borde de abajo: sin hueco que cruzar con el
    mouse, el hover no se corta al bajar. */
 .nav-item{position:relative;display:flex;align-items:center;align-self:stretch}
 .nav-links .nav-trigger{display:inline-flex;align-items:center;gap:.42rem}
 .nav-caret{width:9px;height:6px;flex:0 0 auto;color:var(--concrete-soft);transition:transform .25s ease,color .25s ease}
-.nav-item:hover .nav-trigger .nav-caret,
-.nav-item:focus-within .nav-trigger .nav-caret,
+.nav-item:not(.js-nav):is(:hover,:focus-within) .nav-trigger .nav-caret,
 .nav-item.is-open .nav-trigger .nav-caret{color:var(--ink);transform:rotate(180deg)}
 /* con el desplegable abierto "Proyectos" queda subrayado aunque el mouse ya
    esté recorriendo el panel: marca de dónde cuelga lo que se está viendo, y la
    línea se va (hacia la derecha) recién al salir de todo el menú */
-.nav-item:hover > .nav-trigger,
-.nav-item:focus-within > .nav-trigger,
+.nav-item:not(.js-nav):is(:hover,:focus-within) > .nav-trigger,
 .nav-item.is-open > .nav-trigger{color:var(--ink)}
-.nav-item:hover > .nav-trigger::after,
-.nav-item:focus-within > .nav-trigger::after,
+.nav-item:not(.js-nav):is(:hover,:focus-within) > .nav-trigger::after,
 .nav-item.is-open > .nav-trigger::after{transform:scaleX(1);transform-origin:right center}
 
 .nav-menu{
@@ -84,12 +81,14 @@ header.scrolled{border-bottom-color:var(--line);background:var(--paper);backgrou
   border:1px solid var(--line);border-radius:2px;
   box-shadow:0 26px 48px -32px rgba(26,25,22,.6);
   padding:.35rem;
-  opacity:0;visibility:hidden;transform:translateY(-6px);
+  opacity:0;visibility:hidden;pointer-events:none;transform:translateY(-6px);
   transition:opacity .22s ease, transform .22s ease, visibility .22s;
 }
-.nav-item:hover > .nav-menu,
-.nav-item:focus-within > .nav-menu,
-.nav-item.is-open > .nav-menu{opacity:1;visibility:visible;transform:none}
+.nav-item:not(.js-nav):is(:hover,:focus-within) > .nav-menu,
+.nav-item.is-open > .nav-menu{opacity:1;visibility:visible;pointer-events:auto;transform:none}
+/* Puente transparente sobre el filete del header: el cursor sigue dentro del
+   menú al cruzar ese píxel, sin demorar el cierre cuando realmente sale. */
+.nav-menu::before{content:"";position:absolute;left:-1px;right:-1px;top:-2px;height:2px}
 
 .nav-menu-list,.nav-flyout ul{list-style:none;margin:0;padding:0}
 .nav-sub{position:relative}
@@ -101,11 +100,9 @@ header.scrolled{border-bottom-color:var(--line);background:var(--paper);backgrou
 }
 .nav-sub-label{flex:1 1 auto}
 .nav-caret-side{width:6px;height:9px}
-.nav-sub:hover > .nav-sub-btn,
-.nav-sub:focus-within > .nav-sub-btn,
+.nav-item:not(.js-nav) .nav-sub:is(:hover,:focus-within) > .nav-sub-btn,
 .nav-sub.is-open > .nav-sub-btn{background:var(--paper-deep);color:var(--ink)}
-.nav-sub:hover > .nav-sub-btn .nav-caret,
-.nav-sub:focus-within > .nav-sub-btn .nav-caret,
+.nav-item:not(.js-nav) .nav-sub:is(:hover,:focus-within) > .nav-sub-btn .nav-caret,
 .nav-sub.is-open > .nav-sub-btn .nav-caret{color:var(--ink)}
 .nav-sub-btn[disabled]{opacity:.42;cursor:default}
 
@@ -123,16 +120,18 @@ header.scrolled{border-bottom-color:var(--line);background:var(--paper);backgrou
   border:1px solid var(--line);border-radius:2px;
   box-shadow:0 26px 48px -32px rgba(26,25,22,.6);
   padding:.35rem;
-  opacity:0;visibility:hidden;transform:translateX(-6px);
+  opacity:0;visibility:hidden;pointer-events:none;transform:translateX(-6px);
   transition:opacity .2s ease, transform .2s ease, visibility .2s;
 }
-.nav-sub:hover > .nav-flyout,
-.nav-sub:focus-within > .nav-flyout,
-.nav-sub.is-open > .nav-flyout{opacity:1;visibility:visible;transform:none}
+.nav-item:not(.js-nav) .nav-sub:is(:hover,:focus-within) > .nav-flyout,
+.nav-item.is-open .nav-sub.is-open > .nav-flyout{opacity:1;visibility:visible;pointer-events:auto;transform:none}
+/* El margen que alinea los filetes cruza el padding del panel. Ese tramo
+   también pertenece al submenú para poder llegar a la lista sin cortarlo. */
+.nav-flyout::after{content:"";position:absolute;top:-1px;bottom:-1px;left:-.45rem;width:.45rem}
 /* sin lugar a la derecha (el script lo mide) → sale hacia la izquierda */
 .nav-item.flyout-left .nav-flyout{left:auto;right:100%;margin-left:0;margin-right:.35rem;transform:translateX(6px)}
-.nav-item.flyout-left .nav-sub:hover > .nav-flyout,
-.nav-item.flyout-left .nav-sub:focus-within > .nav-flyout,
+.nav-item.flyout-left .nav-flyout::after{left:auto;right:-.45rem}
+.nav-item.flyout-left:not(.js-nav) .nav-sub:is(:hover,:focus-within) > .nav-flyout,
 .nav-item.flyout-left .nav-sub.is-open > .nav-flyout{transform:none}
 
 /* los proyectos se leen como lista de contenido, no como links de navegación:
@@ -182,7 +181,7 @@ header.scrolled{border-bottom-color:var(--line);background:var(--paper);backgrou
   .nav-prev{
     position:absolute;top:-1px;left:100%;
     box-sizing:border-box;width:var(--prev-w);height:var(--prev-h);
-    opacity:0;visibility:hidden;
+    opacity:0;visibility:hidden;pointer-events:none;
   }
   .nav-flyout::before{
     content:"";pointer-events:none;
@@ -230,14 +229,14 @@ header.scrolled{border-bottom-color:var(--line);background:var(--paper);backgrou
   }
 
   /* proyecto activo: su vista previa arriba de las que se están yendo */
-  .nav-flyout.js-prev .nav-proj.is-prev .nav-prev,
+  .nav-item.is-open .nav-sub.is-open > .nav-flyout.js-prev .nav-proj.is-prev .nav-prev,
   .nav-flyout:not(.js-prev) .nav-proj:is(:hover,:focus-visible) .nav-prev{
-    opacity:1;visibility:visible;z-index:1;
+    opacity:1;visibility:visible;pointer-events:auto;z-index:1;
     transition:opacity .34s ease, visibility 0s;
   }
   .nav-flyout.js-prev .nav-proj.is-prev .nav-prev-foto img,
   .nav-flyout:not(.js-prev) .nav-proj:is(:hover,:focus-visible) .nav-prev-foto img{transform:scale(var(--pz,1))}
-  .nav-flyout.js-prev.tiene-prev::before,
+  .nav-item.is-open .nav-sub.is-open > .nav-flyout.js-prev.tiene-prev::before,
   .nav-flyout:not(.js-prev):has(.nav-proj:is(:hover,:focus-visible))::before{
     opacity:1;visibility:visible;
     transition:opacity .28s ease, visibility 0s;
@@ -301,6 +300,7 @@ body.menu-open .burger span:nth-child(3){top:21px;transform:rotate(-45deg)}
   }
   .nav-item.is-open > .nav-menu{display:block}
   .nav-sub.is-open > .nav-flyout{display:block}
+  .nav-menu::before,.nav-flyout::after{display:none}
   .nav-menu-list{padding-left:.9rem}
   .nav-sub-btn{
     padding:.8rem 0;font-size:.8rem;border-bottom:1px solid var(--line-soft);

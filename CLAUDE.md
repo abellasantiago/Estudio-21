@@ -42,6 +42,10 @@ registro), no rediseñar. Todo el copy va en **español rioplatense**.
 
 ## Deploy
 
+**Trabajo de código:** se trabaja directamente en `main`. Las ramas anteriores
+ya están incorporadas y eliminadas tanto localmente como en el remoto; no hay
+trabajo pendiente de mergear. Un push a `main` también publica el sitio.
+
 **GitHub Pages** vía Actions (`.github/workflows/deploy.yml`): cada push a `main`
 buildea y publica automáticamente en `https://abellasantiago.github.io/Estudio-21/`
 (hay que habilitar `Settings → Pages → Source: GitHub Actions` una vez, del lado de
@@ -108,15 +112,21 @@ no CTA con recuadro). **"Proyectos" abre un desplegable anidado** (`Header.astro
 dentro de cada uno, un **submenú con sus proyectos** (nombre + año) que linkea directo
 a la ficha. Los datos salen de la content collection, con el
 mismo orden editorial que la sección de proyectos. Detalles a respetar:
-- Abre con **`:hover` y `:focus-within`** → funciona sin JS y se recorre con el
-  teclado. El script sólo agrega el **modo tap** (mobile / `hover:none`: el link no
-  navega, despliega), el Escape, el click afuera y el `aria-expanded`.
+- Sin JS abre con **`:hover` y `:focus-within`**. Con JS (`.js-nav`), cada nivel
+  abre sólo con **`.is-open`**, sincronizado con mouse, foco y `aria-expanded`.
+  Al salir se cierra el árbol completo, se limpian `.is-prev` / `.tiene-prev`,
+  timers y rastro del puntero. Los paneles ocultos llevan `pointer-events:none`:
+  pasar por donde estuvieron no los vuelve a abrir. En mobile / `hover:none`
+  abre con tap; Escape y click afuera también cierran. Escape devuelve el foco
+  al disparador **antes** de cerrar, para que `focusin` no lo reabra.
 - `.nav-links` lleva **`align-self:stretch`** para tomar los 58px del navbar: si no,
   mide sólo el alto del texto (~30px) y el panel, que cuelga de `top:100%`, arrancaba
   montado sobre el navbar.
 - El submenú va **pegado al panel** (el margen compensa el `padding` del panel, porque
   `left:100%` se mide desde la fila y no desde el borde): con aire en el medio, el
   mouse "se sale" al pasar de un nivel al otro y se cierra a mitad de camino.
+  Dos puentes transparentes cubren el píxel del borde del header y el padding
+  entre el estado y su lista; sólo reciben el mouse mientras el menú está abierto.
 - Sale **hacia la izquierda** cuando no entra a la derecha (`.flyout-left`, lo mide el
   script al abrir y en cada resize). Como el navbar está alineado a la derecha, en la
   práctica casi siempre cae de ese lado.
@@ -757,10 +767,11 @@ el navegador saca una foto de la página que se va, arma la nueva y anima entre 
 dos. Donde no hay soporte (Firefox hoy) o con `prefers-reduced-motion`, se navega
 como siempre y no se pierde nada.
 
-- **El telón**: la página nueva sube como el del preloader (mismo corrimiento de
-  40px y misma curva); volver a la home es el gesto inverso, el borde baja. La
-  dirección la dice `data-vt` en `<html>` (`ida` / `vuelta`), que la pone la página
-  que LLEGA en `pagereveal`.
+- **Fundido completo**: las páginas entrante y saliente cambian su opacidad a la
+  vez durante **0,65 s**, sin `clip-path`, barridos ni desplazamientos. Ida y vuelta
+  usan el mismo gesto, activado con `data-vt` en `<html>` al llegar (`pagereveal`).
+  La foto viaja por separado y se asienta en **0,85 s**. El telón del preloader
+  de la primera carga de la home conserva su animación propia.
 - **La foto que viaja** (`proj-foto`): de la card del helicoidal —o de la vista
   previa del menú— a la portada de la ficha, y de vuelta a su card. El CSS no puede
   saber CUÁL foto viaja: la de origen la nombra la página que se va (`pageswap`) y
@@ -938,6 +949,17 @@ fantasmas "21" sangran a propósito; verificado que no se pueda scrollear en x d
   con `import.meta.glob(..., { eager: true })` para que aparezcan solas por
   convención de carpetas, y Vite emite todo lo importado. No lo descarga nadie —es
   peso del artefacto de deploy, no del visitante— y es el precio de esa comodidad.
+
+## Verificar menú y navegación
+
+Al tocar `Header` o las transiciones, probar también en `npm run build` +
+`npm run preview`: abrir estado → proyecto → vista previa, salir y volver a pasar
+por el lugar donde estaban los paneles. Deben quedar cero `.is-open`, `.is-prev`
+y `.tiene-prev`, y los paneles ocultos no deben recibir el puntero. Reabrir desde
+la barra debe mostrar sólo los tres estados. Revisar Tab/Escape y el acordeón en
+390px; el tap en "Proyectos" no debe cerrar la hamburguesa ni navegar.
+Abrir una card y volver con Atrás debe conservar el fundido completo y aterrizar
+en la card correcta, sin telón entre páginas.
 
 ## Pendientes antes de publicar
 

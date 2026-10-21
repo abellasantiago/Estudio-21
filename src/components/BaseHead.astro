@@ -76,5 +76,5 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 
 <!-- JSON-LD -->
 {jsonLdBlocks.map((block) => (
-  <script type="application/ld+json" set:html={JSON.stringify(block)} />
+  <script is:inline type="application/ld+json" set:html={JSON.stringify(block)} />
 ))}

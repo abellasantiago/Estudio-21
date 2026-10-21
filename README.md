@@ -201,19 +201,23 @@ valores → Deploy. Cada `git push` vuelve a publicar.
 
 ## Notas técnicas
 
-- **Tipografías:** Fontsource carga sólo los pesos del diseño (Space Grotesk
-  400/500/700, Inter 400/500, IBM Plex Mono 400/500) con `font-display: swap`.
-  Se hace `preload` de Space Grotesk 500 (los titulares) en el `<head>`.
+- **Tipografías:** cuatro pesos locales (Space Grotesk 500/700, Inter 400 e
+  IBM Plex Mono 400), con preload y `font-display: block` en `BaseLayout`.
 - **Estilos:** los tokens y helpers compartidos están en `src/styles/global.css`;
   cada componente importa su propio `.css`.
 - **JS:** el menú móvil, el desplegable de "Proyectos" del navbar (los tres estados y,
-  dentro de cada uno, sus proyectos; abre con hover/teclado sin JS, el script agrega el
-  modo tap y el Escape), la sombra del header al scrollear, el reveal-on-scroll, el
+  dentro de cada uno, sus proyectos y vistas previas; se reinicia al salir y los
+  paneles cerrados no reciben el mouse; admite teclado, tap y Escape), la sombra
+  del header al scrollear, el reveal-on-scroll, el
   filtro de proyectos y el carrusel **helicoidal 3D** (giro del cilindro atado al scroll,
   que arranca recién cuando el panel se fija; la 1ª card queda centrada hasta ahí). Al
   **recargar** la página se vuelve al inicio (hero) en vez de restaurar la posición previa.
   Todo respeta `prefers-reduced-motion` (sin motion, el helicoidal queda como grilla
   estática accesible).
+- **Transiciones:** las páginas se funden completas mientras la foto viaja de la
+  card a la portada y vuelve al regresar. El preloader inicial mantiene su telón.
+- **Git:** se trabaja en `main`; todas las ramas anteriores están incorporadas y
+  eliminadas. Cada push a `main` publica automáticamente en GitHub Pages.
 
 ## Solución de problemas
 

@@ -160,7 +160,8 @@ const speculationRules = JSON.stringify({
           burger.setAttribute('aria-label', open ? 'Cerrar menú' : 'Abrir menú');
         });
         document.querySelectorAll('#menu a').forEach((a) =>
-          a.addEventListener('click', () => {
+          a.addEventListener('click', (e) => {
+            if (e.defaultPrevented) return; // "Proyectos" despliega con tap
             document.body.classList.remove('menu-open');
             burger.setAttribute('aria-expanded', 'false');
           }),
