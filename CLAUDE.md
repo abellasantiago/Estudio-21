@@ -768,6 +768,15 @@ Orden de la página: **título · (portada | descripción) · ficha técnica · 
   levanta el visor. El `<img>` del visor arranca sin `src` → no se descarga
   ninguna foto grande hasta que se abre.
 
+**La ficha termina en la galería, y así queda** (decisión del 2026-11-04). No
+lleva **ningún botón ni texto de cierre**: ni CTA de consulta, ni línea de
+contexto, ni "siguiente proyecto". Se probó un bloque de cierre con una línea
+propia de cada proyecto y botones de WhatsApp/mail, y se descartó: la ficha
+muestra la obra y nada más. El único link de la página sigue siendo "Volver a
+proyectos", y de ahí el recorrido se retoma en el cilindro de la home. El canal
+de contacto en esta página es el botón flotante de WhatsApp, que ya está en
+todo el sitio.
+
 ## Transiciones entre páginas
 
 `Transiciones.astro` (en el `<head>` de todas las páginas) + `transiciones.css`.
