@@ -4,14 +4,22 @@
 
 .galeria{margin-top:clamp(3rem,6vw,5rem)}
 .gal-head{display:flex;align-items:baseline;justify-content:space-between;gap:1.5rem}
-.gal-count{font-family:var(--font-mono);font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:var(--concrete-soft)}
+/* --concrete y no --concrete-soft: en soft daba 2,93:1 sobre el papel, por
+   debajo del 4,5:1 que pide WCAG AA para texto normal. */
+.gal-count{font-family:var(--font-mono);font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--concrete)}
 
 /* ---------- tira horizontal ---------- */
 /* --gal-h manda: todas las miniaturas tienen ESE alto y el ancho se lo da su
    propia proporción (--ar, escrita en el markup con las medidas reales). Como
    la caja ya tiene la proporción exacta de la foto, el `cover` de adentro no
    recorta nada — sólo asegura que llene la caja. */
-.gal-strip-wrap{--gal-h:clamp(112px,15vh,168px);position:relative;margin-top:1.4rem}
+/* El alto arrancaba en clamp(112px,15vh,168px) y daba 127px medidos contra una
+   portada de 510px: las fotos del proyecto —lo mejor que tiene la página—
+   quedaban a un cuarto del tamaño de la portada y se leían como un pie de
+   página. Subido a ~165px en un portátil y ~200px en un monitor: sigue siendo
+   una tira de contactos (se recorre de a una, con sus flechas), pero ahora los
+   renders se ven. */
+.gal-strip-wrap{--gal-h:clamp(150px,22vh,240px);position:relative;margin-top:1.4rem}
 
 .gal-strip{
   list-style:none;margin:0;padding:0 0 .9rem;

@@ -6,7 +6,7 @@ ubicacion: Montevideo
 barrio: Carrasco
 anio: 2026 # finalizado en octubre de 2026
 metros: 253 # área afectada a la obra (memoria BPS)
-# unidades: no aplica — es un local gastronómico, no un desarrollo de viviendas
+sinUnidades: true # es un local gastronómico, no un desarrollo de viviendas
 portadaFoco: "50% 50%"
 portadaZoom: 1
 ---

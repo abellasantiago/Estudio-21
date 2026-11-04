@@ -748,11 +748,26 @@ Orden de la página: **título · (portada | descripción) · ficha técnica · 
     en esta cuenta — el margen de las fuentes 2× ya lo absorbe sin que se note
     blando.
 - **Ficha técnica**: banda horizontal de 5 columnas al pie del bloque, con
-  `border-top` en `--ink` (marcado `<dl>` con `<dt>`/`<dd>`).
+  `border-top` en `--ink` (marcado `<dl>` con `<dt>`/`<dd>`). La **primera celda
+  va sin `padding-left`** para que su valor caiga sobre la misma línea que el
+  título, la portada y el filete —lo mismo que hace `.pres-cifra:first-child` en
+  la home—; en dos columnas (≤900px) son las celdas impares. Las **etiquetas van
+  en `--ink-soft`**, no en el gris de los eyebrows: son las que dejan leer los
+  valores.
+  El valor tiene tres tratamientos: el dato, **"Pendiente"** (gris claro: se lee
+  como el hueco que es) y **"No aplica"** (más chico y en `--concrete`, porque es
+  una respuesta y no un hueco). "No aplica" se activa con **`sinUnidades: true`**
+  en el frontmatter, para obras que no se cuentan en unidades — hoy sólo Sushi
+  WOK, que es un local gastronómico.
 - **Galería = tira de contactos + visor.** Todas las miniaturas al **mismo alto**
   (`--gal-h`) y con el **ancho que les da su proporción real** → tira horizontal
   scrolleable, sin recortar ninguna (los ratios de la galería van de 0.56 a 1.95:
-  cualquier caja fija recortaría fuerte a la mitad del material). El script
+  cualquier caja fija recortaría fuerte a la mitad del material).
+  `--gal-h` es `clamp(150px,22vh,240px)` → ~190px en un teléfono, ~210px en un
+  portátil. Antes era `clamp(112px,15vh,168px)` y daba **127px medidos contra una
+  portada de 510px**: los renders, que son lo mejor que tiene la página, se leían
+  como un pie de página. Si se vuelve a tocar, el techo es que siga siendo una
+  tira que se recorre, no una grilla. El script
   agrega arrastrar con el mouse (umbral de 5px para no comerse el click), las
   **flechitas sobre las miniaturas de los extremos** (`.gal-arrow`, desplazan 3/4
   de lo que se ve) y los degradés de borde. Flechas y degradés sólo aparecen del
@@ -1014,6 +1029,5 @@ en la card correcta, sin telón entre páginas.
 - **Dominio real** en `site` (`astro.config.mjs`) + `public/robots.txt` — de ahí salen canonical, sitemap y URLs absolutas de OG. Hoy es el placeholder `estudio21arq.com`.
 - **Años estimados** de Villa Platero, Vila Rodona y Chana I; m² (área construida) de esos tres. m² de Cavas de Haedo también es **estimado** (no oficial).
 - Vila Rodona: confirmar mix de dormitorios y total de unidades.
-- Sushi WOK: la ficha muestra "Unidades: Pendiente" por ser un local gastronómico — debería decir **"No aplica"**, que no es lo mismo que un dato que falta.
 - **Teléfono e Instagram** en `src/data/site.ts` (hoy `null`): si se completan, aparecen solos en Contacto.
 - Sección de **cómo invertir**: por ahora **no se hace** (decisión del 2026-08-18). La apuesta es que el impacto visual lleve al inversor a escribir; se puede retomar más adelante.

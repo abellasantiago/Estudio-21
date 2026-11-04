@@ -20,6 +20,10 @@ const proyectos = defineCollection({
     barrio: z.string().optional(), // PENDIENTE en varios proyectos
     anio: z.number().int(),
     unidades: z.number().int().optional(), // PENDIENTE
+    // Hay obras que no se cuentan en unidades (un local gastronómico, una
+    // reforma). Ahí la ficha dice "No aplica", que NO es lo mismo que
+    // "Pendiente": uno es un dato que no corresponde, el otro uno que falta.
+    sinUnidades: z.boolean().optional(),
     metros: z.number().optional(), // m² — PENDIENTE
     orden: z.number().optional(), // override manual del orden en la grilla
     portada: z.string().optional(), // override opcional del nombre de archivo

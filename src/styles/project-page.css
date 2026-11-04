@@ -80,10 +80,22 @@ html.vt-sin-portada .proj-cover{view-transition-name:none}
 /* ficha técnica: banda horizontal de 5 columnas al pie del bloque */
 .ficha{margin-top:clamp(3rem,6vw,5rem);border-top:1px solid var(--ink);display:grid;grid-template-columns:repeat(5,1fr)}
 .ficha .cell{padding:1.5rem 1.4rem 1.6rem .75rem;border-right:1px solid var(--line);position:relative}
+/* la primera celda sin sangría, para que su valor caiga sobre la misma línea
+   que el título, la portada y el filete de arriba. Es lo mismo que hace
+   `.pres-cifra:first-child` en la banda de cifras de la home: sin esto la
+   columna arrancaba 12px adentro y era lo único desalineado de la página. */
+.ficha .cell:first-child{padding-left:0}
 .ficha .cell:last-child{border-right:0}
-.ficha .fk{font-family:var(--font-mono);font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;color:var(--concrete)}
+/* las etiquetas son las que dejan leer los valores, así que van en --ink-soft
+   y no en el gris decorativo de los eyebrows; a .68rem (10,9px medidos) eran
+   el texto más chico de la página, y el público del sitio no tiene veinte años. */
+.ficha .fk{font-family:var(--font-mono);font-size:.74rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft)}
 .ficha .fv{font-family:var(--font-display);font-weight:500;font-size:clamp(1.3rem,2.4vw,1.9rem);line-height:1;letter-spacing:-.01em;margin-top:.8rem}
+/* "Pendiente" es un hueco (gris claro, se lee como lo que falta); "No aplica"
+   es una respuesta: más chico, en --concrete, para que no parezca una ficha
+   incompleta cuando el dato simplemente no corresponde a esa obra. */
 .ficha .fv.pendiente{color:var(--concrete-soft);font-style:normal}
+.ficha .fv.no-aplica{font-size:clamp(1rem,1.5vw,1.3rem);color:var(--concrete)}
 /* la ubicación (barrio) suele ser más larga que el resto de los valores; letra
    más chica y en un solo renglón para que no se parta en la columna angosta. */
 .ficha .fv.fv-loc{font-size:clamp(1rem,1.5vw,1.3rem);white-space:nowrap}
@@ -105,6 +117,8 @@ html.vt-sin-portada .proj-cover{view-transition-name:none}
   .ficha{grid-template-columns:repeat(2,1fr)}
   .ficha .cell{border-bottom:1px solid var(--line)}
   .ficha .cell:nth-child(2n){border-right:0}
+  /* en dos columnas las que tocan el borde izquierdo son las impares */
+  .ficha .cell:nth-child(odd){padding-left:0}
 }
 @media(max-width:600px){
   .ficha{grid-template-columns:1fr}

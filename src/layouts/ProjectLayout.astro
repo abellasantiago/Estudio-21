@@ -21,6 +21,7 @@ const {
   barrio,
   anio,
   unidades,
+  sinUnidades,
   metros,
   portadaFoco,
   portadaZoom,
@@ -96,12 +97,28 @@ const coverWidths = portada
   ? [...new Set([coverRender, Math.min(coverRender * 2, portada.width)])].sort((a, b) => a - b)
   : [COVER_W];
 
+/*
+ * Ficha técnica. Tres tratamientos distintos para el valor de una celda:
+ *   normal     — el dato, en display grande
+ *   pendiente  — falta cargarlo (gris claro: se lee como un hueco, que es lo
+ *                que es)
+ *   noAplica   — no corresponde a este tipo de obra (Sushi WOK no tiene
+ *                "unidades": es un local). Va más chico y en --concrete, no
+ *                en el gris de pendiente: es una respuesta, no un hueco.
+ */
+const unidadesNoAplica = unidades == null && !!sinUnidades;
 const ficha = [
-  { k: 'Estado', v: estadoLabel, pendiente: false, loc: false },
-  { k: 'Año', v: String(anio), pendiente: false, loc: false },
-  { k: 'Ubicación', v: barrio ?? ubicacion, pendiente: false, loc: true },
-  { k: 'Unidades', v: unidades != null ? String(unidades) : 'Pendiente', pendiente: unidades == null, loc: false },
-  { k: 'm²', v: metros != null ? String(metros) : 'Pendiente', pendiente: metros == null, loc: false },
+  { k: 'Estado', v: estadoLabel, pendiente: false, noAplica: false, loc: false },
+  { k: 'Año', v: String(anio), pendiente: false, noAplica: false, loc: false },
+  { k: 'Ubicación', v: barrio ?? ubicacion, pendiente: false, noAplica: false, loc: true },
+  {
+    k: 'Unidades',
+    v: unidades != null ? String(unidades) : unidadesNoAplica ? 'No aplica' : 'Pendiente',
+    pendiente: unidades == null && !unidadesNoAplica,
+    noAplica: unidadesNoAplica,
+    loc: false,
+  },
+  { k: 'm²', v: metros != null ? String(metros) : 'Pendiente', pendiente: metros == null, noAplica: false, loc: false },
 ];
 ---
 
@@ -165,7 +182,10 @@ const ficha = [
         {ficha.map((c) => (
           <div class="cell">
             <dt class="fk">{c.k}</dt>
-            <dd class={`fv${c.pendiente ? ' pendiente' : ''}${c.loc ? ' fv-loc' : ''}`}>{c.v}</dd>
+            <dd
+              class={`fv${c.pendiente ? ' pendiente' : ''}${c.noAplica ? ' no-aplica' : ''}${
+                c.loc ? ' fv-loc' : ''
+              }`}>{c.v}</dd>
           </div>
         ))}
       </dl>
