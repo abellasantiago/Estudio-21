@@ -63,7 +63,7 @@ const pad = (n: number) => String(n).padStart(2, '0');
            (con motion permitido). En 3D se relocaliza pineado en el panel sticky. -->
       <button
         type="button"
-        class="ph-viewtoggle"
+        class="btn btn--sm ph-viewtoggle"
         id="phViewToggle"
         aria-pressed="false"
         aria-label="Ver todos los proyectos en una grilla"
@@ -81,10 +81,10 @@ const pad = (n: number) => String(n).padStart(2, '0');
 
     <div class="ph-bar reveal" data-d="2">
       <div class="filters" id="phFilters" role="group" aria-label="Filtrar proyectos por estado">
-        <button type="button" data-filter="todos" aria-pressed="true">Todos</button>
-        <button type="button" data-filter="en-proceso" aria-pressed="false">En proceso</button>
-        <button type="button" data-filter="proximamente" aria-pressed="false">Próximamente</button>
-        <button type="button" data-filter="terminado" aria-pressed="false">Terminados</button>
+        <button class="btn btn--sm btn--select" type="button" data-filter="todos" aria-pressed="true">Todos</button>
+        <button class="btn btn--sm btn--select" type="button" data-filter="en-proceso" aria-pressed="false">En proceso</button>
+        <button class="btn btn--sm btn--select" type="button" data-filter="proximamente" aria-pressed="false">Próximamente</button>
+        <button class="btn btn--sm btn--select" type="button" data-filter="terminado" aria-pressed="false">Terminados</button>
       </div>
       <p class="ph-counter" aria-hidden="true">
         <span class="ph-num" data-ph-current>01</span>

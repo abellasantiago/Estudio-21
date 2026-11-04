@@ -20,6 +20,9 @@ registro), no rediseñar. Todo el copy va en **español rioplatense**.
 
 - **Astro** (estático) + **TypeScript**, sin frameworks de UI, JS mínimo.
 - **CSS propio** (sin Tailwind): `src/styles/global.css` con tokens + un `.css` por componente.
+  Los **helpers compartidos** viven en `global.css` (`.wrap`, `.eyebrow`, `.section-title`,
+  `.lead`, `.marks`, `.ghost21`, `.status`, `.reveal`, `.btn`) y NO tienen componente
+  `.astro`: se usan como clase. Ver "Botón" más abajo antes de maquetar cualquier acción.
 - **Fuentes locales** (archivos woff2 de Fontsource, subset latin, sin Google Fonts CDN),
   pero con las `@font-face` declaradas a mano en `BaseLayout.astro` (NO importar los
   `.css` de `@fontsource/*`): cada woff2 se importa con `?url` y se usa la MISMA URL en
@@ -851,6 +854,36 @@ Dos detalles que hay que respetar si se toca el script:
 - El artwork viene con alpha ~254, no 255: al quedarse con el calado hay que aplicar
   una rampa (`repintar(..., { calado:true })`), si no queda un velo de 1/255 y se ve
   un rectángulo fantasma alrededor del "21".
+
+## Botón
+
+Primitivo único en `global.css` (`.btn`). Antes había cuatro botones escritos por
+separado —la 404, los filtros del helicoidal, el toggle "Ver todos"— con tres
+tamaños distintos por accidente (.72 / .74 / .78rem); hoy son todos éste. **Toda
+acción nueva usa `.btn`**: no escribir otro botón.
+
+- **`.btn--primary`** (relleno petróleo) pide el click. **Una por pantalla.**
+- **`.btn--ghost`** (filete) es la acción secundaria.
+- **`.btn--select`** es una opción dentro de un grupo y marca la elegida con
+  `[aria-pressed="true"]` (relleno tinta). La usan los filtros de proyectos.
+- **`.btn--sm`** es el mismo botón en densidad de barra de herramientas (36px de
+  alto en vez de 44).
+- **`.btn-arrow`** es la flechita opcional que se corre en hover —el mismo gesto
+  que `.crow .arrow` de Contacto—; con `--back` se corre hacia el otro lado.
+
+Cuatro cosas que parecen detalle y no lo son:
+- **El primario va en PETRÓLEO, no en tinta.** El relleno de tinta ya significaba
+  "seleccionado" en los filtros, y el petróleo ya era el color de acción del sitio
+  (el botón de WhatsApp). Con el CTA también en tinta, el mismo tratamiento diría
+  dos cosas distintas en la misma página.
+- **El estado seleccionado va en `.btn--select`, NO en `.btn[aria-pressed]`.** El
+  toggle del helicoidal también usa `aria-pressed` (para "estoy en grilla") y se
+  rellenaría de tinta al alternar: `aria-pressed` no significa lo mismo en los dos
+  lados.
+- **Sobre `.contact` el primario se invierte a papel.** El petróleo contra `--ink`
+  da 1,5:1 y prácticamente desaparece; el papel da 15,5:1.
+- **`.btn` es flex**, así que a ancho completo (el riel vertical de ≥1700px) lo que
+  alinea el texto es `justify-content`, no `text-align`.
 
 ## Responsive y compatibilidad
 

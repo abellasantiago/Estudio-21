@@ -30,17 +30,20 @@
 /* ---------- toggle de vista (cilindro ⇄ grilla) ----------------------------
    Oculto por defecto (sin JS / reduced-motion no hay cilindro que alternar);
    el script agrega .is-toggleable a la sección cuando el 3D está disponible. */
-.ph-viewtoggle{
-  display:none;align-items:center;gap:.5rem;flex:0 0 auto;
-  font-family:var(--font-mono);font-size:.72rem;letter-spacing:.09em;text-transform:uppercase;
-  color:var(--ink);background:var(--paper-2);
-  border:1px solid var(--line);border-radius:2px;
-  padding:.55rem .9rem;cursor:pointer;white-space:nowrap;
-  transition:border-color .25s ease,color .25s ease,background .25s ease,box-shadow .25s ease;
-}
+/* Es el `.btn .btn--sm` de global.css con dos cosas propias: un fondo OPACO
+   (en 3D queda pineado sobre el cilindro, así que no puede ser transparente)
+   y una sombra al pasar el mouse que lo despega de las cards que giran
+   detrás. Los selectores van con `.ph` delante para ganarle a `.btn` sin
+   depender del orden en que Astro junte las hojas. */
+.ph .ph-viewtoggle{display:none;flex:0 0 auto}
 .ph.is-toggleable .ph-viewtoggle{display:inline-flex}
-.ph-viewtoggle:hover{border-color:var(--ink);box-shadow:0 8px 22px -14px rgba(26,25,22,.55)}
-.ph-viewtoggle:active{transform:translateY(1px)}
+.ph .ph-viewtoggle{
+  background:var(--paper-2);border-color:var(--line);color:var(--ink);
+  transition:background-color .25s ease,border-color .25s ease,color .25s ease,box-shadow .25s ease;
+}
+@media(hover:hover){
+  .ph .ph-viewtoggle:hover{border-color:var(--ink);box-shadow:0 8px 22px -14px rgba(26,25,22,.55)}
+}
 .ph-vt-ico{width:15px;height:15px;flex:0 0 auto;color:var(--petrol);transition:transform .3s ease}
 .ph-viewtoggle:hover .ph-vt-ico{transform:rotate(-6deg)}
 .ph-viewtoggle .ico-spin{display:none}
@@ -51,14 +54,9 @@
   display:flex;align-items:flex-end;justify-content:space-between;
   gap:1.2rem 1.5rem;flex-wrap:wrap;margin-bottom:clamp(1.8rem,3vw,2.8rem);
 }
+/* Los botones son `.btn .btn--sm .btn--select` (global.css): el aspecto y el
+   estado seleccionado viven allá. Acá sólo cómo se reparten en la barra. */
 .ph .filters{display:flex;gap:.5rem;flex-wrap:wrap}
-.ph .filters button{
-  font-family:var(--font-mono);font-size:.74rem;letter-spacing:.06em;text-transform:uppercase;
-  background:none;border:1px solid var(--line);color:var(--concrete);
-  padding:.5rem .9rem;border-radius:2px;cursor:pointer;transition:.22s;
-}
-.ph .filters button:hover{border-color:var(--ink);color:var(--ink)}
-.ph .filters button[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--paper-2)}
 
 /* contador tipo cajetín de plano — sólo cobra sentido con el scrubbing 3D */
 .ph-counter{
@@ -238,7 +236,9 @@
   color:var(--concrete-soft);
 }
 .ph.is-3d .filters{flex-direction:column;align-items:stretch;gap:.5rem}
-.ph.is-3d .filters button{text-align:left;width:100%}
+/* `.btn` es flex: a ancho completo lo que alinea el texto es justify-content,
+   no text-align (que acá no tiene nada que alinear). */
+.ph.is-3d .filters button{justify-content:flex-start;width:100%}
 .ph.is-3d .ph-counter{justify-content:flex-start;margin-top:.15rem}
 
 /* En 3D el toggle se relocaliza (vía script) dentro del panel sticky: queda
@@ -294,7 +294,7 @@
   }
   .ph.is-3d .ph-bar::before{display:none}
   .ph.is-3d .filters{flex-direction:row;flex-wrap:wrap;align-items:center;gap:.45rem}
-  .ph.is-3d .filters button{width:auto;text-align:center}
+  .ph.is-3d .filters button{width:auto;justify-content:center}
   .ph.is-3d .ph-counter{justify-content:flex-start;margin-top:0}
   .ph.is-3d .ph-sticky > .ph-viewtoggle{
     top:var(--ph-toolbar-top);

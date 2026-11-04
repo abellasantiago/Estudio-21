@@ -145,6 +145,79 @@ hr.section-rule{border:0;height:1px;background:var(--line);margin:0}
 .status.en-proceso .pip{background:var(--petrol-bright)}
 .status.terminado .pip{background:var(--concrete-soft)}
 
+/* ---- botón ----------------------------------------------------------------
+   Antes había cuatro botones escritos por separado (la 404, los filtros del
+   helicoidal, el toggle "Ver todos") con tres tamaños distintos por accidente
+   (.72 / .74 / .78rem). Son todos éste: mismo mono en versales, mismo filete
+   de 1px, mismo radio de 2px. Las variantes cambian el PESO, nunca la forma.
+
+     .btn--primary   pide el click. UNA por pantalla.
+     .btn--ghost     acción secundaria.
+     .btn--select    opción dentro de un grupo (filtros); marca la elegida
+                     con [aria-pressed="true"].
+     .btn--sm        el mismo botón en densidad de barra de herramientas.
+
+   Por qué el primario va en PETRÓLEO y no en tinta: el relleno de tinta ya
+   significaba "seleccionado" en los filtros, y el petróleo ya era el color de
+   acción del sitio (el botón de WhatsApp). Si el CTA también fuera tinta, el
+   mismo tratamiento diría dos cosas distintas en la misma página.
+
+   ⚠ El estado seleccionado va en `.btn--select`, NO en `.btn[aria-pressed]`:
+   el toggle del helicoidal también usa aria-pressed (para "estoy en grilla")
+   y se rellenaría de tinta al alternar. aria-pressed no significa lo mismo
+   en los dos lados. */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:.6em;
+  font-family:var(--font-mono);font-size:.78rem;letter-spacing:.09em;
+  text-transform:uppercase;line-height:1;
+  padding:.78rem 1.2rem;min-height:44px;
+  border:1px solid transparent;border-radius:2px;
+  background:none;color:var(--ink);cursor:pointer;white-space:nowrap;
+  /* enumerado y no `transition:.22s` a secas: esa forma anima también el
+     transform y el outline, y el botón "repta" al tabular o al presionarlo */
+  transition:background-color .25s ease,border-color .25s ease,color .25s ease;
+}
+.btn--primary{background:var(--petrol);border-color:var(--petrol);color:var(--paper-2)}
+.btn--ghost{border-color:var(--line);color:var(--ink-soft)}
+.btn--select{border-color:var(--line);color:var(--concrete)}
+.btn--select[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--paper-2)}
+.btn--sm{font-size:.72rem;padding:.55rem .9rem;min-height:36px;gap:.5em}
+
+/* La flecha sale del lenguaje de las filas de Contacto (.crow .arrow): se
+   corre al pasar el mouse. Va en su propio span para poder animarla sola. */
+.btn-arrow{display:inline-block;font-size:1.05em;line-height:0}
+
+@media(hover:hover){
+  .btn--primary:hover{background:var(--petrol-bright);border-color:var(--petrol-bright)}
+  .btn--ghost:hover{border-color:var(--ink);color:var(--ink)}
+  .btn--select:hover{border-color:var(--ink);color:var(--ink)}
+  .btn--select[aria-pressed="true"]:hover{color:var(--paper-2)}
+  .btn-arrow{transition:transform .3s cubic-bezier(.2,.7,.3,1)}
+  .btn:hover .btn-arrow{transform:translateX(4px)}
+  /* una flecha que apunta hacia atrás se corre hacia atrás */
+  .btn:hover .btn-arrow--back{transform:translateX(-4px)}
+}
+/* :active sí va sin guardia: en touch el feedback del toque es deseable y no
+   queda pegado como el :hover */
+.btn:active{transform:translateY(1px)}
+
+/* Sobre el campo oscuro de Contacto el petróleo casi desaparece (1,5:1 contra
+   --ink): ahí el primario se invierte a papel, que es lo más fuerte que puede
+   haber sobre ese fondo (15,5:1). */
+.contact .btn--primary{background:var(--paper-2);border-color:var(--paper-2);color:var(--ink)}
+.contact .btn--ghost{border-color:rgba(255,255,255,.28);color:var(--paper-2)}
+@media(hover:hover){
+  .contact .btn--primary:hover{background:var(--paper);border-color:var(--paper)}
+  .contact .btn--ghost:hover{border-color:var(--paper-2);color:var(--paper-2)}
+}
+
+@media(prefers-reduced-motion:reduce){
+  .btn,.btn-arrow{transition:none}
+  .btn:active{transform:none}
+  .btn:hover .btn-arrow,
+  .btn:hover .btn-arrow--back{transform:none}
+}
+
 /* ---- foco visible (accesibilidad) ---- */
 :focus-visible{outline:2px solid var(--petrol);outline-offset:3px;border-radius:2px}
 
