@@ -23,7 +23,7 @@
   justify-content: center;
   padding: clamp(2.2rem, 6vw, 4rem);
   opacity: 1;
-  transition: opacity 0.8s ease;
+  transition: opacity 0.5s ease;
 }
 .preloader.is-done {
   opacity: 0;
@@ -57,7 +57,7 @@ html.pl-lock {
    detrás, junto con sus "21" fantasma de fondo (que aparecen recién ahora). No
    hay "21" intermedio → no se percibe ningún cambio de un 21 a otro. */
 .preloader.is-transition {
-  animation: pl-wipe-up 1.2s cubic-bezier(0.62, 0, 0.2, 1) forwards;
+  animation: pl-wipe-up 0.75s cubic-bezier(0.62, 0, 0.2, 1) forwards;
 }
 @keyframes pl-wipe-up {
   0% {
@@ -82,10 +82,10 @@ html.pl-lock {
    que apoya, recorre y levanta) — la duración debe coincidir con STROKE en
    el script del componente */
 .is-drawing .pl-draw {
-  animation: pl-stroke 0.7s cubic-bezier(0.45, 0.05, 0.2, 1) both;
+  animation: pl-stroke 0.4s cubic-bezier(0.45, 0.05, 0.2, 1) both;
 }
 .is-drawing .pl-fade {
-  animation: pl-fadein 0.55s ease both;
+  animation: pl-fadein 0.35s ease both;
 }
 @keyframes pl-stroke {
   to {
@@ -166,7 +166,7 @@ html.pl-lock {
   opacity: 0; /* aparece cuando arranca el dibujo */
 }
 .is-drawing .pl-loader {
-  animation: pl-fadein 0.6s ease 0.1s both;
+  animation: pl-fadein 0.4s ease 0.08s both;
 }
 .pl-loader-top {
   display: flex;

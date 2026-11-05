@@ -131,6 +131,17 @@
   will-change: transform;
 }
 
+/* Sin JS no hay lámina: Axonometria.astro la trae con fetch (el SVG no viaja
+   en el HTML). Entonces no se reserva la columna —si no, el texto quedaría en
+   el track angosto con un hueco al lado— y la sección se lee a una columna,
+   igual que en mobile. */
+html:not(.js) .pres-grid {
+  grid-template-columns: 1fr;
+}
+html:not(.js) .pres-visual {
+  display: none;
+}
+
 @media (max-width: 900px) {
   .pres-grid {
     grid-template-columns: 1fr;

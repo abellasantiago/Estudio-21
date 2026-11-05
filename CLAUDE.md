@@ -222,8 +222,15 @@ leería como "ya visto" y nunca dibujaría en la primera carga).
   (`html.pl-lock`) y cierra con `is-done`. Robustez: si la pestaña carga oculta espera a
   ser visible (rAF/animaciones están pausadas en background); `<noscript>` lo oculta sin
   JS; con `prefers-reduced-motion` no se muestra; se saltea con cualquier interacción.
-- Duración fija (~2,8 s de dibujo + fade). La planta es genérica ("unidad tipo"), no un
-  proyecto real: se puede cambiar por la planta de un proyecto cuando se quiera.
+- **Duración ~2,9 s** hasta ver el hero: 1,95 s de trazado (`--pl-load`, que el script
+  calcula y mide la barra de carga) + `HOLD` 0,15 + `TRANS` 0,8 de barrida. Estaba en
+  **6,07 s** y se recalibró a la mitad bajando todo en proporción (2026-11-05), para que
+  el dibujo se siga percibiendo capa por capa en vez de aparecer de golpe: era mucha
+  puerta delante de la primera visita de alguien que no sabe que puede saltearlo tocando
+  la pantalla. ⚠ Si se tocan los tiempos, `STROKE` tiene que coincidir con `pl-stroke` y
+  `TRANS` ser ≥ `pl-wipe-up`, las dos en `preloader.css`.
+  La planta es genérica ("unidad tipo"), no un proyecto real: se puede cambiar por la
+  planta de un proyecto cuando se quiera.
 
 ### Hero (capa inmersiva)
 - Motor en `src/scripts/immersive.ts` (sólo en la home, `data-immersive-page`, y sólo
@@ -395,8 +402,18 @@ leería como "ya visto" y nunca dibujaría en la primera carga).
   `window.__e21HeroReady` por si el evento se adelanta al listener; el motor ancla
   el revelado en `max(heroReadyAt, t0)` (si la pestaña cargó en background, el
   gradual empieza recién al hacerse visible). Se va con `--hero-fade`; en fallback
-  queda visible estático; **oculto en <900px** (el recorte lo magnificaba sobre los
-  textos).
+  queda visible estático.
+  **En <900px es el visual del hero mobile** (2026-11-05). Antes iba `display:none`
+  porque el dibujo es 16:9 y, con el `slice` que pide el SVG, el navegador lo escalaba
+  para CUBRIR una caja alta y angosta: lo magnificaba ~3× y las líneas cruzaban los
+  textos. El arreglo no fue otro dibujo sino darle a la caja del `<svg>` la **misma
+  proporción que su viewBox** (`aspect-ratio:1600/900`): así `slice` no recorta nada y el
+  pabellón entra entero, como una franja de horizonte detrás del "21". Manda el **alto**
+  (`clamp(200px,40vh,420px)`) y el ancho sale de la proporción, así pesa lo mismo en un
+  teléfono chico que en una tablet en vez de crecer con el ancho; sangra a los costados a
+  propósito (`overflow:hidden` en el contenedor para no sumar ancho al documento) y los
+  extremos se disuelven contra el fade del propio SVG. **No costó un byte: el SVG ya
+  viajaba en el HTML, apagado.**
 - **Textura técnica**: grano de papel (feTurbulence en data-URI, multiply, opacidad
   0.07, `.lbg-grain`) en el fondo vivo. Luz de estudio en el stage
   (`.hero-stage::before`: centro apenas más claro + viñeta sutil). Los parches de
@@ -491,7 +508,9 @@ dibujo se edita el modelo, no un SVG.
   cortes, sombras), `piezas.ts` (estilos → clases CSS, prismas, texturas de fachada y
   de piso, grupos: escalera, listones, paneles, árboles, matas, figuras), `casa.ts`
   (estructura, `CORTES`, `VISTA`, `SOL`), `equipamiento.ts` (muebles y ambientación),
-  `niveles.ts` (cotas de nivel).
+  `niveles.ts` (cotas de nivel) y `lamina.ts` (serializa todo a un string SVG: el
+  reparto de la animación por etapas y el grafismo de lámina viven ahí, no en el
+  `.astro`, porque el dibujo se emite como archivo aparte).
 - **Ocultamiento = algoritmo del pintor.** Caras con relleno opaco (tono de papel
   según hacia dónde miran: cubierta clara, sur media, este oscura) y las aristas
   encima; lo más cercano se pinta después. El orden es topológico entre cajas cuyos
@@ -548,10 +567,20 @@ dibujo se edita el modelo, no un SVG.
     `IntersectionObserver`, clases `.axo-pendiente` / `.axo-dibujando`). Sin JS o con
     `prefers-reduced-motion`: completa desde el principio.
   - Medido: 60 fps mientras se dibuja (mediana de 16,7 ms por frame).
-- **Peso:** la lámina son ~120 KB de SVG inline (~28 KB con gzip), lo más pesado del
-  HTML de la home (18,5 KB gzip sin ella). Viaja también en ≤900px, aunque ahí no se
-  muestre. Antes de sumar detalle, medir: las texturas de líneas (tablas, juntas)
-  pesan poco en gzip pero suman nodos al DOM.
+- **Peso y entrega:** la lámina son ~116 KB de SVG (~27 KB con gzip) y **no viaja en el
+  HTML**. Se sirve como archivo propio —`src/pages/axonometria.svg.ts` → `/axonometria.svg`,
+  que Astro prerenderiza en el build— y `Axonometria.astro` la trae con `fetch` **sólo si
+  `(min-width: 901px)`**, que es donde se ve; se queda escuchando la media query por si se
+  agranda la ventana. Antes iba inline y la bajaba todo el mundo: era el **55% del HTML de
+  la home** y en mobile, donde la columna va `display:none`, no se veía nunca. Con el
+  cambio la home pasó de **218,7 KB / 51,8 KB gzip a 98,5 KB / 23,8 KB gzip**, y lo que
+  descarga un teléfono (HTML+CSS+JS) de 64,5 a 36,4 KB gzip.
+  Las reglas `.kN` de los tramos viajan **dentro** del SVG, así tampoco llegan al teléfono.
+  **Sin JS no hay lámina** (no hay quién la pida): ahí `html:not(.js)` en `presentacion.css`
+  no reserva la columna y la sección se lee a una columna, igual que en mobile. La clase
+  `js` la pone el boot inline de `BaseLayout` antes del primer paint.
+  Antes de sumar detalle, medir: las texturas de líneas (tablas, juntas) pesan poco en
+  gzip pero suman nodos al DOM.
 - **Iterar el dibujo fuera de Astro:** los `.ts` importan con extensión `.ts`
   (`allowImportingTsExtensions`), así que Node 24 los corre directo. Un script que
   importe `casa.ts`, arme un HTML con el SVG + `axonometria.css` y lo capture con Chrome
@@ -918,8 +947,10 @@ de ancho (y en alturas de 390 a 1440), en la home y en la ficha de proyecto.
 **Los tres cortes que mandan** (no son estéticos, cada uno tiene su geometría):
 - **900px** → capa inmersiva (`immersive.ts`: además pide `pointer: fine` y no
   `prefers-reduced-motion`). Debajo, el hero es estático y el `<html>` no lleva
-  `is-immersive`. También es donde "Quiénes somos" pasa a una columna y **deja de
-  mostrarse la axonometría**.
+  `is-immersive`. También es donde "Quiénes somos" pasa a una columna y **la axonometría
+  ni siquiera se descarga** (se pide con `fetch` a partir de 901px, ver su sección), y
+  donde el **wireframe del hero cambia de encuadre** y pasa a ser el visual del hero
+  mobile en vez de ocultarse.
 - **760px** → navbar horizontal ⇄ menú hamburguesa (`header.css`), y piso de ancho
   del cilindro helicoidal. Es el mismo número por casualidad: el del navbar sale del
   ancho del wordmark + los 5 links, el del cilindro del radio de las cards.

@@ -231,14 +231,24 @@ import '../styles/preloader.css';
         /* ignore */
       }
 
-      const STROKE = 0.7; // duración de cada trazo (debe coincidir con pl-stroke en preloader.css)
-      const HOLD = 0.35; // pausa con el plano completo antes de la barrida
-      const TRANS = 1.25; // duración de la barrida hacia arriba (revela el hero)
+      /*
+       * Tiempos. El total hasta ver el hero es
+       *   maxDelay + STROKE + HOLD + TRANS
+       * y estaba en 6,07 s medidos: demasiado para la primera visita de alguien
+       * que no sabe que puede saltearlo tocando la pantalla. Recalibrado a la
+       * mitad (~3,05 s) bajando todo en proporción, así el dibujo se sigue
+       * percibiendo capa por capa en vez de aparecer de golpe.
+       * ⚠ STROKE tiene que coincidir con `pl-stroke` y TRANS ser >= `pl-wipe-up`,
+       * las dos en preloader.css.
+       */
+      const STROKE = 0.4; // duración de cada trazo
+      const HOLD = 0.15; // pausa con el plano completo antes de la barrida
+      const TRANS = 0.8; // barrida hacia arriba que revela el hero (CSS: 0.75s)
 
       // delays por fase (stagger entre trazos): dibujo pausado, más deliberado en
       // el contorno y el grafismo, más fluido en tabiques y mobiliario
-      const step: Record<string, number> = { '1': 0.22, '2': 0.042, '3': 0.026, '4': 0.075 };
-      const gap = 0.22; // pausa entre fases (se percibe capa por capa)
+      const step: Record<string, number> = { '1': 0.11, '2': 0.02, '3': 0.012, '4': 0.032 };
+      const gap = 0.1; // pausa entre fases (se percibe capa por capa)
 
       // Elementos con el mismo data-step (dentro de la misma fase) se agrupan y
       // comparten delay: así la cota de ancho y la de alto se dibujan en paralelo

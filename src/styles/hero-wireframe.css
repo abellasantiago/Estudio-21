@@ -44,10 +44,40 @@ html.is-immersive .hero-wireframe {
   vector-effect: non-scaling-stroke;
 }
 
-/* en pantallas chicas el recorte (slice) magnifica el centro del dibujo y las
-   líneas invaden los textos → el hero mobile queda limpio, sin wireframe */
+/* ---- mobile: el mismo pabellón, pero entero y como franja ----
+   El dibujo es 16:9 y el hero de un teléfono es vertical. Con `slice` (que es
+   lo que pide el SVG) el navegador lo escalaba hasta CUBRIR esa caja alta y
+   angosta: lo magnificaba ~3×, quedaba un recorte del centro y las líneas
+   cruzaban los textos. Por eso estaba oculto, y el hero mobile era el "21"
+   solo sobre papel — la primera imagen del sitio aparecía recién a los 3265px.
+
+   El arreglo no es otro dibujo: es darle a la caja del <svg> la MISMA
+   proporción que su viewBox. Con eso `slice` no tiene nada que recortar, el
+   pabellón entra completo y se lee como una franja de horizonte detrás del
+   "21". No cuesta un byte: el SVG ya viajaba en el HTML, apagado. */
 @media (max-width: 900px) {
   .hero-wireframe {
-    display: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* la caja ya no es a sangre sino una franja baja: la máscara se cierra
+       para que el fundido acompañe al dibujo y no al hero entero */
+    -webkit-mask-image: radial-gradient(ellipse 76% 62% at 50% 50%, #000 34%, transparent 88%);
+    mask-image: radial-gradient(ellipse 76% 62% at 50% 50%, #000 34%, transparent 88%);
+    opacity: calc(var(--wf-reveal, 0.72) * var(--hero-fade, 1));
+    /* el svg sangra a los costados a propósito; que no sume ancho al documento */
+    overflow: hidden;
+  }
+  .hero-wireframe svg {
+    flex: none;
+    /* Manda el ALTO (~40% del hero) y el ancho sale de la proporción: así el
+       pabellón pesa lo mismo en un teléfono chico que en una tablet, en vez de
+       crecer con el ancho hasta comerse la pantalla. En un 375×812 son 325px
+       de alto y 578 de ancho → sangra a los costados, que es lo que se busca:
+       los extremos ya se disuelven contra el fade del propio SVG y el dibujo
+       gana tamaño sin que se vea dónde termina. */
+    height: clamp(200px, 40vh, 420px);
+    width: auto;
+    aspect-ratio: 1600 / 900;
   }
 }

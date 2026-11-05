@@ -58,7 +58,10 @@ const { title, description, image, jsonLd, immersive = false } = Astro.props;
 
 // Se agrega `is-immersive` lo antes posible (antes del primer paint) para evitar
 // el flash del layout de fallback. El motor (immersive.ts) toma el control en runtime.
-const immersiveBoot = `(function(){try{var m=window.matchMedia;if(m&&!m('(prefers-reduced-motion: reduce)').matches&&m('(pointer: fine)').matches&&m('(min-width: 900px)').matches){document.documentElement.classList.add('is-immersive')}}catch(e){}})()`;
+// `js` marca que hay JS antes del primer paint: lo usa la columna gráfica de
+// "Quiénes somos", que trae su lámina con fetch y sin JS no tendría qué mostrar
+// (ver Axonometria.astro) — así la sección no reserva un hueco vacío.
+const immersiveBoot = `(function(){var r=document.documentElement;r.classList.add('js');try{var m=window.matchMedia;if(m&&!m('(prefers-reduced-motion: reduce)').matches&&m('(pointer: fine)').matches&&m('(min-width: 900px)').matches){r.classList.add('is-immersive')}}catch(e){}})()`;
 
 // Precarga de fichas: cuando el mouse se apoya en un link a un proyecto (card,
 // menú), Chrome baja el HTML de la ficha por adelantado, y al hacer click la
