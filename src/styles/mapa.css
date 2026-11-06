@@ -65,8 +65,12 @@
 .mapa .m-ani { stroke-width: 0.75; opacity: 0.6; }
 .mapa .m-ram { stroke-width: 0.6; opacity: 0.35; }
 
-/* el barrio que contiene a la obra: lo único que cambia de una ficha a otra */
-.mapa .m-barrio { fill: var(--petrol-tint); stroke: var(--petrol); stroke-width: 1.1; stroke-linejoin: round; }
+/* El callejero fino alrededor de la obra: la única trama del plano que no
+   cubre todo el cuadro — se funde con la distancia, y la máscara la hace el
+   propio SVG. Reemplazó a la mancha de color que marcaba el barrio: el límite
+   administrativo no era exacto ni interesaba, y le competía a la cruz, que es
+   lo que hay que mirar. */
+.mapa .m-detalle { fill: none; stroke: var(--concrete); stroke-width: 0.55; opacity: 0.62; stroke-linecap: round; stroke-linejoin: round; }
 
 .mapa .m-ref { font-family: var(--font-mono); font-size: 8px; fill: var(--concrete); letter-spacing: 0.13em; }
 

@@ -839,27 +839,53 @@ sin recuadro ni filete, igual que la axonometría de "Quiénes somos".
 
 - **No es una imagen ni una captura de un servicio de mapas.** Es geometría
   real proyectada y resuelta en el build: la costa es el borde sur del
-  contorno del departamento (OSM), la malla son los 62 barrios oficiales de la
-  Intendencia y las avenidas son las radiales, los dos bulevares y la rambla
-  (OSM). Un mapa de Google o Mapbox traería sus colores, su tipografía y sus
-  pines, y al lado de la axonometría se leería como una captura pegada.
+  contorno del departamento (OSM), la malla son los límites de los 62 barrios
+  de la Intendencia, las avenidas son las radiales, los dos bulevares y la
+  rambla, y alrededor de la obra va el callejero fino (todo OSM). Un mapa de
+  Google o Mapbox traería sus colores, su tipografía y sus pines, y al lado de
+  la axonometría se leería como una captura pegada.
+- **El barrio del proyecto NO se pinta.** Hubo una mancha en petróleo sobre el
+  polígono del barrio y se sacó (2026-11-06): el límite administrativo no es
+  exacto, no es lo que importa y le competía a la cruz, que es lo único que
+  hay que mirar. En su lugar, alrededor de la obra se dibuja el **callejero
+  fino**, que se funde con la distancia (`m-detalle` + la máscara `m-halo`):
+  el único punto del plano con ese nivel de detalle es el proyecto, así que
+  funciona de foco sin pintar nada.
+  - ⚠ **Sólo las calles terciarias.** Con las residenciales también, a 11 km de
+    ancho la trama cae tan junta que el halo se pinta como una mancha negra: a
+    esa escala una calle de barrio no es una línea, es ruido. Las residenciales
+    igual se guardan en el JSON (`detalle.res`) por si el encuadre se cierra
+    algún día.
 - **La geometría se baja A MANO** con `node scripts/bajar-mapa.mjs` y el JSON
   se commitea. El build **no toca la red**: mientras se armaba esto, Overpass
   devolvió 502 "at capacity" varias veces y dos mirrors no contestaron; un
   build en Actions no puede depender de eso. Lo bajado queda en `.cache/mapa/`
   (gitignoreada) y no se vuelve a pedir. El JSON de datos **no viaja al
   navegador**: se consume en el build y lo único que se publica es el SVG.
-- **Cada proyecto tiene SU encuadre, centrado en la obra** (`encuadre.ts`):
-  11 km de ancho, la misma escala en los diez — cambia el centro, no el zoom.
-  Primero fue un encuadre fijo de toda la ciudad, igual en las diez fichas,
-  para poder comparar proyectos; se cambió (2026-11-06) porque en la ficha no
-  se compara nada: se mira una obra. Con el plano de la ciudad entera, un
-  proyecto del norte —Villa Platero, en Millán— quedaba como una cruz chiquita
-  arriba a la izquierda y lo que se leía era Montevideo, no el proyecto.
-  - La obra no va en el centro exacto sino a un **43% del alto** (`SESGO`): el
-    encuadre toma así algo más de ciudad del lado del sur, que es donde está la
-    costa. Sin eso los de La Blanqueada se quedaban a unos cientos de metros
-    de mostrar la rambla.
+- **Cada proyecto tiene SU encuadre, armado alrededor de la obra**
+  (`encuadre.ts`): 11 km de ancho, la misma escala en los diez — cambia el
+  centro, no el zoom. Primero fue un encuadre fijo de toda la ciudad, igual en
+  las diez fichas, para poder comparar proyectos; se cambió (2026-11-06)
+  porque en la ficha no se compara nada: se mira una obra. Con el plano de la
+  ciudad entera, un proyecto del norte —Villa Platero, en Millán— quedaba como
+  una cruz chiquita arriba a la izquierda y lo que se leía era Montevideo, no
+  el proyecto.
+  - La obra va a un **43% del alto** (`Y_BASE`) y no en el medio: el encuadre
+    toma así algo más de ciudad del lado del sur, que es donde está la costa.
+    Sin eso los de La Blanqueada se quedaban a unos cientos de metros de
+    mostrar la rambla.
+  - **Y los de los extremos se corren todavía más, en contra de la ciudad.**
+    Centrar a rajatabla funciona en Pocitos o el Cordón, rodeados de ciudad por
+    los cuatro lados; en Carrasco la mitad este del plano era agua y chacras, y
+    en el Prado la mitad norte era Casavalle y Las Acacias — medio dibujo
+    gastado en lo que no se quiere mostrar. Moviendo la obra hacia AFUERA del
+    cuadro (a la derecha si está al este, arriba si está al norte) el encuadre
+    se come ese vacío y entra más ciudad. El corrimiento crece con la distancia
+    a `NUCLEO` —que es Parque Batlle / Pocitos, el corazón de la zona que le
+    interesa a un inversor, no el centro geométrico del departamento— hasta
+    `DIST_PLENA_KM` y ahí se planta. Medido: la cruz queda siempre entre el 40%
+    y el 65% del ancho y entre el 33% y el 46% del alto; ninguna en una
+    esquina.
   - ⚠ **La contra es real**: a 11 km los proyectos tierra adentro ya no
     muestran la costa oceánica —están a 6 km de ella y meterla pedía el doble
     de ancho, justo lo que se sacó—. Se leen por la trama de barrios y de
@@ -905,11 +931,17 @@ sin recuadro ni filete, igual que la axonometría de "Quiénes somos".
   - Encima va una segunda simplificación en unidades del viewBox, con
     tolerancia por capa (`TOL` en `lamina.ts`): la costa es la línea más
     marcada del plano y la malla una trama de fondo de 0,7 px.
-- **Se rotulan los barrios vecinos, de más cerca a más lejos de la obra.** No
-  hay lista fija (la había cuando el encuadre era el de la ciudad entera): cada
-  ficha muestra otro pedazo de Montevideo, así que los vecinos los decide la
-  geometría. Van con **anti-colisión** (`colocar`) y el que pisa a uno ya
-  puesto se cae — por eso el orden por cercanía importa: gana el que ubica.
+- **Los barrios que se rotulan salen de una lista CURADA** (`BARRIOS` en
+  `lamina.ts`), y es una decisión editorial, no técnica: la ficha la mira un
+  inversor, así que se nombran los barrios conocidos y los de la zona donde
+  querría comprar. Montevideo tiene 62 y nombrarlos a todos apretaba el dibujo
+  hasta volverlo ilegible y lo llenaba de nombres que no le dicen nada a nadie
+  o que directamente no suman (Aires Puros, Castro Castellanos, Casavalle…).
+  Sumar uno es agregar una línea a ese objeto. Hay además un tope de
+  **`MAX_ROTULOS` (11) por plano**: con más, el dibujo deja de respirar.
+  De los que quedan se dibujan los más cercanos a la obra primero, con
+  **anti-colisión** (`colocar`); el que pisa a uno ya puesto se cae, y por eso
+  el orden por cercanía importa: gana el que ubica.
   Tres detalles que parecen de más y no lo son:
   - **El rótulo se corre hacia adentro** si el centroide cae en la franja que
     la máscara de bordes funde, pero sólo hasta `CORRIDA_MAX` (24 px): más que

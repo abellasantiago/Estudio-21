@@ -24,7 +24,7 @@
  * Licencia: OSM es ODbL → el crédito "© OpenStreetMap" va al pie del mapa
  * (ver Mapa.astro). La capa de la IM es de su catálogo de datos abiertos.
  */
-import { mkdirSync, existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { mkdirSync, existsSync, readFileSync, writeFileSync, readdirSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { leerPoligonos } from './lib/shapefile.mjs';
 
@@ -35,6 +35,11 @@ const SALIDA = 'src/data/mapa/montevideo.json';
 /* Recorte: algo más grande que el encuadre que se dibuja (ver src/lib/mapa/
    encuadre.ts), para poder cerrar o abrir el zoom sin volver a bajar nada. */
 const RECORTE = { lon: [-56.29, -55.99], lat: [-34.97, -34.80] };
+/* Radio del callejero fino que se baja alrededor de cada obra. El plano no
+   dibuja toda la ciudad calle por calle —sería ilegible y pesadísimo— sino un
+   halo de detalle alrededor del proyecto, que se funde con la distancia. */
+const RADIO_DETALLE_M = 1100;
+
 /* Simplificación en metros. El dibujo sale a ~29 m por píxel (16,5 km en 560),
    así que 8 m es menos de un tercio de píxel: no se ve, y saca el 95% de los
    vértices. */
@@ -44,16 +49,35 @@ const log = (...a) => console.log(...a);
 mkdirSync(CACHE, { recursive: true });
 mkdirSync('src/data/mapa', { recursive: true });
 
+/*
+ * Baja y cachea. Reintenta con espera creciente porque Overpass contesta 502
+ * "at capacity" cada dos por tres —su propio mensaje de error pide
+ * exponential backoff— y la mitad de las corridas de este script se caían ahí.
+ */
 async function bajar(nombre, url, opciones = {}) {
   const destino = `${CACHE}/${nombre}`;
   if (existsSync(destino)) { log(`· ${nombre} (en caché)`); return readFileSync(destino); }
-  log(`↓ ${nombre}`);
-  const r = await fetch(url, { headers: { 'User-Agent': UA }, ...opciones });
-  if (!r.ok) throw new Error(`${nombre}: HTTP ${r.status}`);
-  const b = Buffer.from(await r.arrayBuffer());
-  writeFileSync(destino, b);
-  await new Promise((s) => setTimeout(s, 1200)); // cortesía con Nominatim
-  return b;
+  const INTENTOS = 6;
+  for (let i = 1; i <= INTENTOS; i++) {
+    log(`↓ ${nombre}${i > 1 ? ` (intento ${i})` : ''}`);
+    let r;
+    try {
+      r = await fetch(url, { headers: { 'User-Agent': UA }, ...opciones });
+    } catch (e) {
+      if (i === INTENTOS) throw e;
+      await new Promise((s) => setTimeout(s, i * 15000));
+      continue;
+    }
+    if (r.ok) {
+      const b = Buffer.from(await r.arrayBuffer());
+      writeFileSync(destino, b);
+      await new Promise((s) => setTimeout(s, 1200)); // cortesía con Nominatim
+      return b;
+    }
+    if (i === INTENTOS) throw new Error(`${nombre}: HTTP ${r.status} después de ${INTENTOS} intentos`);
+    log(`  HTTP ${r.status}, reintento en ${i * 15} s`);
+    await new Promise((s) => setTimeout(s, i * 15000));
+  }
 }
 
 // ---------- 1. costa ----------
@@ -72,11 +96,33 @@ if (!existsSync(`${CACHE}/barrios/sig_barrios.shp`)) {
 }
 const barriosCrudos = leerPoligonos(`${CACHE}/barrios/sig_barrios`, 'BARRIO');
 
-// ---------- 3. avenidas ----------
+// ---------- 3. coordenadas de las obras (para el halo de detalle) ----------
+/* Se leen del frontmatter en vez de repetirlas acá: si se agrega un proyecto,
+   el halo lo sigue solo. */
+const obras = readdirSync('src/content/proyectos')
+  .filter((f) => f.endsWith('.md'))
+  .map((f) => readFileSync(`src/content/proyectos/${f}`, 'utf8').match(/^coords:\s*\[([-\d.]+),\s*([-\d.]+)\]/m))
+  .filter(Boolean)
+  .map((m) => [Number(m[1]), Number(m[2])]); // [lon, lat]
+log(`· ${obras.length} obras con coordenadas`);
+
+// ---------- 4. avenidas ----------
 const consulta = `[out:json][timeout:90];way["highway"~"^(motorway|trunk|primary|secondary)$"]` +
   `(${RECORTE.lat[0]},${RECORTE.lon[0]},${RECORTE.lat[1]},${RECORTE.lon[1]});out geom;`;
 const osm = JSON.parse(await bajar('vias.json', 'https://overpass-api.de/api/interpreter',
   { method: 'POST', body: new URLSearchParams({ data: consulta }) }));
+
+// ---------- 5. callejero fino alrededor de cada obra ----------
+const consultaDetalle =
+  `[out:json][timeout:170];(` +
+  obras
+    .map(([lon, lat]) =>
+      `way["highway"~"^(tertiary|residential|unclassified|living_street|pedestrian)$"]` +
+      `(around:${RADIO_DETALLE_M},${lat},${lon});`)
+    .join('') +
+  `);out geom;`;
+const osmDetalle = JSON.parse(await bajar('detalle.json', 'https://overpass-api.de/api/interpreter',
+  { method: 'POST', body: new URLSearchParams({ data: consultaDetalle }) }));
 
 // ---------- recorte y simplificación ----------
 const KMG = 111320; // metros por grado de latitud
@@ -222,6 +268,25 @@ const vias = {
   ram: juntar((n) => n.startsWith('Rambla')),
 };
 
+/* El callejero fino, separado en dos niveles y sin filtro de nombre (son
+   calles comunes). Se guardan los dos y el dibujo elige: a 11 km de ancho, la
+   trama de calles residenciales cae tan junta que se pinta como una mancha
+   negra, así que el plano usa sólo las terciarias —las calles que cruzan el
+   barrio, que a esta escala todavía se leen como calles—. Las residenciales
+   quedan en el archivo por si algún día el encuadre se cierra. */
+const porClase = (clases) => {
+  const pedazos = [];
+  for (const w of osmDetalle.elements) {
+    if (!w.geometry || !clases.includes(w.tags?.highway)) continue;
+    pedazos.push(...recortar(w.geometry.map((g) => [g.lon, g.lat])));
+  }
+  return encadenar(pedazos).map((l) => limpiar(l, TOLERANCIA_M * 2));
+};
+const detalle = {
+  ter: porClase(['tertiary', 'unclassified', 'living_street']),
+  res: porClase(['residential', 'pedestrian']),
+};
+
 const datos = {
   generado: new Date().toISOString().slice(0, 10),
   recorte: RECORTE,
@@ -235,6 +300,8 @@ const datos = {
   barrios,
   lindes,
   vias,
+  detalle,
+  radioDetalleM: RADIO_DETALLE_M,
 };
 writeFileSync(SALIDA, JSON.stringify(datos));
 
@@ -244,4 +311,5 @@ log(`  costa    ${costa.length} → ${datos.costa.length} puntos`);
 log(`  barrios  ${Object.keys(barrios).length} polígonos, ${n(barrios)} puntos`);
 log(`  lindes   ${lindes.length} trazos, ${lindes.flat().length} puntos (sin repetir)`);
 log(`  vías     ${vias.rad.length + vias.ani.length + vias.ram.length} tramos, ${n(vias)} puntos`);
+log(`  detalle  ter ${detalle.ter.length} trazos / ${detalle.ter.flat().length} pts · res ${detalle.res.length} / ${detalle.res.flat().length} (halo ${RADIO_DETALLE_M} m)`);
 log(`  archivo  ${(readFileSync(SALIDA).length / 1024).toFixed(0)} KB`);
