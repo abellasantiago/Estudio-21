@@ -72,6 +72,10 @@ Pages queda como preview/staging gratis y no hace falta tocar nada de esto.
   **No hay campo `codigo`** (los viejos `E21·NN`): no se mostraban en ninguna parte
   del sitio y cuatro eran placeholders sin confirmar, así que se sacaron del schema
   y de los `.md`.
+  Cada proyecto lleva además **`direccion`** (calle y número) y **`coords`**
+  (`[lon, lat]`), que son lo que ubica la cruz del mapa de situación de la ficha
+  — ver "Mapa de situación". Las diez coordenadas se geocodificaron una vez a
+  mano; **no se geocodifica en el build**.
 - **Equipo:** los integrantes en `src/data/equipo.ts` (sólo `slug`, `nombre`, `rol`).
   **Sin ubicación**: mostrar que dos arquitectos están en España abría la pregunta
   "¿quién supervisa mi obra en Montevideo?" — más ruido que beneficio para un
@@ -88,6 +92,10 @@ Pages queda como preview/staging gratis y no hace falta tocar nada de esto.
   salón principal, salón con hormigón visto, salón con parquet, detalle de escalera,
   barra, cocina y fachada nocturna. La galería conserva las proporciones de cada
   toma y carga las versiones grandes al abrir el visor.
+- **Geometría del mapa** (`scripts/bajar-mapa.mjs` + `scripts/lib/shapefile.mjs`):
+  baja la costa, los barrios de la Intendencia y las avenidas, y escribe
+  `src/data/mapa/montevideo.json`. Se corre **a mano**, no en el build. Ver
+  "Mapa de situación".
 - **Piezas de marca derivadas** (`scripts/generar-marca.mjs`): `public/favicon.png`,
   `apple-touch-icon.png` y `og-default.png` **no se editan a mano** — se generan del
   logo real (`src/assets/marca/banner_negro.png`) con la paleta del sitio. Ver
@@ -812,6 +820,87 @@ Orden de la página: **título · (portada | descripción) · ficha técnica · 
   levanta el visor. El `<img>` del visor arranca sin `src` → no se descarga
   ninguna foto grande hasta que se abre.
 
+### Mapa de situación
+`src/components/Mapa.astro` + `src/styles/mapa.css`; el dibujo lo arma
+`src/lib/mapa/` (`encuadre.ts` + `lamina.ts`) y la geometría vive en
+`src/data/mapa/montevideo.json`.
+
+Va **entre la ficha técnica y la galería**, en dos columnas: el plano a la
+izquierda y una cartela a la derecha (eyebrow "Ubicación", la dirección en
+display, barrio · Montevideo, y al pie —bajo un filete— la coordenada en
+grados y el crédito de las fuentes). **No lleva título de sección**: cuelga de
+la ficha, cuya celda "Ubicación" dice el barrio, y el plano es ese dato
+desplegado. Y va **suelto sobre el papel**, sin recuadro ni filete, igual que
+la axonometría de "Quiénes somos".
+
+- **No es una imagen ni una captura de un servicio de mapas.** Es geometría
+  real proyectada y resuelta en el build: la costa es el borde sur del
+  contorno del departamento (OSM), la malla son los 62 barrios oficiales de la
+  Intendencia y las avenidas son las radiales, los dos bulevares y la rambla
+  (OSM). Un mapa de Google o Mapbox traería sus colores, su tipografía y sus
+  pines, y al lado de la axonometría se leería como una captura pegada.
+- **La geometría se baja A MANO** con `node scripts/bajar-mapa.mjs` y el JSON
+  se commitea. El build **no toca la red**: mientras se armaba esto, Overpass
+  devolvió 502 "at capacity" varias veces y dos mirrors no contestaron; un
+  build en Actions no puede depender de eso. Lo bajado queda en `.cache/mapa/`
+  (gitignoreada) y no se vuelve a pedir. El JSON de datos **no viaja al
+  navegador**: se consume en el build y lo único que se publica es el SVG.
+- **El encuadre es FIJO**, el mismo en las diez fichas (`ENCUADRE` en
+  `encuadre.ts`): 16,5 km de ancho, centrado para que entren la bahía, la
+  península y Punta Carretas. Con un encuadre por proyecto no se podría
+  comparar una obra con otra. ⚠ **15 km es el piso**: Villa Platero (el más al
+  oeste) y Sushi WOK (el más al este) están a 12,1 km y por debajo de eso uno
+  de los dos se cae del mapa. Si entra un proyecto más al este que Carrasco o
+  más al oeste que el Prado, hay que volver a medirlo.
+- **La cruz sale de `coords`** en el frontmatter: las diez direcciones se
+  geocodificaron una vez con Nominatim (todas a nivel de número de puerta) y se
+  verificaron contra los polígonos de barrio. Sin `coords` la ficha no muestra
+  mapa.
+- ⚠ **El barrio que se PINTA no siempre es el que dice `barrio`.** Se pinta el
+  que contiene a la dirección; el rótulo de la cruz es el nombre que usa el
+  estudio. Tres proyectos caen sobre un límite y la capa oficial los pone en
+  otro barrio del que usa el mercado: **Terrazas de Cajal** (Tres Cruces según
+  la IM), **Terrazas de Italia** (Unión) y **Villa Platero** (Paso de las
+  Duranas). La mancha es geografía y el nombre es del estudio; por eso el
+  barrio pintado **no se rotula** —diría una cosa y la cruz, otra— y tampoco se
+  rotula un barrio vecino que se llame igual que la cruz (si no, Villa Platero
+  escribía "PRADO" dos veces).
+- **Peso: 34,5 KB de SVG inline, 14,8 KB gzip** sobre una ficha que sin el mapa
+  pesa 12,6 KB gzip. Va **inline y no como archivo aparte** —al revés que la
+  axonometría— porque los números son otros: la axonometría son 27 KB gzip en
+  la página que recibe a todo el mundo y en mobile ni se ve; el mapa es la
+  mitad, va en una ficha que se abre de a una y en un teléfono se ve igual.
+  Inline además lo pinta junto con la página, usa la tipografía y los tokens
+  del sitio y anda sin JS. Para llegar a esos 14,8 KB hay **tres recortes que
+  no se pueden perder** (empezó en 23,4):
+  - **La malla no se dibuja polígono por polígono.** Dos barrios vecinos
+    comparten su límite: trazar los 62 polígonos dibujaba cada línea interior
+    dos veces. `lindes` (en el JSON) ya viene deduplicada por segmento y cosida
+    en cadenas largas.
+  - **Las avenidas se cosen antes de simplificar.** OSM parte cada avenida en
+    decenas de ways; llegaban como ~600 pedazos de dos puntos, y cada pedazo
+    cuesta un `M x y L x y` entero. Cosidas: 1.108 tramos → 161, y
+    Douglas–Peucker por fin puede trabajar (26 KB → 7,4 KB).
+  - **La costa se escribe UNA vez** (`<path id="m-costa-d">` + tres `<use>`):
+    recorta el rayado del agua, pinta la tierra y traza la línea. Escribirla
+    dos veces costaba 10 KB. ⚠ Lleva `vector-effect` **por atributo**: dentro
+    de un `<use>` los selectores CSS del documento no alcanzan al path.
+  - Encima va una segunda simplificación en unidades del viewBox, con
+    tolerancia por capa (`TOL` en `lamina.ts`): la costa es la línea más
+    marcada del plano y la malla una trama de fondo de 0,7 px.
+- **Los rótulos se colocan con anti-colisión** (`colocar`), por orden de
+  prioridad, y el que pisa a uno ya puesto se cae. Sin eso, en la península se
+  superponían CIUDAD VIEJA, CENTRO y BARRIO SUR en una mancha ilegible. La
+  escala y el norte **reservan su lugar de antemano** aunque se dibujen al
+  final: "PUNTA CARRETAS" caía justo encima de la barra de escala. El ancho del
+  texto se calcula a mano (IBM Plex Mono avanza 0,6 em por glifo) porque en el
+  build no hay layout.
+- En **≤620px** los rótulos de referencia se ocultan y el de la cruz se agranda
+  (`mapa.css`): el mapa mide ~350 px y a esa escala 8 px de viewBox caen a 5.
+  Como el tamaño va en unidades del viewBox, subirlo desde la CSS lo agranda en
+  pantalla sin tocar el SVG; y al no quedar rótulos chicos no hay con qué
+  chocar (el anti-colisión se resolvió en el build, a 8 px).
+
 **La ficha termina en la galería, y así queda** (decisión del 2026-11-04). No
 lleva **ningún botón ni texto de cierre**: ni CTA de consulta, ni línea de
 contexto, ni "siguiente proyecto". Se probó un bloque de cierre con una línea
@@ -956,6 +1045,9 @@ de ancho (y en alturas de 390 a 1440), en la home y en la ficha de proyecto.
   ancho del wordmark + los 5 links, el del cilindro del radio de las cards.
 - **620px de ALTO** → piso del cilindro. El único corte del sitio que mira la altura
   además de las reglas de card chica del helicoidal (`max-height` 820/660).
+  (Ojo: hay otro **620px, pero de ANCHO**, en `mapa.css` — ahí el mapa de la
+  ficha oculta los rótulos de referencia y agranda el de la cruz. Son dos
+  cortes distintos que comparten número por casualidad.)
 
 **Cosas que ya se rompieron una vez y no hay que volver a romper:**
 - **El "Estudio 21" del hero no da la vuelta entera, y sólo se mueve en ≥900px.**
@@ -1061,4 +1153,12 @@ en la card correcta, sin telón entre páginas.
 - **Años estimados** de Villa Platero, Vila Rodona y Chana I; m² (área construida) de esos tres. m² de Cavas de Haedo también es **estimado** (no oficial).
 - Vila Rodona: confirmar mix de dormitorios y total de unidades.
 - **Teléfono e Instagram** en `src/data/site.ts` (hoy `null`): si se completan, aparecen solos en Contacto.
+- **Confirmar con el estudio que las direcciones exactas se publican**: la ficha
+  muestra calle y número bajo el mapa (`direccion` en el frontmatter). Si para
+  algún proyecto no corresponde, se borra ese campo y la cartela queda con el
+  barrio solo — el mapa sigue andando, porque la cruz sale de `coords`.
+- **Tres proyectos declaran un barrio distinto del oficial** (Terrazas de Cajal,
+  Terrazas de Italia y Villa Platero: ver "Mapa de situación"). Está resuelto en
+  el dibujo, pero si el estudio prefiere usar el nombre oficial en la ficha, se
+  cambia `barrio` en esos tres `.md` y el mapa se acomoda solo.
 - Sección de **cómo invertir**: por ahora **no se hace** (decisión del 2026-08-18). La apuesta es que el impacto visual lleve al inversor a escribir; se puede retomar más adelante.

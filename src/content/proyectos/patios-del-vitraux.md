@@ -4,6 +4,8 @@ slug: patios-del-vitraux
 estado: terminado
 ubicacion: Montevideo
 barrio: Palermo
+direccion: Canelones 1632
+coords: [-56.18005, -34.90799]
 anio: 2021
 unidades: 8
 metros: 697

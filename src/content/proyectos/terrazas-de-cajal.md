@@ -4,6 +4,8 @@ slug: terrazas-de-cajal
 estado: en-proceso
 ubicacion: Montevideo
 barrio: La Blanqueada
+direccion: Ramón y Cajal 2462
+coords: [-56.16341, -34.8888]
 anio: 2027
 unidades: 20
 metros: 1557

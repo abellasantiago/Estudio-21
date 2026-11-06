@@ -21,3 +21,6 @@ npm-debug.log*
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# caché del script del mapa (geometría bajada de OSM / IM)
+.cache/

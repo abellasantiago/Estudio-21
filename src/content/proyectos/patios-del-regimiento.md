@@ -4,6 +4,8 @@ slug: patios-del-regimiento
 estado: terminado
 ubicacion: Montevideo
 barrio: Brazo Oriental
+direccion: Regimiento 9 1761
+coords: [-56.18225, -34.86402]
 anio: 2025
 unidades: 9
 metros: 729

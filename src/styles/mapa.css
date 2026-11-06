@@ -1,0 +1,144 @@
+/* ---------- MAPA DE SITUACIÓN (ficha de proyecto) ----------
+   Plano de ubicación de la obra dentro de Montevideo. El dibujo sale de
+   geometría real resuelta en el build (ver src/lib/mapa/): costa del
+   departamento, los 62 barrios de la Intendencia y las avenidas radiales.
+
+   Va DESPUÉS de la ficha técnica, que es de donde cuelga: la ficha dice
+   "Ubicación: Pocitos" y el mapa es ese dato desplegado. Por eso no lleva
+   título de sección — sería una sección nueva y es la misma información.
+   Y va suelto sobre el papel, sin recuadro ni filete, igual que la
+   axonometría de "Quiénes somos". */
+
+.proj-ubic {
+  margin-top: clamp(2.6rem, 5.5vw, 4.25rem);
+  display: grid;
+  /* el mapa manda; la columna de datos es la cartela */
+  grid-template-columns: minmax(0, 1.62fr) minmax(0, 1fr);
+  gap: clamp(1.6rem, 3.5vw, 3.2rem);
+  align-items: stretch;
+}
+
+/* ---- la cartela: arriba el dato, abajo el crédito ----
+   `space-between` en toda la altura del mapa deja el crédito apoyado en la
+   misma línea que el pie del dibujo, como el rótulo de una lámina. */
+.ubic-datos {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 1.6rem;
+  padding-top: 0.2rem;
+}
+.ubic-dir {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: clamp(1.3rem, 2vw, 1.75rem);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  margin-top: 1rem;
+  text-wrap: balance;
+}
+.ubic-zona {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--concrete);
+  margin-top: 0.75rem;
+}
+/* El pie de la cartela: coordenada y crédito, apoyados en la misma línea que
+   el borde de abajo del dibujo. El filete de arriba es lo que convierte el aire
+   que queda entre el barrio y el pie en una división a propósito —como el
+   rótulo de una lámina— en vez de un hueco. */
+.ubic-pie {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  border-top: 1px solid var(--line);
+  padding-top: 0.8rem;
+}
+.ubic-coord {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  color: var(--concrete);
+  font-variant-numeric: tabular-nums;
+}
+
+/* el crédito: obligatorio por la licencia de los datos (ODbL), y de paso dice
+   de dónde sale el dibujo — que no es una captura de un servicio de mapas */
+.ubic-fuente {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.07em;
+  line-height: 1.7;
+  color: var(--concrete-soft);
+}
+.ubic-fuente a {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: var(--line);
+  text-underline-offset: 2px;
+}
+@media (hover: hover) {
+  .ubic-fuente a:hover { color: var(--concrete); text-decoration-color: var(--concrete-soft); }
+}
+
+/* ---------- el dibujo ---------- */
+.mapa {
+  display: block;
+  width: 100%;
+  height: auto;
+  /* el desvanecido de los bordes lo hace una máscara DENTRO del SVG, pero el
+     rayado del agua se dibuja con margen: que no se derrame */
+  overflow: hidden;
+}
+/* trazos en px reales y no en unidades del viewBox: el plano se lee igual a
+   700 px de ancho en un escritorio que a 340 en un teléfono */
+.mapa path,
+.mapa circle {
+  vector-effect: non-scaling-stroke;
+}
+
+.mapa .m-agua   { fill: none; stroke: var(--concrete-soft); stroke-width: 0.6; opacity: 0.42; }
+.mapa .m-tierra { fill: var(--paper-2); stroke: none; }
+.mapa .m-malla  { fill: none; stroke: var(--line); stroke-width: 0.7; stroke-linejoin: round; }
+.mapa .m-costa  { fill: none; stroke: var(--ink-soft); stroke-width: 1.1; stroke-linejoin: round; stroke-linecap: round; }
+
+.mapa .m-viario path { fill: none; stroke: var(--concrete); stroke-linecap: round; stroke-linejoin: round; }
+.mapa .m-rad { stroke-width: 0.6; opacity: 0.5; }
+.mapa .m-ani { stroke-width: 0.75; opacity: 0.6; }
+.mapa .m-ram { stroke-width: 0.6; opacity: 0.35; }
+
+/* el barrio que contiene a la obra: lo único que cambia de una ficha a otra */
+.mapa .m-barrio { fill: var(--petrol-tint); stroke: var(--petrol); stroke-width: 1.1; stroke-linejoin: round; }
+
+.mapa .m-ref { font-family: var(--font-mono); font-size: 8px; fill: var(--concrete); letter-spacing: 0.13em; }
+
+.mapa .m-foco circle { fill: none; stroke: var(--petrol); stroke-width: 1.4; }
+.mapa .m-foco .m-nucleo { fill: var(--petrol); stroke: none; }
+.mapa .m-foco .m-cruz { fill: none; stroke: var(--petrol); stroke-width: 0.8; opacity: 0.6; }
+.mapa .m-foco text { font-family: var(--font-mono); font-size: 11px; fill: var(--petrol); letter-spacing: 0.13em; }
+
+.mapa .m-graf path,
+.mapa .m-graf circle { fill: none; stroke: var(--petrol); stroke-width: 1; }
+.mapa .m-graf text { font-family: var(--font-mono); font-size: 8px; fill: var(--petrol); letter-spacing: 0.13em; }
+.mapa .m-graf .m-n { text-anchor: middle; font-size: 9px; }
+
+/* ---------- una columna ---------- */
+@media (max-width: 900px) {
+  .proj-ubic { grid-template-columns: 1fr; gap: 1.5rem; }
+  .ubic-datos { gap: 1.3rem; }
+  .ubic-dir { margin-top: 0.8rem; }
+}
+
+/* En un teléfono el mapa mide ~340 px y los rótulos de referencia caerían a
+   5 px: se sacan y se agranda el del proyecto. Como el tamaño va en unidades
+   del viewBox, subirlo acá lo agranda en pantalla sin retocar el SVG; y al no
+   quedar rótulos chicos, no hay nada con qué chocar (el anti-colisión se
+   resolvió en el build, a 8 px). */
+@media (max-width: 620px) {
+  .mapa .m-ref { display: none; }
+  .mapa .m-foco text { font-size: 15px; }
+  .mapa .m-graf text { font-size: 11px; }
+  .mapa .m-graf .m-n { font-size: 12px; }
+}

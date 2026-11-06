@@ -4,6 +4,8 @@ slug: villa-platero
 estado: proximamente
 ubicacion: Montevideo
 barrio: Prado
+direccion: Millán 4096
+coords: [-56.1978, -34.8507]
 anio: 2027 # ESTIMADO: fideicomiso y memoria son de 2026; no hay fecha de entrega oficial
 unidades: 24
 # metros (área construida) PENDIENTE: la memoria solo da la superficie del predio (2.146 m²)

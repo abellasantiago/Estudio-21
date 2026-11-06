@@ -4,6 +4,8 @@ slug: terrazas-de-italia
 estado: terminado
 ubicacion: Montevideo
 barrio: La Blanqueada
+direccion: Ignacio Núñez 2127
+coords: [-56.14388, -34.88662]
 anio: 2025
 unidades: 13
 metros: 973

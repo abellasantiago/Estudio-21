@@ -4,6 +4,7 @@ import type { CollectionEntry } from 'astro:content';
 import { render } from 'astro:content';
 import BaseLayout from './BaseLayout.astro';
 import Galeria from '../components/Galeria.astro';
+import Mapa from '../components/Mapa.astro';
 import { getPortada, getGaleria } from '../lib/images';
 import { site } from '../data/site';
 import '../styles/project-page.css';
@@ -19,6 +20,8 @@ const {
   estado,
   ubicacion,
   barrio,
+  direccion,
+  coords,
   anio,
   unidades,
   sinUnidades,
@@ -189,6 +192,13 @@ const ficha = [
           </div>
         ))}
       </dl>
+
+      {/* El mapa cuelga de la ficha: su celda "Ubicación" dice el barrio y el
+          plano es ese dato desplegado. Por eso va pegado abajo y sin título de
+          sección. Un proyecto sin `coords` simplemente no lo muestra. */}
+      {coords && barrio && (
+        <Mapa coords={coords} barrio={barrio} direccion={direccion} ubicacion={ubicacion} />
+      )}
 
       <Galeria fotos={galeria} nombre={nombre} slug={slug} />
     </div>

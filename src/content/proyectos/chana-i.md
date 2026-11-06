@@ -4,6 +4,8 @@ slug: chana-i
 estado: proximamente
 ubicacion: Montevideo
 barrio: Cordón
+direccion: Chaná 2033
+coords: [-56.17265, -34.90417]
 anio: 2027 # ESTIMADO: memoria ANV de octubre 2025; no hay fecha de entrega oficial
 unidades: 35
 # metros (área construida) PENDIENTE: no figura el total en la memoria

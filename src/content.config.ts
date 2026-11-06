@@ -18,6 +18,17 @@ const proyectos = defineCollection({
     estado: z.enum(['proximamente', 'en-proceso', 'terminado']),
     ubicacion: z.string(),
     barrio: z.string().optional(), // PENDIENTE en varios proyectos
+    // Dirección de la obra (calle y número). Es lo que ubica la cruz del mapa
+    // de situación y lo que se lee al pie de él.
+    direccion: z.string().optional(),
+    // [lon, lat] de esa dirección. Se geocodifica A MANO una vez (Nominatim) y
+    // se verifica que el punto caiga en el barrio declarado; el build no toca
+    // la red. Sin `coords` la ficha simplemente no muestra mapa.
+    // ⚠ Tres proyectos están sobre un límite y la capa oficial de la IM los
+    // pone en otro barrio del que usa el mercado (Terrazas de Cajal, Terrazas
+    // de Italia, Villa Platero): el mapa pinta el barrio que contiene al punto
+    // y rotula con `barrio`. Ver src/lib/mapa/lamina.ts.
+    coords: z.tuple([z.number(), z.number()]).optional(),
     anio: z.number().int(),
     unidades: z.number().int().optional(), // PENDIENTE
     // Hay obras que no se cuentan en unidades (un local gastronómico, una

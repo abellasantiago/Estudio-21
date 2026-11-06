@@ -4,6 +4,8 @@ slug: patios-maldonado
 estado: terminado
 ubicacion: Montevideo
 barrio: Palermo
+direccion: Maldonado 1788
+coords: [-56.17644, -34.90867]
 anio: 2020
 unidades: 12
 metros: 1036

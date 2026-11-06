@@ -4,6 +4,8 @@ slug: vila-rodona
 estado: proximamente
 ubicacion: Montevideo
 barrio: Brazo Oriental
+direccion: Mariano Soler 3326
+coords: [-56.1824, -34.86353]
 anio: 2027 # entrega estimada: agosto 2027 (según memoria descriptiva)
 # unidades PENDIENTE: la memoria describe las tipologías pero no da el total
 # metros PENDIENTE: no figura el área construida en la memoria

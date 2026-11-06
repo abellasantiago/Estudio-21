@@ -4,6 +4,8 @@ slug: cavas-de-haedo
 estado: terminado
 ubicacion: Montevideo
 barrio: Pocitos
+direccion: Diego Lamas 1388
+coords: [-56.1526, -34.90362]
 anio: 2022
 unidades: 6
 metros: 480 # ESTIMADO (~80 m²/unidad, promedio de los otros proyectos); no es dato oficial
