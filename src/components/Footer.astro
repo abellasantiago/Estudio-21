@@ -9,4 +9,15 @@ const year = new Date().getFullYear();
     <span class="brand-f">Estudio 21 — Arquitectura y desarrollo</span>
     <span>Montevideo, Uruguay · © {year}</span>
   </div>
+  {/* Crédito de los datos de los planos de ubicación de las fichas. La licencia
+      de OSM (ODbL) lo pide; va acá y no al pie de cada mapa porque ahí, en la
+      cartela, era un cartelito que ensuciaba la ficha. */}
+  <div class="wrap foot-datos">
+    <span>
+      Planos de ubicación: datos de{' '}
+      <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer"
+        >© OpenStreetMap</a
+      > (ODbL) y de la Intendencia de Montevideo.
+    </span>
+  </div>
 </footer>

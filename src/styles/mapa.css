@@ -12,22 +12,15 @@
 .proj-ubic {
   margin-top: clamp(2.6rem, 5.5vw, 4.25rem);
   display: grid;
-  /* el mapa manda; la columna de datos es la cartela */
+  /* el mapa manda; al lado va nada más que el dato */
   grid-template-columns: minmax(0, 1.62fr) minmax(0, 1fr);
   gap: clamp(1.6rem, 3.5vw, 3.2rem);
-  align-items: stretch;
+  /* el pie de la cartela llevaba la coordenada y el crédito, y con eso el
+     bloque tomaba todo el alto del plano; sin ellos quedan tres líneas, así
+     que se centran contra el dibujo en vez de colgar de arriba con un hueco */
+  align-items: center;
 }
 
-/* ---- la cartela: arriba el dato, abajo el crédito ----
-   `space-between` en toda la altura del mapa deja el crédito apoyado en la
-   misma línea que el pie del dibujo, como el rótulo de una lámina. */
-.ubic-datos {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  gap: 1.6rem;
-  padding-top: 0.2rem;
-}
 .ubic-dir {
   font-family: var(--font-display);
   font-weight: 500;
@@ -44,43 +37,6 @@
   text-transform: uppercase;
   color: var(--concrete);
   margin-top: 0.75rem;
-}
-/* El pie de la cartela: coordenada y crédito, apoyados en la misma línea que
-   el borde de abajo del dibujo. El filete de arriba es lo que convierte el aire
-   que queda entre el barrio y el pie en una división a propósito —como el
-   rótulo de una lámina— en vez de un hueco. */
-.ubic-pie {
-  display: flex;
-  flex-direction: column;
-  gap: 0.6rem;
-  border-top: 1px solid var(--line);
-  padding-top: 0.8rem;
-}
-.ubic-coord {
-  font-family: var(--font-mono);
-  font-size: 0.7rem;
-  letter-spacing: 0.08em;
-  color: var(--concrete);
-  font-variant-numeric: tabular-nums;
-}
-
-/* el crédito: obligatorio por la licencia de los datos (ODbL), y de paso dice
-   de dónde sale el dibujo — que no es una captura de un servicio de mapas */
-.ubic-fuente {
-  font-family: var(--font-mono);
-  font-size: 0.62rem;
-  letter-spacing: 0.07em;
-  line-height: 1.7;
-  color: var(--concrete-soft);
-}
-.ubic-fuente a {
-  color: inherit;
-  text-decoration: underline;
-  text-decoration-color: var(--line);
-  text-underline-offset: 2px;
-}
-@media (hover: hover) {
-  .ubic-fuente a:hover { color: var(--concrete); text-decoration-color: var(--concrete-soft); }
 }
 
 /* ---------- el dibujo ---------- */
@@ -126,8 +82,7 @@
 
 /* ---------- una columna ---------- */
 @media (max-width: 900px) {
-  .proj-ubic { grid-template-columns: 1fr; gap: 1.5rem; }
-  .ubic-datos { gap: 1.3rem; }
+  .proj-ubic { grid-template-columns: 1fr; gap: 1.4rem; }
   .ubic-dir { margin-top: 0.8rem; }
 }
 

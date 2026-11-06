@@ -22,45 +22,19 @@ interface Props {
 }
 
 const { coords, barrio, direccion, ubicacion } = Astro.props;
-const [lon, lat] = coords;
-const svg = mapaSVG({ lon, lat, barrio });
-
-/* Las coordenadas en grados/minutos/segundos. No son para que nadie las copie:
-   son la marca de que el plano está levantado sobre un punto real y no es una
-   ilustración — el mismo papel que cumplen el norte y la escala gráfica. */
-function gms(valor: number, positivo: string, negativo: string) {
-  const g = Math.abs(valor);
-  const grados = Math.floor(g);
-  const minutos = Math.floor((g - grados) * 60);
-  const segundos = Math.round((g - grados - minutos / 60) * 3600);
-  const dd = String(segundos === 60 ? minutos + 1 : minutos).padStart(2, '0');
-  const ss = String(segundos === 60 ? 0 : segundos).padStart(2, '0');
-  return `${grados}°${dd}′${ss}″ ${valor < 0 ? negativo : positivo}`;
-}
-const coordenadas = `${gms(lat, 'N', 'S')} · ${gms(lon, 'E', 'O')}`;
+const svg = mapaSVG({ lon: coords[0], lat: coords[1], barrio });
 ---
 
 <section class="proj-ubic" aria-labelledby="ubic-tit">
   <div class="ubic-mapa" set:html={svg} />
 
+  {/* Pie del plano: nada más que el dato. La coordenada en grados y el crédito
+      de las fuentes estuvieron acá y se sacaron (2026-11-06) — eran dos
+      cartelitos de letra chica que ensuciaban la ficha. El crédito, que la
+      licencia de OSM sí exige, pasó al footer del sitio. */}
   <div class="ubic-datos">
-    <div>
-      <p class="eyebrow" id="ubic-tit">Ubicación</p>
-      {direccion && <p class="ubic-dir">{direccion}</p>}
-      <p class="ubic-zona">{barrio} · {ubicacion}</p>
-    </div>
-
-    <div class="ubic-pie">
-      <p class="ubic-coord">{coordenadas}</p>
-
-      {/* ODbL pide el crédito; de paso aclara que el plano es propio y no una
-          captura de un servicio de mapas */}
-      <p class="ubic-fuente">
-        Plano propio. Costa y viario:{' '}
-        <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer"
-          >© OpenStreetMap</a
-        >, ODbL. Barrios: Intendencia de Montevideo, datos abiertos.
-      </p>
-    </div>
+    <p class="eyebrow" id="ubic-tit">Ubicación</p>
+    {direccion && <p class="ubic-dir">{direccion}</p>}
+    <p class="ubic-zona">{barrio} · {ubicacion}</p>
   </div>
 </section>

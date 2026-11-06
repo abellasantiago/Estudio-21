@@ -1,26 +1,33 @@
 /*
- * Encuadre del mapa de situación: el mismo en las diez fichas.
+ * Encuadre del mapa de situación: uno POR PROYECTO, centrado en la obra.
  *
- * Que sea FIJO es la decisión de fondo. Con un encuadre por proyecto cada
- * ficha mostraría un recorte distinto y no se podría comparar una obra con
- * otra; con uno solo, el inversor aprende la silueta una vez y después lee de
- * un vistazo si un proyecto está sobre la costa o tierra adentro, al este o al
- * oeste. El precio es que el encuadre tiene que contener a TODOS los proyectos.
+ * Primero fue un encuadre fijo, el mismo en las diez fichas, para poder
+ * comparar un proyecto con otro. Se cambió (2026-11-06) porque en la ficha no
+ * se comparan: se mira una obra. Con el encuadre de toda la ciudad, un
+ * proyecto del norte —Villa Platero, en Millán— quedaba como una cruz chiquita
+ * arriba a la izquierda, y lo que se leía era Montevideo, no el proyecto. Ahora
+ * cada plano está centrado en su obra y muestra los barrios que la rodean.
  *
- * ⚠ 15 km es el piso. Villa Platero (Millán 4096, el más al oeste) y Sushi WOK
- * (Boston 6208, el más al este) están a 12,1 km; con el margen que necesitan la
- * cruz y su rótulo para no quedar pegados al borde, por debajo de 15 km uno de
- * los dos se cae del mapa. Si algún día entra un proyecto más al este que
- * Carrasco o más al oeste que el Prado, hay que volver a medir esto.
+ * ⚠ La contra, y es real: a esta escala los proyectos tierra adentro (el Prado,
+ * Brazo Oriental) ya no muestran la costa, porque están a 6 km de ella y
+ * meterla pedía un encuadre del doble de ancho — justo el que se sacó. Esos
+ * planos se leen por la trama de barrios y de avenidas, no por la silueta.
  */
-export const ENCUADRE = {
-  /** Centro, elegido para que entren los diez puntos, la bahía, la península y
-   *  la punta de Punta Carretas (que es lo que hace reconocible la silueta). */
-  centro: [-56.1277, -34.8855] as [number, number],
-  anchoKm: 16.5,
-  /** Alto = ancho / esto. 1,78 ≈ la proporción de una banda cómoda en la ficha. */
-  proporcion: 1.78,
-};
+
+/** Ancho del encuadre, igual en los diez: cambia el centro, no la escala. */
+export const ANCHO_KM = 11;
+
+/** Alto = ancho / esto. 1,78 ≈ la proporción de una banda cómoda en la ficha. */
+export const PROPORCION = 1.78;
+
+/*
+ * El proyecto no va en el centro exacto sino un poco por ENCIMA (a un 43 % del
+ * alto). Así el encuadre toma algo más de ciudad del lado del sur, que es
+ * donde está la costa: con esto los de La Blanqueada alcanzan a mostrar la
+ * rambla, que sin el sesgo les quedaba a unos cientos de metros del borde.
+ * Más que esto se nota como un desencuadre.
+ */
+const SESGO = 0.07;
 
 /** Ancho del viewBox. 1 unidad = 1 px cuando el mapa se dibuja a 560 de ancho. */
 export const ANCHO = 560;
@@ -38,20 +45,23 @@ export interface Proyector {
   altoKm: number;
 }
 
-export function proyector(ancho = ANCHO): Proyector {
-  const [cLon, cLat] = ENCUADRE.centro;
+/** @param obra lon/lat del proyecto: es lo que centra el plano. */
+export function proyector(obra: [number, number], ancho = ANCHO): Proyector {
+  const [oLon, oLat] = obra;
   // un grado de longitud mide menos cuanto más lejos del ecuador; a esta
   // latitud, el 82% de un grado de latitud
-  const k = Math.cos((cLat * Math.PI) / 180);
-  const anchoKm = ENCUADRE.anchoKm;
-  const altoKm = anchoKm / ENCUADRE.proporcion;
-  const semiLon = anchoKm / 2 / (KM_POR_GRADO * k);
+  const k = Math.cos((oLat * Math.PI) / 180);
+  const altoKm = ANCHO_KM / PROPORCION;
+  const semiLon = ANCHO_KM / 2 / (KM_POR_GRADO * k);
   const semiLat = altoKm / 2 / KM_POR_GRADO;
-  const lon0 = cLon - semiLon,
-    lon1 = cLon + semiLon;
-  const lat0 = cLat - semiLat,
-    lat1 = cLat + semiLat;
-  const alto = Math.round((ancho * altoKm) / anchoKm);
+
+  const lon0 = oLon - semiLon;
+  const lon1 = oLon + semiLon;
+  // el sesgo corre el marco hacia el sur, o sea la obra hacia arriba
+  const lat0 = oLat - semiLat * (1 + SESGO * 2);
+  const lat1 = oLat + semiLat * (1 - SESGO * 2);
+
+  const alto = Math.round((ancho * altoKm) / ANCHO_KM);
   const margen = Math.round(ancho * 0.07);
 
   return {
@@ -59,11 +69,10 @@ export function proyector(ancho = ANCHO): Proyector {
       ((lon - lon0) / (lon1 - lon0)) * ancho,
       alto - ((lat - lat0) / (lat1 - lat0)) * alto,
     ],
-    dentro: ([x, y]) =>
-      x > -margen && x < ancho + margen && y > -margen && y < alto + margen,
+    dentro: ([x, y]) => x > -margen && x < ancho + margen && y > -margen && y < alto + margen,
     alto,
-    pxPorKm: ancho / anchoKm,
-    anchoKm,
+    pxPorKm: ancho / ANCHO_KM,
+    anchoKm: ANCHO_KM,
     altoKm,
   };
 }

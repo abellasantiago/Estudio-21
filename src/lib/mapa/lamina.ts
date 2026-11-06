@@ -44,16 +44,6 @@ const ROTULO: Record<string, string> = {
   'JARDINES DEL HIPODROMO': 'J. DEL HIPÓDROMO',
 };
 
-/* Barrios que se rotulan, por orden de prioridad: primero los que orientan
-   (la península, el Centro) y después los de la costa. El que no entre sin
-   pisar a otro se cae solo (ver `colocar`). */
-const REFERENCIAS = [
-  'CIUDAD VIEJA', 'CENTRO', 'POCITOS', 'CARRASCO', 'PRADO NUEVA SAVONA',
-  'PUNTA CARRETAS', 'BUCEO', 'MALVIN', 'PUNTA GORDA', 'UNION',
-  'LA BLANQUEADA', 'CORDON', 'BRAZO ORIENTAL', 'PALERMO', 'PARQUE RODO',
-  'TRES CRUCES', 'AGUADA', 'SAYAGO', 'ATAHUALPA', 'CERRO',
-];
-
 const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
 const d = (ps: Punto[]) =>
@@ -127,7 +117,7 @@ export function barrioDe(lon: number, lat: number): string | null {
 }
 
 export function mapaSVG({ lon, lat, barrio }: Proyecto): string {
-  const pr = proyector();
+  const pr = proyector([lon, lat]);
   const { p, dentro, alto } = pr;
   const tramo = (ps: number[][]) => ps.map((q) => p(q as Punto));
 
@@ -140,9 +130,16 @@ export function mapaSVG({ lon, lat, barrio }: Proyecto): string {
      extiende bastante más allá del encuadre a los dos lados—, así que trazar
      el path cerrado no dibuja ninguna línea de más. */
   const costa = afinar(tramo(datos.costa), TOL.costa);
-  const a = costa[0]!;
-  const z = costa[costa.length - 1]!;
-  const tierra = `${d(costa)}L${z[0].toFixed(1)} -40L${a[0].toFixed(1)} -40Z`;
+  /* Un encuadre entero tierra adentro no toca la costa. Hoy no pasa —la bahía
+     sube bastante al norte y hasta el Prado la alcanza— pero si algún día
+     entra un proyecto más al norte, el plano tiene que salir igual: sin agua,
+     sin relleno de tierra y sin que se rompa nada. */
+  const hayCosta = costa.length > 1 && costa.some(dentro);
+  const a = costa[0] ?? [0, 0];
+  const z = costa[costa.length - 1] ?? [0, 0];
+  const tierra = hayCosta
+    ? `${d(costa)}L${z[0].toFixed(1)} -40L${a[0].toFixed(1)} -40Z`
+    : '';
 
   /* ---- la malla de lindes ----
      NO sale de los 62 polígonos: dibujarlos uno por uno trazaba cada límite
@@ -184,7 +181,7 @@ export function mapaSVG({ lon, lat, barrio }: Proyecto): string {
      recortado contra la tierra con una máscara ---- */
   const paso = 7;
   let rayado = '';
-  for (let y = 0; y < alto + 40; y += paso) rayado += `M0 ${y}L${ANCHO} ${y}`;
+  if (hayCosta) for (let y = 0; y < alto + 40; y += paso) rayado += `M0 ${y}L${ANCHO} ${y}`;
 
   /* ---- rótulos, con anti-colisión ----
      Van por prioridad y se descarta el que pisa a uno ya puesto. Sin esto, en
@@ -206,7 +203,7 @@ export function mapaSVG({ lon, lat, barrio }: Proyecto): string {
     const h = fs * 1.5;
     const aLaIzquierda = x > ANCHO * 0.72;
     const x0 = aLaIzquierda ? x - w : x;
-    const caja: Caja = { x0: x0 - 2, x1: x0 + w + 2, y0: y - h * 0.8, y1: y + h * 0.3 };
+    const caja: Caja = { x0: x0 - 6, x1: x0 + w + 6, y0: y - h * 0.8, y1: y + h * 0.3 };
     const cabe = caja.x0 > 2 && caja.x1 < ANCHO - 2 && caja.y0 > 2 && caja.y1 < alto - 2;
     if (!forzar && (!libre(caja) || !cabe)) return null;
     puestos.push(caja);
@@ -229,7 +226,9 @@ export function mapaSVG({ lon, lat, barrio }: Proyecto): string {
   /* ---- grafismo: escala y norte, en petróleo como en la axonometría ----
      Se dibujan al final pero reservan su lugar ACÁ: "PUNTA CARRETAS" cae justo
      encima de la barra de escala. */
-  const KM_BARRA = 4;
+  /* La barra toma el número redondo más grande que no pase del 30% del ancho
+     del plano: si el encuadre cambia de escala, la escala gráfica lo sigue. */
+  const KM_BARRA = [5, 4, 3, 2, 1, 0.5].find((km) => km <= pr.anchoKm * 0.3) ?? 1;
   const wBarra = KM_BARRA * pr.pxPorKm;
   const bx = 20;
   const by = alto - 20;
@@ -241,21 +240,52 @@ export function mapaSVG({ lon, lat, barrio }: Proyecto): string {
   });
   puestos.push({ x0: ANCHO - 36, x1: ANCHO - 6, y0: 8, y1: 46 });
 
-  const refs = REFERENCIAS.map((nombre) => {
-    if (nombre === oficial || !barrios[nombre]) return '';
-    /* Tampoco el que ya nombra la cruz: Villa Platero está en Paso de las
-       Duranas según la IM pero el estudio lo llama Prado, así que sin esto el
-       mapa escribía "PRADO" dos veces, en la cruz y en el barrio de al lado. */
-    if ((ROTULO[nombre] ?? nombre).toUpperCase() === foco) return '';
-    const anillo = barrios[nombre]![0]!;
-    const cx = anillo.reduce((s, q) => s + q[0]!, 0) / anillo.length;
-    const cy = anillo.reduce((s, q) => s + q[1]!, 0) / anillo.length;
-    const [x, y] = p([cx, cy]);
-    const t = ROTULO[nombre] ?? nombre;
-    const an = colocar(t, x, y, FS_REF);
-    if (an === null) return '';
-    return `<text class="m-ref" x="${x.toFixed(1)}" y="${y.toFixed(1)}"${an}>${esc(t)}</text>`;
-  }).join('');
+  /* Se rotulan los barrios que ESTÁN en el encuadre, de más cerca a más lejos
+     de la obra. Antes era una lista fija pensada para el plano de toda la
+     ciudad (la península, el Centro, la costa); ahora cada ficha muestra otro
+     pedazo de Montevideo, así que los vecinos los decide la geometría. El
+     orden por cercanía es el que importa: si dos rótulos se pisan, gana el que
+     está más cerca de la obra, que es el que ubica. */
+  const refs = Object.entries(barrios)
+    .map(([nombre, anillos]) => {
+      const anillo = anillos[0]!;
+      const cx = anillo.reduce((acc, q) => acc + q[0]!, 0) / anillo.length;
+      const cy = anillo.reduce((acc, q) => acc + q[1]!, 0) / anillo.length;
+      return { nombre, xy: p([cx, cy]), d2: (cx - lon) ** 2 + (cy - lat) ** 2 };
+    })
+    .filter(({ nombre, xy }) => {
+      if (nombre === oficial) return false;
+      /* Tampoco el que ya nombra la cruz: Villa Platero está en Paso de las
+         Duranas según la IM pero el estudio lo llama Prado, así que sin esto
+         el mapa escribía "PRADO" dos veces, en la cruz y en el vecino. */
+      if ((ROTULO[nombre] ?? nombre).toUpperCase() === foco) return false;
+      return xy[0] > 0 && xy[0] < ANCHO && xy[1] > 0 && xy[1] < alto;
+    })
+    .sort((a, b) => a.d2 - b.d2)
+    .map(({ nombre, xy }) => {
+      const t = ROTULO[nombre] ?? nombre;
+      /* El rótulo se corre hacia adentro si el centroide cae en la franja que
+         la máscara de los bordes funde (un 10% a los costados, un 13% arriba y
+         abajo): ahí saldría a medio borrar. Se corre, no se descarta —un
+         barrio cuyo centro queda cerca del borde igual está en el dibujo—,
+         pero sólo hasta CORRIDA_MAX: más que eso el nombre ya no cae sobre su
+         barrio y miente. En Carrasco esto es la diferencia entre nombrar dos
+         vecinos y nombrar ninguno. */
+      const CORRIDA_MAX = 24;
+      const cx = Math.min(Math.max(xy[0], ANCHO * 0.085), ANCHO * 0.915);
+      const cy = Math.min(Math.max(xy[1], alto * 0.14), alto * 0.86);
+      if (Math.hypot(cx - xy[0], cy - xy[1]) > CORRIDA_MAX) return '';
+      /* Y si aun así choca con otro, se prueba apenas más arriba o más abajo
+         antes de darlo por perdido. */
+      for (const dy of [0, -13, 13, -26, 26]) {
+        const y = Math.min(Math.max(cy + dy, alto * 0.14), alto * 0.86);
+        const an = colocar(t, cx, y, FS_REF);
+        if (an === null) continue;
+        return `<text class="m-ref" x="${cx.toFixed(1)}" y="${y.toFixed(1)}"${an}>${esc(t)}</text>`;
+      }
+      return '';
+    })
+    .join('');
 
   const grad = (id: string, x1: number, y1: number, x2: number, y2: number) =>
     `<linearGradient id="${id}" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}">` +

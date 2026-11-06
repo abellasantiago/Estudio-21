@@ -826,12 +826,16 @@ Orden de la página: **título · (portada | descripción) · ficha técnica · 
 `src/data/mapa/montevideo.json`.
 
 Va **entre la ficha técnica y la galería**, en dos columnas: el plano a la
-izquierda y una cartela a la derecha (eyebrow "Ubicación", la dirección en
-display, barrio · Montevideo, y al pie —bajo un filete— la coordenada en
-grados y el crédito de las fuentes). **No lleva título de sección**: cuelga de
-la ficha, cuya celda "Ubicación" dice el barrio, y el plano es ese dato
-desplegado. Y va **suelto sobre el papel**, sin recuadro ni filete, igual que
-la axonometría de "Quiénes somos".
+izquierda y, centrada contra él, una cartela de tres líneas — eyebrow
+"Ubicación", la dirección en display y `barrio · Montevideo`. **Nada más.**
+Tuvo al pie la coordenada en grados y el crédito de las fuentes y **se
+sacaron** (2026-11-06): eran dos cartelitos de letra chica que ensuciaban la
+ficha. El crédito, que la licencia de OSM sí exige, pasó a una segunda línea
+del **footer del sitio** (`Footer.astro`, `.foot-datos`) — si algún día se saca
+el mapa, esa línea se va con él.
+**No lleva título de sección**: cuelga de la ficha, cuya celda "Ubicación" dice
+el barrio, y el plano es ese dato desplegado. Y va **suelto sobre el papel**,
+sin recuadro ni filete, igual que la axonometría de "Quiénes somos".
 
 - **No es una imagen ni una captura de un servicio de mapas.** Es geometría
   real proyectada y resuelta en el build: la costa es el borde sur del
@@ -845,13 +849,24 @@ la axonometría de "Quiénes somos".
   build en Actions no puede depender de eso. Lo bajado queda en `.cache/mapa/`
   (gitignoreada) y no se vuelve a pedir. El JSON de datos **no viaja al
   navegador**: se consume en el build y lo único que se publica es el SVG.
-- **El encuadre es FIJO**, el mismo en las diez fichas (`ENCUADRE` en
-  `encuadre.ts`): 16,5 km de ancho, centrado para que entren la bahía, la
-  península y Punta Carretas. Con un encuadre por proyecto no se podría
-  comparar una obra con otra. ⚠ **15 km es el piso**: Villa Platero (el más al
-  oeste) y Sushi WOK (el más al este) están a 12,1 km y por debajo de eso uno
-  de los dos se cae del mapa. Si entra un proyecto más al este que Carrasco o
-  más al oeste que el Prado, hay que volver a medirlo.
+- **Cada proyecto tiene SU encuadre, centrado en la obra** (`encuadre.ts`):
+  11 km de ancho, la misma escala en los diez — cambia el centro, no el zoom.
+  Primero fue un encuadre fijo de toda la ciudad, igual en las diez fichas,
+  para poder comparar proyectos; se cambió (2026-11-06) porque en la ficha no
+  se compara nada: se mira una obra. Con el plano de la ciudad entera, un
+  proyecto del norte —Villa Platero, en Millán— quedaba como una cruz chiquita
+  arriba a la izquierda y lo que se leía era Montevideo, no el proyecto.
+  - La obra no va en el centro exacto sino a un **43% del alto** (`SESGO`): el
+    encuadre toma así algo más de ciudad del lado del sur, que es donde está la
+    costa. Sin eso los de La Blanqueada se quedaban a unos cientos de metros
+    de mostrar la rambla.
+  - ⚠ **La contra es real**: a 11 km los proyectos tierra adentro ya no
+    muestran la costa oceánica —están a 6 km de ella y meterla pedía el doble
+    de ancho, justo lo que se sacó—. Se leen por la trama de barrios y de
+    avenidas. Lo que los salva es la **bahía**, que sube bastante al norte:
+    verificado que los diez encuadres tocan agua. `lamina.ts` igual tiene la
+    guarda por si alguna vez entra un proyecto más al norte (sin costa no
+    dibuja ni agua ni relleno de tierra, y no se rompe).
 - **La cruz sale de `coords`** en el frontmatter: las diez direcciones se
   geocodificaron una vez con Nominatim (todas a nivel de número de puerta) y se
   verificaron contra los polígonos de barrio. Sin `coords` la ficha no muestra
@@ -865,14 +880,16 @@ la axonometría de "Quiénes somos".
   barrio pintado **no se rotula** —diría una cosa y la cruz, otra— y tampoco se
   rotula un barrio vecino que se llame igual que la cruz (si no, Villa Platero
   escribía "PRADO" dos veces).
-- **Peso: 34,5 KB de SVG inline, 14,8 KB gzip** sobre una ficha que sin el mapa
-  pesa 12,6 KB gzip. Va **inline y no como archivo aparte** —al revés que la
+- **Peso: ~14 KB gzip de SVG inline** (de 9 en Sushi WOK a 17 en Villa Platero,
+  según cuántos barrios entren) sobre una ficha que sin el mapa pesa 12,6 KB
+  gzip. Va **inline y no como archivo aparte** —al revés que la
   axonometría— porque los números son otros: la axonometría son 27 KB gzip en
   la página que recibe a todo el mundo y en mobile ni se ve; el mapa es la
   mitad, va en una ficha que se abre de a una y en un teléfono se ve igual.
   Inline además lo pinta junto con la página, usa la tipografía y los tokens
-  del sitio y anda sin JS. Para llegar a esos 14,8 KB hay **tres recortes que
-  no se pueden perder** (empezó en 23,4):
+  del sitio y anda sin JS. Para llegar ahí hay **tres recortes que no se pueden
+  perder** (con el encuadre de la ciudad entera, que es el caso más pesado,
+  eran 23,4 KB y quedaron en 14,8):
   - **La malla no se dibuja polígono por polígono.** Dos barrios vecinos
     comparten su límite: trazar los 62 polígonos dibujaba cada línea interior
     dos veces. `lindes` (en el JSON) ya viene deduplicada por segmento y cosida
@@ -888,13 +905,23 @@ la axonometría de "Quiénes somos".
   - Encima va una segunda simplificación en unidades del viewBox, con
     tolerancia por capa (`TOL` en `lamina.ts`): la costa es la línea más
     marcada del plano y la malla una trama de fondo de 0,7 px.
-- **Los rótulos se colocan con anti-colisión** (`colocar`), por orden de
-  prioridad, y el que pisa a uno ya puesto se cae. Sin eso, en la península se
-  superponían CIUDAD VIEJA, CENTRO y BARRIO SUR en una mancha ilegible. La
-  escala y el norte **reservan su lugar de antemano** aunque se dibujen al
-  final: "PUNTA CARRETAS" caía justo encima de la barra de escala. El ancho del
-  texto se calcula a mano (IBM Plex Mono avanza 0,6 em por glifo) porque en el
-  build no hay layout.
+- **Se rotulan los barrios vecinos, de más cerca a más lejos de la obra.** No
+  hay lista fija (la había cuando el encuadre era el de la ciudad entera): cada
+  ficha muestra otro pedazo de Montevideo, así que los vecinos los decide la
+  geometría. Van con **anti-colisión** (`colocar`) y el que pisa a uno ya
+  puesto se cae — por eso el orden por cercanía importa: gana el que ubica.
+  Tres detalles que parecen de más y no lo son:
+  - **El rótulo se corre hacia adentro** si el centroide cae en la franja que
+    la máscara de bordes funde, pero sólo hasta `CORRIDA_MAX` (24 px): más que
+    eso el nombre ya no cae sobre su barrio. En Carrasco, que está en el borde
+    de la ciudad, es la diferencia entre nombrar dos vecinos y ninguno.
+  - **Si choca, se prueba apenas más arriba o más abajo** antes de descartarlo.
+  - **La escala y el norte reservan su lugar de antemano** aunque se dibujen al
+    final: un rótulo caía justo encima de la barra de escala.
+  El ancho del texto se calcula a mano (IBM Plex Mono avanza 0,6 em por glifo)
+  porque en el build no hay layout. La **escala gráfica se adapta**: toma el
+  número redondo más grande que no pase del 30% del ancho del plano, así sigue
+  al encuadre si cambia.
 - En **≤620px** los rótulos de referencia se ocultan y el de la cruz se agranda
   (`mapa.css`): el mapa mide ~350 px y a esa escala 8 px de viewBox caen a 5.
   Como el tamaño va en unidades del viewBox, subirlo desde la CSS lo agranda en
