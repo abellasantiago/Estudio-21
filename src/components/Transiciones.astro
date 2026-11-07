@@ -164,7 +164,12 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
       var aqui = tipoDe(location.href);
       var foto = h && h.foto;
 
-      root.setAttribute('data-vt', aqui.tipo === 'home' ? 'vuelta' : 'ida');
+      // De una ficha a otra por las flechas Anterior / Siguiente, el fundido
+      // además CORRE hacia ese lado (ver transiciones.css). La dirección la
+      // dejó anotada la página que se fue; sin ella —o llegando de cualquier
+      // otro lado— queda el fundido parejo de siempre.
+      var dir = h && (h.dir === 'ant' || h.dir === 'sig') ? h.dir : null;
+      root.setAttribute('data-vt', aqui.tipo === 'home' ? 'vuelta' : dir || 'ida');
 
       if (aqui.tipo === 'proyecto' && foto === aqui.slug) {
         // Si la portada todavía no bajó, la foto de la card (que ya está en la
@@ -347,6 +352,23 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
       let foto: string | null = null;
       let src: string | null = null;
 
+      // Hacia qué lado corre el fundido: lo dicen las flechas Anterior /
+      // Siguiente de la ficha (`data-pn`). Se exige que el link clickeado sea
+      // justamente el que lleva a ESTE destino — con "atrás", o yéndose por
+      // cualquier otro link, no hay dirección y queda el fundido parejo.
+      let dir: 'ant' | 'sig' | null = null;
+      const recienClickeado = linkReciente();
+      const pn = recienClickeado?.dataset.pn;
+      if (
+        (pn === 'ant' || pn === 'sig') &&
+        aqui.tipo === 'proyecto' &&
+        destino?.tipo === 'proyecto' &&
+        recienClickeado &&
+        vt.tipoDe(recienClickeado.href).slug === destino.slug
+      ) {
+        dir = pn;
+      }
+
       if (destino?.tipo === 'proyecto' && destino.slug) {
         // a una ficha: viaja la card o la vista previa; la portada propia (si
         // estamos en otra ficha) no — serían dos fotos distintas fundiéndose
@@ -367,7 +389,7 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
       }
 
       try {
-        sessionStorage.setItem('e21-vt', JSON.stringify({ foto, src, t: Date.now() }));
+        sessionStorage.setItem('e21-vt', JSON.stringify({ foto, src, dir, t: Date.now() }));
       } catch {
         /* sin storage: la página nueva no nombra nada y queda sólo el fundido */
       }

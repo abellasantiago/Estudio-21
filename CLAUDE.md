@@ -72,6 +72,10 @@ Pages queda como preview/staging gratis y no hace falta tocar nada de esto.
   **No hay campo `codigo`** (los viejos `E21·NN`): no se mostraban en ninguna parte
   del sitio y cuatro eran placeholders sin confirmar, así que se sacaron del schema
   y de los `.md`.
+  El **orden editorial** (primero en proceso, después próximamente, al final
+  terminados; por año descendente dentro de cada grupo) vive en
+  `src/lib/proyectos.ts` y lo comparten el cilindro de la home y las flechas
+  Anterior / Siguiente de la ficha — tienen que recorrer el mismo anillo.
   Cada proyecto lleva además **`direccion`** (calle y número) y **`coords`**
   (`[lon, lat]`), que son lo que ubica la cruz del mapa de situación de la ficha
   — ver "Mapa de situación". Las diez coordenadas se geocodificaron una vez a
@@ -960,14 +964,63 @@ sin recuadro ni filete, igual que la axonometría de "Quiénes somos".
   pantalla sin tocar el SVG; y al no quedar rótulos chicos no hay con qué
   chocar (el anti-colisión se resolvió en el build, a 8 px).
 
-**La ficha termina en la galería, y así queda** (decisión del 2026-11-04). No
-lleva **ningún botón ni texto de cierre**: ni CTA de consulta, ni línea de
-contexto, ni "siguiente proyecto". Se probó un bloque de cierre con una línea
-propia de cada proyecto y botones de WhatsApp/mail, y se descartó: la ficha
-muestra la obra y nada más. El único link de la página sigue siendo "Volver a
-proyectos", y de ahí el recorrido se retoma en el cilindro de la home. El canal
-de contacto en esta página es el botón flotante de WhatsApp, que ya está en
-todo el sitio.
+**La ficha no lleva bloque de cierre** (decisión del 2026-11-04): ni CTA de
+consulta, ni línea de contexto, ni una frase de remate por proyecto. Se probó
+un cierre con una línea propia de cada obra y botones de WhatsApp/mail, y se
+descartó: la ficha muestra la obra y nada más. El canal de contacto en esta
+página sigue siendo el botón flotante de WhatsApp, que ya está en todo el
+sitio. Lo único que se sumó después del contenido es **navegación**, no venta:
+las flechas Anterior / Siguiente (2026-11-06, ver abajo).
+
+### Anterior / Siguiente
+`src/styles/proyecto-nav.css` + el `<nav class="proj-nav">` al pie de
+`ProjectLayout`. Deja pasar de una obra a la otra sin volver a la home.
+
+- **El recorrido es el del cilindro**, y sale de un solo lugar
+  (`src/lib/proyectos.ts`: `ordenEditorial` / `vecinos`), que es de donde lo
+  toma también `ProyectosHelicoidal`. Si cada uno lo calculara por su lado,
+  "Siguiente" podría llevar a un proyecto distinto del que viene después en la
+  home. Va **en ciclo**: después del último está el primero, igual que el
+  cilindro, que es un anillo. Así ninguna ficha queda con una sola flecha.
+- **Dos presentaciones del mismo markup**, según el lugar que haya:
+  - **Pastilla** (≥1000px de ancho, con mouse de verdad): un cuadrado de
+    58×58 pegado al borde de la ventana, a media altura, con la flecha sola.
+    Al acercar el mouse **se abre hacia adentro** y aparece el nombre del
+    proyecto. Es un control FLOTANTE, como el botón de WhatsApp: no vive en
+    la retícula, así que puede apoyarse sobre la página y no necesita que el
+    margen de `.wrap` le dé lugar. Por eso su piso no es geométrico como los
+    demás del sitio: pide `hover: hover` y `pointer: fine` —sin mouse no hay
+    forma de leer el nombre antes de hacer click— y 1000px para que el panel
+    abierto (~280px) no se coma media pantalla.
+  - **Banda al pie** en todo lo demás (touch, ventanas angostas), con el
+    tratamiento de la ficha técnica: filete `--ink` arriba, hairline entre
+    las dos celdas, la primera sin sangría. En ≤600px la flecha pasa arriba
+    del nombre.
+- **Cómo se abre la pastilla, que es casi todo el efecto** (`proyecto-nav.css`):
+  - El ancho se anima con **`grid-template-columns: 0fr → 1fr`**, no con un
+    `max-width`. Así crece hasta el ancho REAL del nombre: con un número fijo,
+    un proyecto de nombre corto terminaba de abrir a mitad de la animación y
+    el resto del tiempo era tramo muerto, que es exactamente lo que hace que
+    un movimiento se sienta barato.
+  - ⚠ El aire del panel va en los **renglones**, no en `.pn-texto`.
+    `min-width: 0` deja que el ítem del grid baje de su contenido, pero el
+    padding del ítem no entra en esa cuenta: con el padding en `.pn-texto` la
+    pastilla cerrada medía 83px en vez de 60 y asomaba una franja vacía.
+  - **Cerrar es más rápido que abrir** (las duraciones largas van en el estado
+    `:hover`): con la misma curva lenta, el panel se siente pegajoso y parece
+    perseguir al mouse.
+  - El texto entra **escalonado y desde atrás del mango** (la etiqueta a los
+    120 ms, el nombre a los 190), y la **cola de la flecha se estira** de 0,4
+    a 1 — el mismo gesto que el panel, en chico. `transform-box: fill-box`
+    para que el origen sea el extremo del trazo; escalar en X no engorda una
+    línea horizontal, así que el grosor no cambia.
+  - La **sombra se abre hacia adentro y casi no cae**: el panel se desplaza en
+    horizontal, y una sombra con mucho desplazamiento vertical lo deja
+    flotando como un globo en vez de deslizándose.
+  - Abre también con **`:focus-visible`**, así que se recorre con el teclado.
+- Con el visor de la galería abierto las pastillas se apagan solas
+  (`body:has(.lbox:not([hidden]))`). Donde no haya `:has()` quedan detrás del
+  velo, que ya las tapa: no se rompe nada.
 
 ## Transiciones entre páginas
 
@@ -982,6 +1035,32 @@ como siempre y no se pierde nada.
   usan el mismo gesto, activado con `data-vt` en `<html>` al llegar (`pagereveal`).
   La foto viaja por separado y se asienta en **0,85 s**. El telón del preloader
   de la primera carga de la home conserva su animación propia.
+- **De una ficha a su vecina (las flechas Anterior / Siguiente) se DESLIZA la
+  pantalla entera**, no hay fundido: la ficha que se va sale por un costado y
+  la que llega entra desde el otro, pegadas, en **0,75 s**. "Siguiente" se va
+  hacia la izquierda y trae la nueva desde la derecha; "Anterior", al revés.
+  El navbar y el botón de WhatsApp tienen nombre propio, así que **no viajan**:
+  la página corre por debajo y ellos quedan quietos, que es lo que lo hace
+  leer como un cambio de pantalla y no como una recarga.
+  Cuatro cosas de la CSS que parecen detalle y no lo son:
+  - **`mix-blend-mode: normal`**, pisando el `plus-lighter` del fundido parejo.
+    Ése existe para que dos capas que se funden sumen 1; acá las capas no se
+    funden, se tapan — con plus-lighter el borde donde se tocan se prendía
+    fuego.
+  - **Las dos se mueven el 100% exacto y nada se escala.** Van pegadas como dos
+    baldosas: cualquier escala, por chica que sea, abre una ranura de papel en
+    la junta (a 1440px, once píxeles de costura a la vista). La profundidad
+    sale de apagar apenas la que se va y de la sombra, no de un zoom.
+  - **La sombra va en el borde de ataque de la que llega**: es lo que la hace
+    leer como una hoja que entra POR ENCIMA.
+  - Las reglas direccionales tienen **la misma especificidad** que las del
+    fundido parejo, así que tienen que ir DESPUÉS en el archivo.
+  La dirección la anota el link (`data-pn="ant"|"sig"`), la guarda `pageswap`
+  junto con la foto y la lee `pagereveal`, que en vez de `data-vt="ida"` pone
+  `data-vt="sig"` / `"ant"`. Sin ese dato —"atrás", o cualquier otro link—
+  queda el fundido parejo de siempre. Entre dos fichas **no viaja ninguna
+  foto**: son portadas distintas y fundir una con otra queda mal
+  (`vt-sin-portada`).
 - **La foto que viaja** (`proj-foto`): de la card del helicoidal —o de la vista
   previa del menú— a la portada de la ficha, y de vuelta a su card. El CSS no puede
   saber CUÁL foto viaja: la de origen la nombra la página que se va (`pageswap`) y
@@ -1102,11 +1181,17 @@ de ancho (y en alturas de 390 a 1440), en la home y en la ficha de proyecto.
 - **760px** → navbar horizontal ⇄ menú hamburguesa (`header.css`), y piso de ancho
   del cilindro helicoidal. Es el mismo número por casualidad: el del navbar sale del
   ancho del wordmark + los 5 links, el del cilindro del radio de las cards.
-- **620px de ALTO** → piso del cilindro. El único corte del sitio que mira la altura
-  además de las reglas de card chica del helicoidal (`max-height` 820/660).
-  (Ojo: hay otro **620px, pero de ANCHO**, en `mapa.css` — ahí el mapa de la
-  ficha oculta los rótulos de referencia y agranda el de la cruz. Son dos
-  cortes distintos que comparten número por casualidad.)
+- **620px de ALTO** → piso del cilindro. (Ojo: hay otro **620px, pero de ANCHO**,
+  en `mapa.css` — ahí el mapa de la ficha oculta los rótulos de referencia y
+  agranda el de la cruz. Y un tercero, de ALTO otra vez, en `proyecto-nav.css`.
+  Comparten número por casualidad.)
+- **1000px + `hover: hover` + `pointer: fine`** → las flechas Anterior /
+  Siguiente pasan de banda al pie a pastilla flotante en los bordes
+  (`proyecto-nav.css`). Es el único corte del sitio que **no** es geométrico:
+  la pastilla flota sobre la página (como el WhatsApp), así que no necesita
+  entrar en ningún margen. Lo que pide es mouse —sin hover no hay manera de
+  leer el nombre antes de hacer click— y pantalla suficiente para que el
+  panel abierto no tape media ficha.
 
 **Cosas que ya se rompieron una vez y no hay que volver a romper:**
 - **El "Estudio 21" del hero no da la vuelta entera, y sólo se mueve en ≥900px.**
@@ -1161,6 +1246,13 @@ fantasmas "21" sangran a propósito; verificado que no se pueda scrollear en x d
 
 ## Notas técnicas / convenciones
 
+- **Un link interno sin la barra final NO transiciona.** Todos los links a una
+  ficha se escriben `` `${base}/proyectos/${slug}/` ``, con barra. Sin ella el
+  servidor (y GitHub Pages) responde un **redirect** a la versión con barra, y
+  Chrome **descarta la view transition en una navegación redirigida**: el
+  fundido no corre y la página aparece de golpe. El síntoma engaña, porque la
+  página que se va SÍ arranca su transición (`pageswap` tiene `viewTransition`)
+  y la que llega no (`pagereveal` lo recibe en `null`).
 - **`window.scrollTo` instantáneo:** el `<html>` tiene `scroll-behavior: smooth`, y
   `behavior:'auto'` **respeta** ese valor (anima). Para saltos secos (p.ej. rebobinar el
   helicoidal al filtrar) usar **`behavior:'instant'`**, no `'auto'`.
@@ -1196,6 +1288,13 @@ fantasmas "21" sangran a propósito; verificado que no se pueda scrollear en x d
   peso del artefacto de deploy, no del visitante— y es el precio de esa comodidad.
 
 ## Verificar menú y navegación
+
+⚠ **Las transiciones entre páginas NO se pueden probar en `npm run dev`**: en
+dev, Astro inyecta la CSS de los componentes con JS después de parsear, así que
+el `@view-transition` todavía no está cuando el navegador decide si corre la
+transición. Hay que mirarlas siempre sobre `npm run build` + `npm run preview`.
+(Y el navegador embebido de algunos editores las saltea aun así — para verlas
+de verdad, un Chrome común.)
 
 Al tocar `Header` o las transiciones, probar también en `npm run build` +
 `npm run preview`: abrir estado → proyecto → vista previa, salir y volver a pasar

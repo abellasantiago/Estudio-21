@@ -1,13 +1,15 @@
 ---
 import { Picture, getImage } from 'astro:assets';
 import type { CollectionEntry } from 'astro:content';
-import { render } from 'astro:content';
+import { getCollection, render } from 'astro:content';
 import BaseLayout from './BaseLayout.astro';
 import Galeria from '../components/Galeria.astro';
 import Mapa from '../components/Mapa.astro';
 import { getPortada, getGaleria } from '../lib/images';
+import { vecinos } from '../lib/proyectos';
 import { site } from '../data/site';
 import '../styles/project-page.css';
+import '../styles/proyecto-nav.css';
 
 interface Props {
   proyecto: CollectionEntry<'proyectos'>;
@@ -71,6 +73,14 @@ const jsonLd = {
 };
 
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+
+/*
+ * Los dos vecinos de esta ficha en el recorrido del cilindro de la home
+ * (lib/proyectos.ts), en ciclo: así cada ficha tiene sus dos flechas y el
+ * recorrido no se corta en las puntas. El orden sale de ahí justamente para
+ * que "Siguiente" lleve al mismo proyecto que vendría después en la home.
+ */
+const { anterior, siguiente } = vecinos(await getCollection('proyectos'), slug);
 
 /*
  * Ancho REAL que el navegador tiene que rasterizar de la portada.
@@ -201,6 +211,64 @@ const ficha = [
       )}
 
       <Galeria fotos={galeria} nombre={nombre} slug={slug} />
+
+      {/* Pasar de una ficha a la otra sin volver a la home. En pantallas
+          anchas son dos tiras fijas en los márgenes; en el resto, una banda
+          al pie (ver proyecto-nav.css). `data-pn` es lo único que mira
+          Transiciones.astro para saber hacia qué lado corre el fundido. */}
+      {anterior && siguiente && (
+        <nav class="proj-nav" aria-label="Otros proyectos">
+          <a
+            class="pn pn--ant"
+            href={`${base}/proyectos/${anterior.slug}/`}
+            data-pn="ant"
+            aria-label={`Proyecto anterior: ${anterior.nombre}`}>
+            <span class="pn-flecha" aria-hidden="true">
+              <svg
+                viewBox="0 0 34 10"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1"
+                stroke-linecap="round"
+                stroke-linejoin="round">
+                <path class="pn-cola" d="M3 5h30" />
+                <path class="pn-punta" d="M8 1 3 5l5 4" />
+              </svg>
+            </span>
+            <span class="pn-info">
+              <span class="pn-texto">
+                <span class="pn-rol">Anterior</span>
+                <span class="pn-nombre">{anterior.nombre}</span>
+              </span>
+            </span>
+          </a>
+
+          <a
+            class="pn pn--sig"
+            href={`${base}/proyectos/${siguiente.slug}/`}
+            data-pn="sig"
+            aria-label={`Proyecto siguiente: ${siguiente.nombre}`}>
+            <span class="pn-flecha" aria-hidden="true">
+              <svg
+                viewBox="0 0 34 10"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1"
+                stroke-linecap="round"
+                stroke-linejoin="round">
+                <path class="pn-cola" d="M1 5h30" />
+                <path class="pn-punta" d="M26 1l5 4-5 4" />
+              </svg>
+            </span>
+            <span class="pn-info">
+              <span class="pn-texto">
+                <span class="pn-rol">Siguiente</span>
+                <span class="pn-nombre">{siguiente.nombre}</span>
+              </span>
+            </span>
+          </a>
+        </nav>
+      )}
     </div>
   </article>
 </BaseLayout>

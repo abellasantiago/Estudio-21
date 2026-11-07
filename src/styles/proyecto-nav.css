@@ -1,0 +1,402 @@
+/* ============================================================
+   ANTERIOR / SIGUIENTE — pasar de una ficha a otra sin volver a la home
+   ------------------------------------------------------------
+   Un solo markup, dos presentaciones:
+
+   · **Pastilla** donde hay mouse y pantalla (ver la media query de abajo):
+     un cuadrado pegado al borde de la ventana con la flecha sola. Al
+     acercar el mouse se abre hacia adentro y muestra el nombre del
+     proyecto. Es un control FLOTANTE, como el botón de WhatsApp: no vive
+     en la retícula de la página y por eso puede apoyarse sobre ella.
+   · **Banda al pie** en todo lo demás (touch, ventanas angostas), con el
+     tratamiento de la ficha técnica: filete `--ink` arriba, hairline
+     entre las dos celdas y la primera sin sangría.
+
+   Este archivo va al revés que el resto del sitio (mobile-first): la banda
+   es el caso general y la pastilla la excepción, así la condición de la
+   pastilla se lee de una sola vez.
+
+   No usa `.btn`: no es una acción, es navegación — el mismo lenguaje que
+   `.back-link` (mono, flecha, sin recuadro).
+   ============================================================ */
+
+/* ---------- banda al pie ---------- */
+.proj-nav {
+  margin-top: clamp(2.6rem, 5.5vw, 4.25rem);
+  border-top: 1px solid var(--ink);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+
+.pn {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.4rem 1.2rem 1.5rem;
+  text-decoration: none;
+  transition: color 0.25s ease;
+}
+/* la primera celda sin sangría, para que caiga sobre la misma línea que el
+   título, la portada y los filetes — igual que `.ficha .cell:first-child` */
+.pn--ant {
+  padding-left: 0;
+}
+.pn--sig {
+  border-left: 1px solid var(--line);
+  /* row-reverse: la flecha queda del lado de afuera y el bloque se apoya
+     contra el borde derecho (en row-reverse, flex-start ES la derecha) */
+  flex-direction: row-reverse;
+  justify-content: flex-start;
+  text-align: right;
+  padding-right: 0;
+}
+
+.pn-flecha {
+  position: relative;
+  flex: none;
+  line-height: 0;
+  color: var(--concrete);
+  transition: color 0.25s ease;
+}
+.pn-flecha svg {
+  display: block;
+  width: 34px;
+  height: 10px;
+}
+
+/* `.pn-info` existe sólo para la pastilla (es la caja que crece). En la banda
+   se borra y el que manda es `.pn-texto`. */
+.pn-info {
+  display: contents;
+}
+.pn-texto {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: 0;
+}
+.pn--sig .pn-texto {
+  align-items: flex-end;
+}
+.pn-rol {
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--concrete);
+  transition: color 0.25s ease;
+}
+.pn-nombre {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: clamp(1.15rem, 2.2vw, 1.6rem);
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+  color: var(--ink-soft);
+  transition: color 0.25s ease;
+}
+
+.pn:focus-visible {
+  outline: 2px solid var(--petrol);
+  outline-offset: 4px;
+}
+
+/* ---------- pastilla ----------
+   El piso NO es geométrico como los del resto del sitio: la pastilla es un
+   control flotante (igual que el botón de WhatsApp), así que no necesita
+   entrar en el margen de `.wrap` — puede apoyarse sobre la página. Lo que
+   decide es otra cosa: que haya mouse de verdad (sin hover no hay manera de
+   leer el nombre antes de hacer click) y que el panel abierto —unos 340px—
+   no se coma media pantalla. */
+@media (min-width: 1000px) and (hover: hover) and (pointer: fine) {
+  :root {
+    /* salida larga: arranca decidida y se asienta sola. De esta curva
+       depende que el gesto se sienta caro y no mecánico. */
+    --pn-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .proj-nav {
+    /* las dos pastillas son `fixed`: el <nav> ya no ocupa lugar en el flujo */
+    display: block;
+    margin: 0;
+    border-top: 0;
+  }
+
+  .pn {
+    position: fixed;
+    top: 50%;
+    transform: translateY(-50%);
+    /* por debajo del header (60), del WhatsApp (70) y del visor (120) */
+    z-index: 50;
+    height: 58px;
+    padding: 0;
+    gap: 0;
+    align-items: stretch;
+    border: 1px solid var(--line);
+    /* plano primero: sin `color-mix` la declaración entera se descarta y el
+       panel quedaría transparente encima del texto */
+    background: var(--paper-2);
+    background: color-mix(in srgb, var(--paper-2) 86%, transparent);
+    -webkit-backdrop-filter: blur(14px) saturate(1.3);
+    backdrop-filter: blur(14px) saturate(1.3);
+    color: var(--concrete);
+    box-shadow: 0 1px 3px rgba(26, 25, 22, 0.05);
+    /* CERRAR es más rápido que abrir (las duraciones largas van en el estado
+       abierto): cerrando con la misma curva lenta, el panel se siente
+       pegajoso y parece perseguir al mouse. */
+    transition:
+      border-color 0.3s ease,
+      color 0.3s ease,
+      background-color 0.3s ease,
+      box-shadow 0.35s ease,
+      opacity 0.3s ease;
+  }
+  .pn--ant {
+    left: 0;
+    border-left: 0;
+    border-radius: 0 2px 2px 0;
+    padding-left: 0;
+  }
+  .pn--sig {
+    right: 0;
+    border-right: 0;
+    border-radius: 2px 0 0 2px;
+    padding-right: 0;
+    flex-direction: row-reverse;
+  }
+
+  /* el mango: lo único que se ve en reposo, y mide siempre lo mismo */
+  .pn-flecha {
+    width: 58px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  /* filete que separa el mango del panel; entra cuando el panel ya abrió */
+  .pn-flecha::after {
+    content: '';
+    position: absolute;
+    top: 14px;
+    bottom: 14px;
+    width: 1px;
+    background: var(--line);
+    opacity: 0;
+    transition: opacity 0.25s ease;
+  }
+  .pn--ant .pn-flecha::after {
+    right: 0;
+  }
+  .pn--sig .pn-flecha::after {
+    left: 0;
+  }
+
+  /* La cola de la flecha arranca corta y se estira al abrir: el mismo gesto
+     que hace el panel, pero en chico. `fill-box` para que el origen sea el
+     extremo del trazo y no la esquina del viewBox; escalar en X no engorda
+     una línea horizontal, así que el grosor no cambia. */
+  .pn-cola {
+    transform-box: fill-box;
+    transform: scaleX(0.4);
+    transition: transform 0.4s var(--pn-ease);
+  }
+  .pn--ant .pn-cola {
+    transform-origin: left center;
+  }
+  .pn--sig .pn-cola {
+    transform-origin: right center;
+  }
+
+  /* 0fr → 1fr: la caja crece hasta el ancho REAL del nombre, sin medirlo con
+     JS ni clavar un número que le quede mal a un proyecto de nombre corto.
+     Con un `max-width` fijo el panel terminaba de abrir antes de tiempo y el
+     easing se perdía en el tramo muerto. El hijo necesita `min-width: 0`
+     para poder achicarse por debajo de su contenido. */
+  .pn-info {
+    display: grid;
+    grid-template-columns: 0fr;
+    align-items: center;
+    transition: grid-template-columns 0.4s var(--pn-ease);
+  }
+  .pn-texto {
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    gap: 0.3rem;
+  }
+  /* ⚠ El aire del panel va en los RENGLONES, no en `.pn-texto`. `min-width: 0`
+     deja que el ítem del grid se achique por debajo de su contenido, pero el
+     padding del ítem NO entra en esa cuenta: con el padding en `.pn-texto`, la
+     pastilla cerrada medía 83px en vez de 60 y asomaba una franja vacía al
+     lado del mango. Adentro de los renglones queda recortado por el
+     `overflow: hidden` y no ocupa nada en reposo. */
+  .pn--sig .pn-texto {
+    align-items: flex-end;
+  }
+  .pn--ant :is(.pn-rol, .pn-nombre) {
+    padding-left: 1.25rem;
+    padding-right: 1.6rem;
+  }
+  .pn--sig :is(.pn-rol, .pn-nombre) {
+    padding-left: 1.6rem;
+    padding-right: 1.25rem;
+  }
+  .pn-rol,
+  .pn-nombre {
+    opacity: 0;
+    transition:
+      opacity 0.25s ease,
+      transform 0.3s var(--pn-ease),
+      color 0.3s ease;
+  }
+  /* el texto sale de atrás del mango, no aparece y ya */
+  .pn--ant :is(.pn-rol, .pn-nombre) {
+    transform: translateX(-12px);
+  }
+  .pn--sig :is(.pn-rol, .pn-nombre) {
+    transform: translateX(12px);
+  }
+  .pn-rol {
+    font-size: 0.6rem;
+    letter-spacing: 0.15em;
+    color: var(--concrete-soft);
+  }
+  .pn-nombre {
+    font-size: 1.05rem;
+    line-height: 1;
+  }
+
+  /* ---------- abierta ---------- */
+  .pn:is(:hover, :focus-visible) {
+    border-color: var(--ink);
+    color: var(--ink);
+    background: var(--paper-2);
+    background: color-mix(in srgb, var(--paper-2) 97%, transparent);
+    transition-duration: 0.45s;
+  }
+  /* La sombra se abre HACIA ADENTRO, del lado por el que crece el panel, y
+     casi no cae: el panel se desplaza en horizontal, así que una sombra con
+     mucho desplazamiento vertical lo deja flotando como un globo en vez de
+     deslizándose. */
+  .pn--ant:is(:hover, :focus-visible) {
+    box-shadow:
+      26px 12px 48px -22px rgba(26, 25, 22, 0.34),
+      0 2px 8px -3px rgba(26, 25, 22, 0.08);
+  }
+  .pn--sig:is(:hover, :focus-visible) {
+    box-shadow:
+      -26px 12px 48px -22px rgba(26, 25, 22, 0.34),
+      0 2px 8px -3px rgba(26, 25, 22, 0.08);
+  }
+  .pn:is(:hover, :focus-visible) .pn-info {
+    grid-template-columns: 1fr;
+    transition-duration: 0.62s;
+  }
+  .pn:is(:hover, :focus-visible) .pn-cola {
+    transform: scaleX(1);
+    transition-duration: 0.55s;
+  }
+  .pn:is(:hover, :focus-visible) .pn-flecha::after {
+    opacity: 1;
+    transition-delay: 0.14s;
+  }
+  /* El texto entra DESPUÉS de que la caja empezó a abrirse, y el nombre
+     detrás de su etiqueta: ese escalonado de 70 ms es casi todo el efecto.
+     Sin él, el nombre aparece a medio camino y se lee como un salto. */
+  .pn:is(:hover, :focus-visible) :is(.pn-rol, .pn-nombre) {
+    opacity: 1;
+    transform: translateX(0);
+    transition-duration: 0.4s, 0.5s, 0.3s;
+  }
+  .pn:is(:hover, :focus-visible) .pn-rol {
+    transition-delay: 0.12s;
+  }
+  .pn:is(:hover, :focus-visible) .pn-nombre {
+    transition-delay: 0.19s;
+    color: var(--ink);
+  }
+
+  /* Con el visor de la galería abierto las pastillas sobran (y quedarían
+     detrás del velo): se apagan solas. Donde no haya `:has()` quedan
+     atenuadas por el velo, que ya las tapa — no se rompe nada. */
+  body:has(.lbox:not([hidden])) .pn {
+    opacity: 0;
+    pointer-events: none;
+  }
+}
+
+/* ---------- hover de la BANDA ----------
+   La pastilla tiene su propio gesto (el trazo que se estira); acá la flecha
+   se corre entera, igual que `.btn-arrow`. Por eso el corrimiento se excluye
+   del tramo donde vive la pastilla. */
+@media (hover: hover) {
+  .pn-flecha svg {
+    transition: transform 0.35s cubic-bezier(0.2, 0.7, 0.3, 1);
+  }
+  .pn:hover .pn-flecha {
+    color: var(--ink);
+  }
+  .pn:hover .pn-rol {
+    color: var(--ink-soft);
+  }
+  .pn:hover .pn-nombre {
+    color: var(--ink);
+  }
+}
+@media (hover: hover) and (max-width: 999.98px) {
+  .pn--ant:hover .pn-flecha svg {
+    transform: translateX(-5px);
+  }
+  .pn--sig:hover .pn-flecha svg {
+    transform: translateX(5px);
+  }
+}
+@media (hover: hover) and (pointer: coarse) {
+  .pn--ant:hover .pn-flecha svg {
+    transform: translateX(-5px);
+  }
+  .pn--sig:hover .pn-flecha svg {
+    transform: translateX(5px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pn,
+  .pn-flecha,
+  .pn-flecha svg,
+  .pn-flecha::after,
+  .pn-info,
+  .pn-cola,
+  .pn-rol,
+  .pn-nombre {
+    transition-duration: 0.01ms;
+    transition-delay: 0ms;
+  }
+  .pn--ant:hover .pn-flecha svg,
+  .pn--sig:hover .pn-flecha svg {
+    transform: none;
+  }
+}
+
+/* ---------- una columna angosta: la flecha arriba del nombre ---------- */
+@media (max-width: 600px) {
+  .pn {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 1.1rem 0.9rem 1.2rem;
+  }
+  .pn--ant {
+    padding-left: 0;
+  }
+  .pn--sig {
+    flex-direction: column;
+    align-items: flex-end;
+    padding-right: 0;
+  }
+  .pn-nombre {
+    font-size: 1.05rem;
+  }
+  .pn-texto {
+    gap: 0.4rem;
+  }
+}

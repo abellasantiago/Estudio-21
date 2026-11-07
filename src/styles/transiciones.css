@@ -33,6 +33,11 @@
   --vt-pagina-dur: 0.65s;
   /* La foto acompaña el fundido y termina de asentarse después. */
   --vt-foto: cubic-bezier(0.5, 0, 0.1, 1);
+  /* De una ficha a su vecina: la pantalla entera se desliza. */
+  --vt-desliz-dur: 0.75s;
+  --vt-desliz-ease: cubic-bezier(0.5, 0, 0.1, 1);
+  /* cuánto se apaga la que se va mientras sale (sin llegar a ser un fundido) */
+  --vt-desliz-fondo: 0.7;
 }
 
 #header {
@@ -79,6 +84,95 @@ html[data-vt]::view-transition-new(root) {
   }
   to {
     opacity: 0;
+  }
+}
+
+/* ---------- de una ficha a su vecina: se DESLIZA la pantalla ----------
+   Con las flechas Anterior / Siguiente no hay fundido: la ficha que se va sale
+   entera por un costado y la que llega entra desde el otro, como pasar de
+   pantalla. "Siguiente" se va hacia la izquierda y trae la nueva desde la
+   derecha; "Anterior", al revés.
+
+   El navbar y el botón de WhatsApp tienen nombre propio, así que NO viajan: la
+   página corre por debajo de ellos y quedan quietos, como la barra de una app.
+   Eso es lo que hace que se lea como un cambio de pantalla y no como una
+   recarga.
+
+   Tres cosas que parecen detalle y no lo son:
+   · **`mix-blend-mode: normal`**, pisando el `plus-lighter` de las reglas de
+     arriba. Ése existe para que dos capas que se funden sumen 1 y el papel no
+     se blanquee en el medio; acá las capas no se funden, se TAPAN — con
+     plus-lighter, el borde donde se tocan se prendía fuego.
+   · **Las dos se mueven el 100% exacto y nada se escala.** Van pegadas como
+     dos baldosas: cualquier escala (por chica que sea) abre una ranura de
+     papel en la junta, que a 1440px son once píxeles de costura a la vista.
+     La profundidad se consigue apagando apenas la que se va (`--vt-desliz-fondo`)
+     y con la sombra de abajo, no con un zoom.
+   · **La sombra va en el borde de ataque de la que llega**, que es lo que la
+     hace leer como una hoja que entra POR ENCIMA y no como dos imágenes
+     corriéndose juntas.
+
+   ⚠ Misma especificidad que las reglas del fundido parejo (`html[data-vt]` y
+   `html[data-vt='sig']` cuentan los dos como un atributo): lo que decide es el
+   ORDEN, así que estas tienen que ir DESPUÉS. */
+html[data-vt='ant']::view-transition-old(root),
+html[data-vt='ant']::view-transition-new(root),
+html[data-vt='sig']::view-transition-old(root),
+html[data-vt='sig']::view-transition-new(root) {
+  animation-duration: var(--vt-desliz-dur);
+  animation-timing-function: var(--vt-desliz-ease);
+  animation-fill-mode: both;
+  mix-blend-mode: normal;
+}
+html[data-vt='sig']::view-transition-old(root) {
+  animation-name: vt-desliz-sale-izq;
+}
+html[data-vt='sig']::view-transition-new(root) {
+  animation-name: vt-desliz-entra-der;
+  box-shadow: -34px 0 80px -12px rgba(26, 25, 22, 0.22);
+}
+html[data-vt='ant']::view-transition-old(root) {
+  animation-name: vt-desliz-sale-der;
+}
+html[data-vt='ant']::view-transition-new(root) {
+  animation-name: vt-desliz-entra-izq;
+  box-shadow: 34px 0 80px -12px rgba(26, 25, 22, 0.22);
+}
+
+@keyframes vt-desliz-sale-izq {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(-100%);
+    opacity: var(--vt-desliz-fondo);
+  }
+}
+@keyframes vt-desliz-sale-der {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(100%);
+    opacity: var(--vt-desliz-fondo);
+  }
+}
+@keyframes vt-desliz-entra-der {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+@keyframes vt-desliz-entra-izq {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
   }
 }
 
