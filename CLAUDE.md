@@ -984,7 +984,10 @@ las flechas Anterior / Siguiente (2026-11-06, ver abajo).
   cilindro, que es un anillo. Así ninguna ficha queda con una sola flecha.
 - **Dos presentaciones del mismo markup**, según el lugar que haya:
   - **Pastilla** (≥1000px de ancho, con mouse de verdad): un cuadrado de
-    58×58 pegado al borde de la ventana, a media altura, con la flecha sola.
+    58×58 a media altura con la flecha sola, **apenas separado** del borde
+    de la ventana (`--pn-sep`, de 10 a 16px): despegada se lee como una
+    pieza apoyada sobre la página —con sus cuatro lados y su sombra— y no
+    como algo que se salió por el costado.
     Al acercar el mouse **se abre hacia adentro** y aparece el nombre del
     proyecto. Es un control FLOTANTE, como el botón de WhatsApp: no vive en
     la retícula, así que puede apoyarse sobre la página y no necesita que el

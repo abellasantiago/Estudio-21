@@ -4,7 +4,8 @@
    Un solo markup, dos presentaciones:
 
    · **Pastilla** donde hay mouse y pantalla (ver la media query de abajo):
-     un cuadrado pegado al borde de la ventana con la flecha sola. Al
+     un cuadrado apenas separado del borde de la ventana, con la flecha
+     sola. Al
      acercar el mouse se abre hacia adentro y muestra el nombre del
      proyecto. Es un control FLOTANTE, como el botón de WhatsApp: no vive
      en la retícula de la página y por eso puede apoyarse sobre ella.
@@ -113,6 +114,11 @@
     /* salida larga: arranca decidida y se asienta sola. De esta curva
        depende que el gesto se sienta caro y no mecánico. */
     --pn-ease: cubic-bezier(0.22, 1, 0.36, 1);
+    /* Separación del borde de la ventana. No va pegada: despegada se lee
+       como una pieza apoyada sobre la página —con sus cuatro lados y su
+       sombra— y no como algo que se salió por el costado. Es poca a
+       propósito: tiene que seguir leyéndose como un control del margen. */
+    --pn-sep: clamp(10px, 1vw, 16px);
   }
 
   .proj-nav {
@@ -151,16 +157,15 @@
       box-shadow 0.35s ease,
       opacity 0.3s ease;
   }
+  /* despegadas del borde: filete en los cuatro lados y esquinas parejas */
   .pn--ant {
-    left: 0;
-    border-left: 0;
-    border-radius: 0 2px 2px 0;
+    left: var(--pn-sep);
+    border-radius: 2px;
     padding-left: 0;
   }
   .pn--sig {
-    right: 0;
-    border-right: 0;
-    border-radius: 2px 0 0 2px;
+    right: var(--pn-sep);
+    border-radius: 2px;
     padding-right: 0;
     flex-direction: row-reverse;
   }
