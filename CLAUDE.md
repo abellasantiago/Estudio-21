@@ -728,11 +728,13 @@ dibujo se edita el modelo, no un SVG.
   escritas. El prefijo `F01`–`F04` que hubo antes **no vuelve**: era un código
   interno que no le decía nada a quien lo lee; un 1, 2, 3, 4 sí, porque son
   pasos en orden.
-  El numerito (`.pf-n`) va en la **display y en tinta**, no en la mono
-  petróleo del resto de la etiqueta —es la única cifra de la banda y tiene que
-  leerse como cifra—, y lleva **`line-height: 1`**: sin eso el renglón crece
-  8px y empuja hacia abajo el título de las cuatro fases. Va inline, no flex,
-  para que la línea de base caiga sola sobre la del mono.
+  El numerito (`.pf-n`) va en la **display**, no en la mono petróleo del resto
+  de la etiqueta —es la única cifra de la banda y tiene que leerse como cifra—,
+  pero **acompaña a su etiqueta en vez de competir con ella**: `--ink-soft`
+  (no `--ink`, que al lado del petróleo se leía como un número en negrita) y
+  0,95rem, apenas por encima de los 12px del mono. Lleva **`line-height: 1`**:
+  sin eso el renglón crece y empuja hacia abajo el título de las cuatro fases.
+  Va inline, no flex, para que la línea de base caiga sola sobre la del mono.
   La línea que corona las fases va en **`--concrete`**, no en `--ink` como la de las
   cifras y la del equipo: es la única de las tres que tiene cuatro columnas colgando,
   y en tinta plena pesaba de más. **No lleva los puntitos** que tenía sobre cada
@@ -783,14 +785,19 @@ dibujo se edita el modelo, no un SVG.
   **retrato**, no `.person`: la ficha es una celda del cuadro y **sus bordes son las
   líneas de la retícula** — moverla entera correría esas líneas y se rompería la
   grilla.
-- **Contacto:** tres filas — **WhatsApp** (`099 421 576`), mail real
-  `estudiodearquitectos21@gmail.com` y la dirección del estudio. El número va
-  primero porque es el canal por el que realmente contesta el estudio, y el
-  mismo link con el saludo ya escrito (`whatsappHref`, en `data/site.ts`) lo
-  usan la fila y el botón flotante: con el texto en un solo lugar no pueden
-  quedar con saludos distintos. El número vive en `site.ts` en **tres formas**
-  —internacional para el JSON-LD, como se escribe acá para mostrarlo, y los
-  dígitos pelados de wa.me—: si cambia, cambian las tres.
+- **Contacto:** tres filas, en este orden — **Escribinos** (el mail real
+  `estudiodearquitectos21@gmail.com`), **WhatsApp** (`099 421 576`) y **Dónde
+  estamos** (la dirección del estudio). El mail va primero porque la lista es
+  el ÚNICO lugar del sitio donde existe, mientras que WhatsApp además tiene su
+  botón flotante en todas las páginas: el primer renglón es para lo que no
+  tiene otra puerta de entrada. Las etiquetas son dos invitaciones y un nombre
+  de canal; "Estudio" a secas, que es lo que decía la tercera, nombraba el
+  continente y no el dato.
+  El link de WhatsApp con el saludo ya escrito (`whatsappHref`, en
+  `data/site.ts`) lo usan la fila y el botón flotante: con el texto en un solo
+  lugar no pueden quedar con saludos distintos. Y el número vive en `site.ts`
+  en **tres formas** —internacional para el JSON-LD, como se escribe acá para
+  mostrarlo, y los dígitos pelados de wa.me—: si cambia, cambian las tres.
 
 ## Página de proyecto (`/proyectos/<slug>`)
 

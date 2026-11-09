@@ -5,15 +5,18 @@
 }
 .phase:last-child{border-right:0;padding-right:0}
 .phase .pf{font-family:var(--font-mono);font-size:var(--mono-dato);letter-spacing:.1em;color:var(--petrol);text-transform:uppercase}
-/* El número va en la DISPLAY y en tinta, no en la mono petróleo del resto de
-   la etiqueta: es lo que ordena las cuatro fases de un vistazo y, al ser la
-   única cifra de la banda, tiene que leerse como cifra y no como una palabra
-   más. Va inline (no flex) para que la línea de base caiga sola sobre la del
-   mono, que es lo que hace que el 1 no quede ni flotando ni hundido. El
-   `line-height:1` es el que deja el renglón midiendo exactamente lo que medía
-   sin número (19,8px, el del mono): sin eso la cifra lo estira 8px y empuja
-   hacia abajo el título de las cuatro fases. */
-.phase .pf-n{font-family:var(--font-display);font-weight:500;font-size:1.06rem;line-height:1;letter-spacing:0;color:var(--ink)}
+/* El número va en la DISPLAY, no en la mono petróleo del resto de la
+   etiqueta: es lo que ordena las cuatro fases de un vistazo y, al ser la única
+   cifra de la banda, tiene que leerse como cifra y no como una palabra más.
+   Pero acompaña a su etiqueta, no compite con ella: por eso `--ink-soft` y no
+   `--ink` —su claridad queda casi igualada con la del petróleo de al lado, así
+   los dos se leen como una sola línea— y 0,95rem, apenas por encima de los
+   12px del mono. Va inline (no flex) para que la línea de base caiga sola
+   sobre la del mono, que es lo que hace que el 1 no quede ni flotando ni
+   hundido. El `line-height:1` es el que deja el renglón midiendo exactamente
+   lo que medía sin número (19,8px, el del mono): sin eso la cifra lo estira y
+   empuja hacia abajo el título de las cuatro fases. */
+.phase .pf-n{font-family:var(--font-display);font-weight:500;font-size:.95rem;line-height:1;letter-spacing:0;color:var(--ink-soft)}
 .phase h3{font-family:var(--font-display);font-weight:500;font-size:1.32rem;letter-spacing:-.01em;margin-top:1.4rem;line-height:1.1}
 .phase p{color:var(--concrete);font-size:.96rem;margin-top:.7rem;max-width:24ch}
 @media(max-width:900px){
