@@ -6,9 +6,9 @@ ubicacion: Montevideo
 barrio: Prado
 direccion: Millán 4096
 coords: [-56.1978, -34.8507]
-anio: 2027 # ESTIMADO: fideicomiso y memoria son de 2026; no hay fecha de entrega oficial
+anio: 2028 # entrega estimada, dato del estudio (2026-11-09)
 unidades: 24
-# metros (área construida) PENDIENTE: la memoria solo da la superficie del predio (2.146 m²)
+metros: 2298 # área construida, dato del estudio (2026-11-09). El predio son 2.146 m²
 portadaFoco: "50% 50%"
 portadaZoom: 1
 ---

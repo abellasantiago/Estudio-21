@@ -1382,8 +1382,10 @@ en la card correcta, sin telón entre páginas.
 ## Pendientes antes de publicar
 
 - **Dominio real** en `site` (`astro.config.mjs`) + `public/robots.txt` — de ahí salen canonical, sitemap y URLs absolutas de OG. Hoy es el placeholder `estudio21arq.com`.
-- **Años estimados** de Villa Platero, Vila Rodona y Chana I; m² (área construida) de esos tres. m² de Cavas de Haedo también es **estimado** (no oficial).
-- Vila Rodona: confirmar mix de dormitorios y total de unidades.
+- **m² de Cavas de Haedo**: es **estimado** (~80 m²/unidad, promedio de los
+  otros proyectos), no es dato oficial. Es el único que queda estimado: los
+  años y los m² de Villa Platero, Vila Rodona y Chana I los dio el estudio
+  (los tres entregan en 2028).
 - **Teléfono e Instagram** en `src/data/site.ts` (hoy `null`): si se completan, aparecen solos en Contacto.
 - **Confirmar con el estudio que las direcciones exactas se publican**: la ficha
   muestra calle y número bajo el mapa (`direccion` en el frontmatter). Si para
