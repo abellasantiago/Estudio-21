@@ -18,12 +18,29 @@ export const site = {
   // Link a Google Maps por búsqueda de la dirección (sin necesidad de coordenadas).
   mapsUrl:
     'https://www.google.com/maps/search/?api=1&query=21+de+Setiembre+3024+Montevideo',
-  // PENDIENTE: completar si querés sumarlos al sitio.
-  telefono: null as string | null, // ej. '+598 ...'
+  // El teléfono del estudio es el mismo número de WhatsApp, y va en las TRES
+  // formas que pide cada consumidor: internacional para el JSON-LD (que lo
+  // leen buscadores de cualquier país), como se escribe acá para mostrarlo en
+  // Contacto, y los dígitos pelados que exige wa.me. Si cambia el número,
+  // cambian los tres.
+  telefono: '+598 99 421 576' as string | null,
+  telefonoVisible: '099 421 576' as string | null,
   whatsapp: '59899421576' as string | null, // sin +, para wa.me
+  // PENDIENTE: completar si querés sumarlo al sitio.
   instagram: null as string | null, // ej. 'https://instagram.com/...'
   // Imagen por defecto para compartir (Open Graph / Twitter).
   // Banner de marca 1920×1080 (negro + tagline). Para proyectos con portada,
   // cada página usa su propia portada como imagen OG (ver ProjectLayout).
   ogImage: '/og-default.png',
 } as const;
+
+/**
+ * Link de WhatsApp con el mensaje ya escrito. Lo usan el botón flotante y la
+ * fila de Contacto: con el texto en un solo lugar, los dos abren el mismo chat
+ * y no hay forma de que uno quede con un saludo viejo.
+ */
+export const whatsappHref = site.whatsapp
+  ? `https://wa.me/${site.whatsapp}?text=${encodeURIComponent(
+      'Hola, Estudio 21. Quería hacerles una consulta.',
+    )}`
+  : null;

@@ -1,6 +1,6 @@
 ---
 import '../../styles/contacto.css';
-import { site } from '../../data/site';
+import { site, whatsappHref } from '../../data/site';
 ---
 
 <section class="contact" id="contacto">
@@ -14,6 +14,13 @@ import { site } from '../../data/site';
     </p>
 
     <div class="contact-rows reveal" data-d="3">
+      {whatsappHref && (
+        <a class="crow" href={whatsappHref} target="_blank" rel="noopener">
+          <span class="ck">WhatsApp</span>
+          <span class="cv">{site.telefonoVisible}</span>
+          <span class="arrow">↗</span>
+        </a>
+      )}
       <a class="crow" href={`mailto:${site.email}`}>
         <span class="ck">Escribinos</span>
         <span class="cv">{site.email}</span>

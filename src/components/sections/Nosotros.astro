@@ -3,22 +3,22 @@ import '../../styles/nosotros.css';
 
 const fases = [
   {
-    pf: '· Originación',
+    pf: 'Originación',
     h: 'Detectamos la oportunidad',
     p: 'Identificamos la zona, conseguimos el terreno y validamos el negocio.',
   },
   {
-    pf: '· Estructura',
+    pf: 'Estructura',
     h: 'Reunimos la inversión',
     p: 'Damos forma al capital, proyecto por proyecto, con reglas claras.',
   },
   {
-    pf: '· Proyecto y obra',
+    pf: 'Proyecto y obra',
     h: 'Diseñamos y construimos',
     p: 'Arquitectura y dirección de obra con equipo propio.',
   },
   {
-    pf: '· Entrega y venta',
+    pf: 'Entrega y venta',
     h: 'Entregamos cada unidad',
     p: 'Acompañamos la obra hasta la escritura y la colocación de las unidades.',
   },
@@ -46,7 +46,7 @@ const fases = [
     <div class="phases" data-depth="0.14">
       {fases.map((f, i) => (
         <div class="phase reveal" data-d={i + 1}>
-          <div class="pf">{f.pf}</div>
+          <div class="pf"><span class="pf-n">{i + 1}</span> · {f.pf}</div>
           <h3>{f.h}</h3>
           <p>{f.p}</p>
         </div>

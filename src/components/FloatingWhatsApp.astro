@@ -3,16 +3,13 @@
  * FloatingWhatsApp — botón flotante (abajo a la derecha) para escribir por
  * WhatsApp. Sólo se renderiza si hay número cargado en site.whatsapp; mientras
  * ese campo sea null, no aparece nada (progressive: se activa al completarlo).
+ * El link (con el mensaje ya escrito) sale de data/site.ts, compartido con la
+ * fila de WhatsApp de Contacto.
  * Estética alineada al sitio: círculo petróleo + ícono papel, sin el verde
  * clásico para no chocar con la paleta.
  */
 import '../styles/floating-whatsapp.css';
-import { site } from '../data/site';
-
-const mensaje = 'Hola, Estudio 21. Quería hacerles una consulta.';
-const href = site.whatsapp
-  ? `https://wa.me/${site.whatsapp}?text=${encodeURIComponent(mensaje)}`
-  : null;
+import { whatsappHref as href } from '../data/site';
 ---
 
 {href && (

@@ -722,9 +722,17 @@ dibujo se edita el modelo, no un SVG.
 - **Cómo operamos** (`Nosotros.astro` / `nosotros.css`, ancla `/#como-operamos`):
   cabecera simple (eyebrow + título + lead) y los bloques de las cuatro fases.
   Las cifras de trayectoria **no** van acá: viven al pie de la sección de
-  presentación. La etiqueta de cada bloque va sólo `· Originación` /
-  `· Estructura` / etc. — el prefijo `F01`–`F04` que tenía antes se sacó del
-  todo (no significaba nada para quien lo lee).
+  presentación. La etiqueta de cada bloque es **el número de la fase y su
+  nombre** (`1 · Originación`, `2 · Estructura`…): el número lo pone el
+  `.map` del componente, así que no se puede desfasar del orden en que están
+  escritas. El prefijo `F01`–`F04` que hubo antes **no vuelve**: era un código
+  interno que no le decía nada a quien lo lee; un 1, 2, 3, 4 sí, porque son
+  pasos en orden.
+  El numerito (`.pf-n`) va en la **display y en tinta**, no en la mono
+  petróleo del resto de la etiqueta —es la única cifra de la banda y tiene que
+  leerse como cifra—, y lleva **`line-height: 1`**: sin eso el renglón crece
+  8px y empuja hacia abajo el título de las cuatro fases. Va inline, no flex,
+  para que la línea de base caiga sola sobre la del mono.
   La línea que corona las fases va en **`--concrete`**, no en `--ink` como la de las
   cifras y la del equipo: es la única de las tres que tiene cuatro columnas colgando,
   y en tinta plena pesaba de más. **No lleva los puntitos** que tenía sobre cada
@@ -775,7 +783,14 @@ dibujo se edita el modelo, no un SVG.
   **retrato**, no `.person`: la ficha es una celda del cuadro y **sus bordes son las
   líneas de la retícula** — moverla entera correría esas líneas y se rompería la
   grilla.
-- **Contacto:** mail real `estudiodearquitectos21@gmail.com` en texto + JSON-LD.
+- **Contacto:** tres filas — **WhatsApp** (`099 421 576`), mail real
+  `estudiodearquitectos21@gmail.com` y la dirección del estudio. El número va
+  primero porque es el canal por el que realmente contesta el estudio, y el
+  mismo link con el saludo ya escrito (`whatsappHref`, en `data/site.ts`) lo
+  usan la fila y el botón flotante: con el texto en un solo lugar no pueden
+  quedar con saludos distintos. El número vive en `site.ts` en **tres formas**
+  —internacional para el JSON-LD, como se escribe acá para mostrarlo, y los
+  dígitos pelados de wa.me—: si cambia, cambian las tres.
 
 ## Página de proyecto (`/proyectos/<slug>`)
 
@@ -1386,7 +1401,7 @@ en la card correcta, sin telón entre páginas.
   otros proyectos), no es dato oficial. Es el único que queda estimado: los
   años y los m² de Villa Platero, Vila Rodona y Chana I los dio el estudio
   (los tres entregan en 2028).
-- **Teléfono e Instagram** en `src/data/site.ts` (hoy `null`): si se completan, aparecen solos en Contacto.
+- **Instagram** en `src/data/site.ts` (hoy `null`): si se completa, aparece solo como una fila más de Contacto.
 - **Confirmar con el estudio que las direcciones exactas se publican**: la ficha
   muestra calle y número bajo el mapa (`direccion` en el frontmatter). Si para
   algún proyecto no corresponde, se borra ese campo y la cartela queda con el
