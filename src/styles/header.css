@@ -28,9 +28,14 @@ header.scrolled{border-bottom-color:var(--line);background:var(--paper);backgrou
    panel de "Proyectos", que cuelga de `top:100%`, arrancaba 14px ARRIBA del
    borde de abajo del navbar, montado sobre él. */
 .nav-links{display:flex;align-items:center;align-self:stretch;gap:2.2rem}
+/* D1 · Es la navegación principal del sitio, en mono de 12,5px: en --concrete
+   medía 4,8:1, que pasa AA por dos centésimas y se lee como gris de adorno.
+   En --ink-soft son 9,4:1 y se leen como lo que son, los links del sitio.
+   (Sobre el hero de la home ya iban en --ink-soft; ahora es el valor base y el
+   override de immersive.css dejó de ser necesario.) */
 .nav-links a{
   font-family:var(--font-mono);font-size:.78rem;letter-spacing:.06em;text-transform:uppercase;
-  color:var(--concrete);position:relative;padding:.3rem 0;transition:color .25s ease;
+  color:var(--ink-soft);position:relative;padding:.3rem 0;transition:color .25s ease;
 }
 /* Subrayado que ENTRA por la izquierda y SALE por la derecha (en vez de
    encogerse hacia donde vino). Es una línea a ancho completo escalada en X; lo
@@ -95,8 +100,8 @@ header.scrolled{border-bottom-color:var(--line);background:var(--paper);backgrou
 .nav-sub-btn{
   display:flex;align-items:center;gap:.7rem;width:100%;text-align:left;
   background:none;border:0;border-radius:2px;cursor:pointer;padding:.6rem .7rem;
-  font-family:var(--font-mono);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;
-  color:var(--concrete);transition:background .2s ease,color .2s ease;
+  font-family:var(--font-mono);font-size:var(--mono-dato);letter-spacing:.08em;text-transform:uppercase;
+  color:var(--ink-soft);transition:background .2s ease,color .2s ease;
 }
 .nav-sub-label{flex:1 1 auto}
 .nav-caret-side{width:6px;height:9px}
@@ -144,7 +149,9 @@ header.scrolled{border-bottom-color:var(--line);background:var(--paper);backgrou
 }
 .nav-links .nav-flyout a::after{display:none}
 .nav-links .nav-flyout a:hover{background:var(--paper-deep);color:var(--ink)}
-.nav-proj-anio{font-family:var(--font-mono);font-size:.66rem;color:var(--concrete-soft);flex:0 0 auto}
+/* el año es un dato (ayuda a elegir), así que sale de --concrete-soft, que no
+   pasa AA, y sube al piso de la capa mono */
+.nav-proj-anio{font-family:var(--font-mono);font-size:var(--mono-fino);color:var(--concrete);flex:0 0 auto}
 
 /* ---------- vista previa: el submenú como mini catálogo ----------
    Al recorrer los proyectos aparece, del lado de afuera del submenú, su portada
@@ -224,7 +231,7 @@ header.scrolled{border-bottom-color:var(--line);background:var(--paper);backgrou
   }
   .nav-prev .status{flex:0 0 auto}
   .nav-prev-loc{
-    font-family:var(--font-mono);font-size:.62rem;letter-spacing:.08em;text-transform:uppercase;
+    font-family:var(--font-mono);font-size:var(--mono-fino);letter-spacing:.08em;text-transform:uppercase;
     color:var(--concrete);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
   }
 

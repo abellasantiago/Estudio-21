@@ -23,6 +23,19 @@ registro), no rediseñar. Todo el copy va en **español rioplatense**.
   Los **helpers compartidos** viven en `global.css` (`.wrap`, `.eyebrow`, `.section-title`,
   `.lead`, `.marks`, `.ghost21`, `.status`, `.reveal`, `.btn`) y NO tienen componente
   `.astro`: se usan como clase. Ver "Botón" más abajo antes de maquetar cualquier acción.
+- **La capa mono tiene una escala y una regla de color** (tokens en `global.css`).
+  El mono es la letra chica del sitio —eyebrows, chips, datos de las cards,
+  etiquetas de la ficha, pie— y es la que más fácil se calibra para la pantalla
+  del que diseña en vez de la del que lee. Dos tamaños, que son un PISO:
+  **`--mono-dato` (12px)** para todo lo que lleva información y
+  **`--mono-fino` (11,2px)** para lo secundario donde el lugar manda de verdad.
+  Y el color: **`--ink-soft`** (9,4:1) para el mono que lleva información,
+  **`--concrete`** (4,8:1) para lo secundario —pasa AA justo, no bajar de ahí— y
+  **`--concrete-soft`** (2,8:1) **sólo para decoración**: no pasa AA sobre papel
+  y nunca puede llevar un dato. ⚠ Sobre el fondo tinta (footer, Contacto) la
+  tabla se invierte: ahí `--concrete-soft` sí pasa (5,0:1) y `--concrete` no.
+  Todo esto está medido, no estimado: hay un auditor que recorre cada bloque de
+  texto de una página y reporta contraste y tamaño — ver "Verificar legibilidad".
 - **Fuentes locales** (archivos woff2 de Fontsource, subset latin, sin Google Fonts CDN),
   pero con las `@font-face` declaradas a mano en `BaseLayout.astro` (NO importar los
   `.css` de `@fontsource/*`): cada woff2 se importa con `?url` y se usa la MISMA URL en
@@ -724,9 +737,39 @@ dibujo se edita el modelo, no un SVG.
   retícula pero la ficha baja de alto (464 contra 559px) y la foto se lee como
   retrato de fichero, no como póster. El tope también ordena mobile, donde en una
   columna el retrato se iba a ~500px. Como el slot mide lo mismo en todos los
-  breakpoints, el `sizes` de la `<Image>` es fijo (`264px`, con widths 264/396/528
-  para 1,5× y 2×). En ≤600px la ficha va **sin padding lateral**: en una columna esa
-  sangría no separa de nada y desalineaba el retrato respecto del título.
+  breakpoints, el `sizes` de la `<Image>` es fijo (`264px`). En ≤600px la ficha va
+  **sin padding lateral**: en una columna esa sangría no separa de nada y
+  desalineaba el retrato respecto del título.
+
+  ### Equipo · encuadre de los retratos
+  Las seis fotos son **recortes sobre transparencia** (PNG con alfa, 800×1000),
+  de sesiones distintas. Venían con la cabeza a distinto tamaño —de 220px
+  (Federico) a 324px (Lucía) de coronilla a mentón, un **47% de diferencia**— y
+  la línea de los ojos repartida en 77px. Puestas en el cuadro se leían como
+  seis fotos sueltas, no como un equipo.
+  - Se corrige **sin tocar los archivos**, con tres números por persona en
+    `equipo.ts` (`zoom`, `x`, `y`) que el componente baja como `--rz/--rx/--ry`
+    y la CSS aplica como `scale() translate()` sobre el `<img>`. Es el mismo
+    patrón que `portadaZoom`/`portadaFoco` en las portadas de proyecto.
+  - **El `zoom` iguala el alto de la cabeza** (al mayor de los seis: con un
+    objetivo menor alguno tendría que achicarse y, al ser un recorte, el torso
+    se despegaría del borde de abajo dejando un busto flotando) y **`x`/`y`
+    centran la cara y ponen los ojos al 38% del alto**, igual en los seis.
+  - ⚠ **Los números no se ajustan a ojo.** Salen de medir coronilla, ojos y
+    mentón de cada foto con el detector de rostros de macOS (Vision). Si se
+    cambia una foto hay que volver a medirla: un script Swift de 60 líneas con
+    `VNDetectFaceLandmarksRequest` da los tres puntos, y de ahí
+    `zoom = cabezaObjetivo / cabeza`, `x = -(caraX − 0,5)`,
+    `y = (0,38 − 0,5)/zoom − (ojosY − 0,5)`.
+  - ⚠ **El `zoom` es un `transform`, y un transform agranda lo ya rasterizado.**
+    Por eso `TeamMember` pide los anchos **multiplicados por el zoom** (topados
+    en los 800px del archivo); si se piden los 264/396/528 pelados, las fotos
+    más zoomeadas salen blandas. Mismo problema y misma solución que
+    `coverRender` en la ficha de proyecto.
+  - El **fondo del retrato es `--paper-2`**, no `--paper-deep`. Como las fotos
+    son recortes, ese color ES el fondo de la foto: el deep es el gris del sitio
+    para huecos y placeholders, y detrás de una persona leía frío y sucio contra
+    el papel cálido de la página.
   **Hover**: el retrato se despega del papel (−6px + sombra + borde a `--ink`) y la
   foto hace zoom 1.05; el nombre y el rol acompañan la mitad (−3px). Se anima el
   **retrato**, no `.person`: la ficha es una celda del cuadro y **sus bordes son las
@@ -955,7 +998,14 @@ sin recuadro ni filete, igual que la axonometría de "Quiénes somos".
   - **La escala y el norte reservan su lugar de antemano** aunque se dibujen al
     final: un rótulo caía justo encima de la barra de escala.
   El ancho del texto se calcula a mano (IBM Plex Mono avanza 0,6 em por glifo)
-  porque en el build no hay layout. La **escala gráfica se adapta**: toma el
+  porque en el build no hay layout. ⚠ **`FS_REF` en `lamina.ts` y
+  `.mapa .m-ref` en `mapa.css` tienen que valer lo mismo**: con ese número se
+  mide el ancho de cada rótulo y se resuelve el anti-colisión en el build, así
+  que si uno sube sin el otro los nombres se pisan (o se descartan de más).
+  Están en 9,5px desde la tanda de legibilidad: el plano se dibuja a 560 de
+  viewBox y se muestra a ~660px, así que los 8px de antes llegaban a la
+  pantalla como 9,4 — verificado que con 9,5 no se cae ningún rótulo de
+  ninguno de los diez planos. La **escala gráfica se adapta**: toma el
   número redondo más grande que no pase del 30% del ancho del plano, así sigue
   al encuadre si cambia.
 - En **≤620px** los rótulos de referencia se ocultan y el de la cruz se agranda
@@ -1289,6 +1339,27 @@ fantasmas "21" sangran a propósito; verificado que no se pueda scrollear en x d
   con `import.meta.glob(..., { eager: true })` para que aparezcan solas por
   convención de carpetas, y Vite emite todo lo importado. No lo descarga nadie —es
   peso del artefacto de deploy, no del visitante— y es el precio de esa comodidad.
+
+## Verificar legibilidad
+
+El contraste y el tamaño **se miden, no se estiman**. El procedimiento que se
+usó para la tanda D (y que conviene repetir al tocar colores o tamaños):
+un script con Chrome por CDP que recorre **todos los bloques de texto** de una
+página, resuelve el color de fondo real (incluyendo capas translúcidas y la
+opacidad heredada, que en el cilindro es clave) y reporta ratio y píxeles,
+marcando lo que no llega a AA (4,5:1 para texto normal) y lo que mide menos de
+12px. Tres cosas que hacen que la medición sea honesta y que es fácil olvidar:
+- **`getComputedStyle().color` no sirve en SVG**: ahí el color del texto es
+  `fill`. Sin eso, los rótulos del mapa dan cualquier número.
+- **`color-mix()` computa a `color(srgb 0.91 0.9 0.88 / 0.84)`**, con los
+  canales de 0 a 1 y no de 0 a 255. Un parser que no lo contemple lee el header
+  del sitio como casi negro y reporta fallas que no existen.
+- **La opacidad del ancestro cuenta**: las cards del fondo del cilindro están
+  al 13% y van a dar "no pasa" siempre. Son el efecto 3D, no un problema —
+  lo que hay que mirar es la card del frente.
+
+Medido así, hoy **no hay un solo texto que no pase AA** en la home, en la ficha
+de proyecto ni en la 404, a 1440 y a 390px de ancho.
 
 ## Verificar menú y navegación
 

@@ -128,7 +128,7 @@
 }
 .ph-ph{
   position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
-  font-family:var(--font-mono);font-size:.62rem;letter-spacing:.08em;color:var(--concrete-soft);
+  font-family:var(--font-mono);font-size:var(--mono-fino);letter-spacing:.08em;color:var(--concrete);
   background-image:linear-gradient(var(--line-soft) 1px,transparent 1px),linear-gradient(90deg,var(--line-soft) 1px,transparent 1px);
   background-size:24px 24px;
 }
@@ -146,11 +146,15 @@
 .ph-sub{display:flex;flex-direction:column;gap:.5rem;margin-top:auto}
 /* el chip de estado abraza su texto (en 3D queda como estaba, a ancho de card) */
 .ph:not(.is-3d) .ph-sub{align-items:flex-start}
-.ph-loc{font-family:var(--font-mono);font-size:.66rem;letter-spacing:.06em;text-transform:uppercase;color:var(--concrete)}
+/* D3 · Barrio · año · unidades es el ÚNICO dato duro de la card — lo que mira
+   quien está eligiendo. Estaba en 10,5px y en --concrete; sube al piso de la
+   capa mono y a --ink-soft, que es el color de lo que lleva información. */
+.ph-loc{font-family:var(--font-mono);font-size:var(--mono-dato);letter-spacing:.06em;text-transform:uppercase;color:var(--ink-soft)}
 
-/* badges de estado más discretos dentro de la card (no afecta la página de
-   detalle; sólo el .status que vive en esta sección) */
-.ph .status{font-size:clamp(8px,.6rem,9px);padding:2px 6px;letter-spacing:.06em}
+/* El chip dentro de la card bajaba a 9px — el texto más chico de todo el
+   sitio, y encima en la pieza que más se mira. Ahora acompaña al dato de
+   arriba: un escalón por debajo del global, no cuatro. */
+.ph .status{font-size:var(--mono-fino);padding:3px 8px;letter-spacing:.06em}
 
 /* CTA "Ver proyecto" — oculto salvo en la card al frente del cilindro (.is-3d) */
 .ph-cta{display:none}
@@ -349,7 +353,12 @@
   font-size:1.64rem;line-height:1.1;
   display:-webkit-box;-webkit-line-clamp:1;line-clamp:1;-webkit-box-orient:vertical;overflow:hidden;
 }
-.ph.is-3d .ph-loc{font-size:.72rem;letter-spacing:.03em;white-space:nowrap}
+/* ⚠ En el cilindro la card se maqueta al doble y el motor la reduce (la card
+   al frente queda en ~0,78), así que lo que se escribe acá NO son los píxeles
+   que se ven: .72rem llegaban a la pantalla como 9px MEDIDOS. Para que el dato
+   se lea a ~12px reales hace falta .95rem. Si se cambia la escala del
+   cilindro, este número hay que rehacerlo. */
+.ph.is-3d .ph-loc{font-size:.95rem;letter-spacing:.03em;white-space:nowrap}
 .ph.is-3d .ph-sub{gap:.44rem}
 .ph.is-3d .status{font-size:16px;padding:2px 10px;gap:.6rem}
 .ph.is-3d .status .pip{width:10px;height:10px}

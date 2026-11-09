@@ -1,12 +1,15 @@
 /* ---------- FOOTER ---------- */
 footer{background:var(--ink);color:var(--concrete-soft);padding-block:2.4rem;border-top:1px solid rgba(255,255,255,.1)}
-.foot{display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;font-family:var(--font-mono);font-size:.72rem;letter-spacing:.06em;text-transform:uppercase}
+.foot{display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;font-family:var(--font-mono);font-size:var(--mono-dato);letter-spacing:.06em;text-transform:uppercase}
 .foot .brand-f{color:var(--paper-2)}
 .foot a:hover{color:var(--paper-2)}
 
-/* Segunda línea: el crédito de los datos de los mapas de ubicación. Va más
-   chica y más apagada que el pie — es una obligación de la licencia, no una
-   cosa para leer. */
-.foot-datos{margin-top:.9rem;font-family:var(--font-mono);font-size:.62rem;letter-spacing:.05em;color:var(--concrete);line-height:1.6}
+/* Segunda línea: el crédito de los datos de los mapas de ubicación. Va un
+   escalón por debajo del pie — es una obligación de la licencia, no una cosa
+   para leer. Pero seguía siendo texto: en --concrete sobre el fondo tinta del
+   footer medía 3,0:1, por debajo de AA. --concrete-soft, que sobre papel no
+   pasa, acá SÍ pasa (5,0:1) porque el fondo es oscuro: el mismo token cambia
+   de lado. */
+.foot-datos{margin-top:.9rem;font-family:var(--font-mono);font-size:var(--mono-fino);letter-spacing:.05em;color:var(--concrete-soft);line-height:1.6}
 .foot-datos a{color:inherit;text-decoration:underline;text-decoration-color:rgba(255,255,255,.22);text-underline-offset:2px}
-@media(hover:hover){.foot-datos a:hover{color:var(--concrete-soft);text-decoration-color:var(--concrete-soft)}}
+@media(hover:hover){.foot-datos a:hover{color:var(--paper-2);text-decoration-color:var(--paper-2)}}

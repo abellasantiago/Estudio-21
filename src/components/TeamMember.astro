@@ -13,14 +13,29 @@ const { persona, d = 1 } = Astro.props;
 const foto = getFotoEquipo(persona.slug);
 
 // El retrato está topado en `--team-portrait` (16.5rem ≈ 264px) en TODOS los
-// breakpoints, así que el slot mide siempre lo mismo: se piden ese ancho y sus
-// múltiplos para pantallas 1.5× y 2×.
-const RETRATO_SIZES = '264px';
+// breakpoints, así que el slot mide siempre lo mismo.
+const RETRATO_W = 264;
+const RETRATO_SIZES = `${RETRATO_W}px`;
+
+/*
+ * ⚠ El `zoom` del encuadre (ver equipo.ts) es un `transform: scale()`, y un
+ * transform AGRANDA lo que el navegador ya rasterizó: si se pide la foto al
+ * ancho del slot, el zoom la estira y sale blanda. Por eso los anchos que se
+ * piden van multiplicados por el zoom — lo mismo que hace `coverRender` con
+ * `portadaZoom` en la ficha de proyecto. Se topan en el ancho real del
+ * archivo (800px) para no pedirle al build una ampliación que no existe.
+ */
+const ANCHO_FUENTE = foto?.width ?? RETRATO_W;
+const retratoWidths = [...new Set(
+  [1, 1.5, 2].map((d) => Math.min(Math.round(RETRATO_W * d * persona.zoom), ANCHO_FUENTE)),
+)].sort((a, b) => a - b);
 ---
 
 <div class="person reveal" data-d={d}>
   {foto ? (
-    <div class="portrait">
+    <div
+      class="portrait"
+      style={`--rz:${persona.zoom};--rx:${persona.x}%;--ry:${persona.y}%`}>
       {/* fallbackFormat: ver el porqué en ProjectLayout. Acá pesa el doble,
           porque los retratos son PNG y el fallback PNG salía carísimo. */}
       <Picture
@@ -28,13 +43,13 @@ const RETRATO_SIZES = '264px';
         formats={['avif', 'webp']}
         fallbackFormat="webp"
         alt={`Retrato de ${persona.nombre}, ${persona.rol}`}
-        widths={[264, 396, 528]}
+        widths={retratoWidths}
         sizes={RETRATO_SIZES}
         loading="lazy"
       />
     </div>
   ) : (
-    <div class="portrait is-placeholder">
+    <div class="portrait is-placeholder" style="--rz:1;--rx:0%;--ry:0%">
       <span class="initials">{iniciales(persona.nombre)}</span>
       <span class="ptag">foto pendiente</span>
     </div>

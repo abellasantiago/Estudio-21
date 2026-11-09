@@ -53,7 +53,12 @@ html.is-immersive .living-bg > *:not(.lbg-grain) {
   font-size: 0.72rem;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: var(--concrete-soft);
+  /* Son atmósfera (anotaciones de lámina), no contenido — van aria-hidden en
+     LivingBackground. Aun así suben de --concrete-soft a --concrete: con la
+     opacidad de 0,5 encima, el soft quedaba en 2,9:1, demasiado fantasma
+     incluso para decoración. Con --concrete el trazo se lee y el hero no
+     cambia de peso. */
+  color: var(--concrete);
   /* --hero-fade (lo setea el motor con el scroll) desvanece las notas al dejar
      el hero y las trae de vuelta al subir; sin motor, var no seteada → opacidad 0.5. */
   opacity: calc(0.5 * var(--hero-fade, 1));
@@ -268,13 +273,11 @@ html.is-immersive #header:not(.past-hero) .brand {
   pointer-events: none;
   transition: opacity 0.45s ease;
 }
-/* links clickeables sobre el hero, un toque más marcados que en la navbar para
-   que se noten, pero discretos (mono, chicos) */
+/* links clickeables sobre el hero: el panel del header no está, pero los links
+   sí. El color ya no se overridea — desde que la navbar pasó a --ink-soft
+   (D1, ver header.css) es el mismo de siempre. */
 html.is-immersive #header:not(.past-hero) .nav-links {
   pointer-events: auto;
-}
-html.is-immersive #header:not(.past-hero) .nav-links a {
-  color: var(--ink-soft);
 }
 
 /* ---------- secciones del inicio transparentes → fondo continuo ---------- */

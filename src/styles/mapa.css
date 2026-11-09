@@ -72,17 +72,19 @@
    lo que hay que mirar. */
 .mapa .m-detalle { fill: none; stroke: var(--concrete); stroke-width: 0.55; opacity: 0.62; stroke-linecap: round; stroke-linejoin: round; }
 
-.mapa .m-ref { font-family: var(--font-mono); font-size: 8px; fill: var(--concrete); letter-spacing: 0.13em; }
+/* ⚠ el tamaño tiene que coincidir con FS_REF en lamina.ts (ahí se resuelve el
+   anti-colisión de los rótulos, en el build) */
+.mapa .m-ref { font-family: var(--font-mono); font-size: 9.5px; fill: var(--concrete); letter-spacing: 0.13em; }
 
 .mapa .m-foco circle { fill: none; stroke: var(--petrol); stroke-width: 1.4; }
 .mapa .m-foco .m-nucleo { fill: var(--petrol); stroke: none; }
 .mapa .m-foco .m-cruz { fill: none; stroke: var(--petrol); stroke-width: 0.8; opacity: 0.6; }
-.mapa .m-foco text { font-family: var(--font-mono); font-size: 11px; fill: var(--petrol); letter-spacing: 0.13em; }
+.mapa .m-foco text { font-family: var(--font-mono); font-size: 12px; fill: var(--petrol); letter-spacing: 0.13em; }
 
 .mapa .m-graf path,
 .mapa .m-graf circle { fill: none; stroke: var(--petrol); stroke-width: 1; }
-.mapa .m-graf text { font-family: var(--font-mono); font-size: 8px; fill: var(--petrol); letter-spacing: 0.13em; }
-.mapa .m-graf .m-n { text-anchor: middle; font-size: 9px; }
+.mapa .m-graf text { font-family: var(--font-mono); font-size: 9.5px; fill: var(--petrol); letter-spacing: 0.13em; }
+.mapa .m-graf .m-n { text-anchor: middle; font-size: 10.5px; }
 
 /* ---------- una columna ---------- */
 @media (max-width: 900px) {

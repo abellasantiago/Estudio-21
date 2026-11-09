@@ -261,9 +261,9 @@
     transform: translateX(12px);
   }
   .pn-rol {
-    font-size: 0.6rem;
-    letter-spacing: 0.15em;
-    color: var(--concrete-soft);
+    font-size: var(--mono-fino);
+    letter-spacing: 0.14em;
+    color: var(--concrete);
   }
   .pn-nombre {
     font-size: 1.05rem;

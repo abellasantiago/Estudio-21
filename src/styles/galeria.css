@@ -6,7 +6,7 @@
 .gal-head{display:flex;align-items:baseline;justify-content:space-between;gap:1.5rem}
 /* --concrete y no --concrete-soft: en soft daba 2,93:1 sobre el papel, por
    debajo del 4,5:1 que pide WCAG AA para texto normal. */
-.gal-count{font-family:var(--font-mono);font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--concrete)}
+.gal-count{font-family:var(--font-mono);font-size:var(--mono-dato);letter-spacing:.12em;text-transform:uppercase;color:var(--concrete)}
 
 /* ---------- tira horizontal ---------- */
 /* --gal-h manda: todas las miniaturas tienen ESE alto y el ancho se lo da su
@@ -154,7 +154,7 @@ html.gal-open{overflow:hidden}
 .lbox-btn svg{width:9px;height:14px}
 .lbox-btn:hover{background:var(--paper-deep)}
 .lbox-counter{
-  font-family:var(--font-mono);font-size:.74rem;letter-spacing:.12em;color:var(--concrete);
+  font-family:var(--font-mono);font-size:var(--mono-dato);letter-spacing:.12em;color:var(--ink-soft);
   min-width:4.4rem;text-align:center;font-variant-numeric:tabular-nums;
 }
 .lbox-counter [data-gal-i]{color:var(--ink)}

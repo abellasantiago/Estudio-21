@@ -1,6 +1,6 @@
 /* ---------- PÁGINA DE PROYECTO (detalle) ---------- */
 .proj-hero{position:relative;padding-top:clamp(2.2rem,5vw,3.5rem);padding-bottom:clamp(2rem,4vw,3rem)}
-.back-link{font-family:var(--font-mono);font-size:.74rem;letter-spacing:.08em;text-transform:uppercase;color:var(--concrete);display:inline-flex;align-items:center;gap:.5rem;transition:color .25s}
+.back-link{font-family:var(--font-mono);font-size:var(--mono-dato);letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft);display:inline-flex;align-items:center;gap:.5rem;transition:color .25s}
 .back-link:hover{color:var(--ink)}
 .back-link::before{content:"←";font-size:1rem}
 
@@ -64,7 +64,7 @@ html.vt-sin-portada .proj-cover{view-transition-name:none}
   background-image:linear-gradient(var(--line-soft) 1px,transparent 1px),linear-gradient(90deg,var(--line-soft) 1px,transparent 1px);
   background-size:34px 34px;opacity:.5;
 }
-.proj-cover .cover-ph{position:absolute;left:14px;bottom:12px;font-family:var(--font-mono);font-size:.66rem;letter-spacing:.08em;text-transform:uppercase;color:var(--concrete-soft);opacity:.85}
+.proj-cover .cover-ph{position:absolute;left:14px;bottom:12px;font-family:var(--font-mono);font-size:var(--mono-fino);letter-spacing:.08em;text-transform:uppercase;color:var(--concrete);opacity:.85}
 
 /* descripción: al costado de la portada. `margin-top` la baja un poco respecto
    de la portada (arrancar clavada a la misma altura se sentía muy en tensión
@@ -89,7 +89,7 @@ html.vt-sin-portada .proj-cover{view-transition-name:none}
 /* las etiquetas son las que dejan leer los valores, así que van en --ink-soft
    y no en el gris decorativo de los eyebrows; a .68rem (10,9px medidos) eran
    el texto más chico de la página, y el público del sitio no tiene veinte años. */
-.ficha .fk{font-family:var(--font-mono);font-size:.74rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft)}
+.ficha .fk{font-family:var(--font-mono);font-size:var(--mono-dato);letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft)}
 .ficha .fv{font-family:var(--font-display);font-weight:500;font-size:clamp(1.3rem,2.4vw,1.9rem);line-height:1;letter-spacing:-.01em;margin-top:.8rem}
 /* "Pendiente" es un hueco (gris claro, se lee como lo que falta); "No aplica"
    es una respuesta: más chico, en --concrete, para que no parezca una ficha

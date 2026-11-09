@@ -173,7 +173,8 @@ html.pl-lock {
   justify-content: space-between;
   align-items: baseline;
   font-family: var(--font-mono);
-  font-size: 0.64rem;
+  /* el porcentaje de carga es un dato, aunque dure dos segundos */
+  font-size: var(--mono-fino);
   letter-spacing: 0.24em;
   text-transform: uppercase;
   color: var(--concrete);

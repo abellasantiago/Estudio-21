@@ -246,7 +246,7 @@
 
 .hero-dim {
   font-family: var(--font-mono);
-  font-size: 0.72rem;
+  font-size: var(--mono-dato);
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--concrete);

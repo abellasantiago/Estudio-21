@@ -87,10 +87,11 @@
 }
 .pres-cifras dt {
   font-family: var(--font-mono);
-  font-size: 0.72rem;
+  /* la etiqueta es la que explica la cifra: sin ella, "+10" no dice nada */
+  font-size: var(--mono-dato);
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--concrete);
+  color: var(--ink-soft);
   line-height: 1.5;
 }
 
@@ -159,8 +160,10 @@ html:not(.js) .pres-visual {
   .pres-cifra {
     padding-inline: 0.7rem;
   }
+  /* en mobile las tres etiquetas comparten el ancho de pantalla; bajan al
+     escalón fino, no por debajo */
   .pres-cifras dt {
-    font-size: 0.63rem;
+    font-size: var(--mono-fino);
     letter-spacing: 0.07em;
   }
 }

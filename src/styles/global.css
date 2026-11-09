@@ -31,6 +31,25 @@
   --sec-pad-bottom:clamp(4.5rem, 9vw, 8rem);
   /* tope del retrato del equipo (ver estudio.css) */
   --team-portrait:16.5rem;
+
+  /* ---- escala de la capa mono ----
+     El mono es la letra chica del sitio: eyebrows, chips de estado, datos de
+     las cards, etiquetas de la ficha, pie. Es también la que más fácil se
+     calibra para la pantalla del que diseña y no para la del que lee. Estos
+     dos tamaños son el piso, y la regla es simple:
+
+       --mono-dato  12px  todo lo que LLEVA información (un barrio, un año, un
+                          estado, una etiqueta de la ficha). No baja de acá.
+       --mono-fino  11,2px  lo secundario donde el lugar manda de verdad
+                          (una fila de un submenú, un rótulo dentro de un
+                          control). Nunca para un dato que alguien va a buscar.
+
+     Y la misma regla para el color, que es la otra mitad del problema:
+       --ink-soft   (9,4:1)  mono que lleva información
+       --concrete   (4,8:1)  mono secundario — pasa AA justo, no bajar de acá
+       --concrete-soft (2,8:1) SÓLO decoración (no pasa AA; nunca un dato) */
+  --mono-dato:0.75rem;
+  --mono-fino:0.7rem;
 }
 
 *{box-sizing:border-box;margin:0;padding:0}
@@ -67,7 +86,7 @@ img{display:block;max-width:100%}
 /* ---- helpers de tipografía ---- */
 .eyebrow{
   font-family:var(--font-mono);
-  font-size:.72rem;
+  font-size:var(--mono-dato);
   letter-spacing:.16em;
   text-transform:uppercase;
   color:var(--concrete);
@@ -136,14 +155,19 @@ hr.section-rule{border:0;height:1px;background:var(--line);margin:0}
 .reveal[data-d="4"]{transition-delay:.32s}
 
 /* ---- chip de estado (proyectos: card + detalle) ---- */
-.status{display:inline-flex;align-items:center;gap:.4rem;font-family:var(--font-mono);font-size:.66rem;letter-spacing:.06em;text-transform:uppercase;padding:.22rem .5rem;border-radius:2px}
+/* Chip de estado. Es un DATO del proyecto (en proceso / próximamente /
+   terminado), no un adorno: va en --mono-dato y en colores que pasan AA.
+   "Terminado" estaba en --concrete (4,8:1 a 10,5px, el texto más chico del
+   sitio) y pasa a --ink-soft: es el único de los tres que no tiene el petróleo
+   para sostenerlo. */
+.status{display:inline-flex;align-items:center;gap:.45rem;font-family:var(--font-mono);font-size:var(--mono-dato);letter-spacing:.06em;text-transform:uppercase;padding:.26rem .55rem;border-radius:2px}
 .status.proximamente{background:transparent;color:var(--petrol);border:1px solid var(--petrol-tint)}
 .status.en-proceso{background:var(--petrol-tint);color:var(--petrol)}
-.status.terminado{background:transparent;color:var(--concrete);border:1px solid var(--line)}
+.status.terminado{background:transparent;color:var(--ink-soft);border:1px solid var(--line)}
 .status .pip{width:6px;height:6px;border-radius:50%}
 .status.proximamente .pip{background:var(--petrol);box-shadow:0 0 0 3px var(--petrol-tint)}
 .status.en-proceso .pip{background:var(--petrol-bright)}
-.status.terminado .pip{background:var(--concrete-soft)}
+.status.terminado .pip{background:var(--concrete)}
 
 /* ---- botón ----------------------------------------------------------------
    Antes había cuatro botones escritos por separado (la 404, los filtros del
@@ -181,7 +205,9 @@ hr.section-rule{border:0;height:1px;background:var(--line);margin:0}
 .btn--ghost{border-color:var(--line);color:var(--ink-soft)}
 .btn--select{border-color:var(--line);color:var(--concrete)}
 .btn--select[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--paper-2)}
-.btn--sm{font-size:.72rem;padding:.55rem .9rem;min-height:36px;gap:.5em}
+/* el botón chico es densidad de barra de herramientas, no letra más chica que
+   el piso de la capa mono */
+.btn--sm{font-size:var(--mono-dato);padding:.55rem .9rem;min-height:36px;gap:.5em}
 
 /* La flecha sale del lenguaje de las filas de Contacto (.crow .arrow): se
    corre al pasar el mouse. Va en su propio span para poder animarla sola. */

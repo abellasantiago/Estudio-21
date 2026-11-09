@@ -201,8 +201,14 @@ export function mapaSVG({ lon, lat, barrio }: Proyecto): string {
      puesto, así gana siempre el que ubica. El ancho del texto se calcula a mano
      porque en el build no hay layout: IBM Plex Mono avanza 0,6 em por glifo,
      más el letter-spacing. */
-  const FS_REF = 8;
-  const FS_FOCO = 11;
+  /* ⚠ FS_REF tiene que coincidir con `.mapa .m-ref` en mapa.css: con este
+     número se calcula el ancho de cada rótulo y se resuelve el anti-colisión
+     acá, en el build. Subió de 8 a 9,5 (D3, la capa mono): el plano se dibuja
+     a 560 de viewBox y se muestra a ~660px, así que 8 llegaban a la pantalla
+     como 9,4px. Rótulos más grandes chocan más, por eso se midió que la
+     cantidad que entra por plano no se desarme. */
+  const FS_REF = 9.5;
+  const FS_FOCO = 12;
   const LS = 0.13;
   const anchoTexto = (t: string, fs: number) => t.length * fs * 0.6 + (t.length - 1) * fs * LS;
   type Caja = { x0: number; x1: number; y0: number; y1: number };
