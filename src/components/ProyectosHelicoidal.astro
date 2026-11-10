@@ -52,9 +52,13 @@ const pad = (n: number) => String(n).padStart(2, '0');
         </h2>
       </div>
 
-      <!-- Cambia entre el cilindro (recorrido) y la grilla (ver todo de un vistazo).
-           Oculto por defecto; el <script> lo habilita sólo cuando el 3D está activo
-           (con motion permitido). En 3D se relocaliza pineado en el panel sticky. -->
+      <!-- Las vistas de la sección. La grilla es la de ENTRADA; el cilindro es
+           un gesto opcional. La caja está oculta por defecto: el <script> la
+           habilita sólo cuando el 3D es posible (hay lugar y el visitante no
+           pidió menos movimiento). En 3D se relocaliza pineada en el panel
+           sticky, y por eso los dos botones van juntos en un contenedor: si se
+           movieran por separado, el segundo se quedaría en el header. -->
+      <div class="ph-vistas" id="phVistas">
       <button
         type="button"
         class="btn btn--sm ph-viewtoggle"
@@ -71,6 +75,24 @@ const pad = (n: number) => String(n).padStart(2, '0');
         </svg>
         <span class="ph-vt-txt">Ver todos</span>
       </button>
+
+      <!-- Tercera vista, todavía sin construir. Va deshabilitado a propósito:
+           está para poder mostrar en pantalla dónde viviría y decidir con el
+           estudio qué recurso poner, no para que un visitante lo toque. -->
+      <button
+        type="button"
+        class="btn btn--sm ph-viewnew"
+        id="phViewNueva"
+        disabled
+        aria-disabled="true"
+        title="Vista en preparación"
+      >
+        <svg class="ph-vt-ico" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" aria-hidden="true">
+          <path d="M8 3.2v9.6M3.2 8h9.6" />
+        </svg>
+        <span class="ph-vt-txt">Vista nueva</span>
+      </button>
+      </div>
     </div>
 
     <div class="ph-bar reveal" data-d="2">
@@ -161,7 +183,9 @@ const pad = (n: number) => String(n).padStart(2, '0');
     // script lo relocaliza dentro del panel sticky (queda pineado).
     const toggleBtn = section.querySelector<HTMLButtonElement>('#phViewToggle');
     const toggleTxt = toggleBtn?.querySelector<HTMLElement>('.ph-vt-txt') ?? null;
-    const toggleHome = toggleBtn?.parentElement ?? null;
+    // la caja con los dos botones de vista: es lo que viaja al panel sticky
+    const vistasBox = section.querySelector<HTMLElement>('#phVistas');
+    const vistasHome = vistasBox?.parentElement ?? null;
     const header = document.getElementById('header');
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
     // El cilindro necesita LUGAR, y el corte es geométrico igual que el de los
@@ -421,11 +445,11 @@ const pad = (n: number) => String(n).padStart(2, '0');
           bar.classList.remove('reveal'); // el reveal pelearía con el transform del riel
           sticky.appendChild(bar);
         }
-        if (toggleBtn && sticky && toggleBtn.parentElement !== sticky) sticky.appendChild(toggleBtn);
+        if (vistasBox && sticky && vistasBox.parentElement !== sticky) sticky.appendChild(vistasBox);
       } else {
         if (bar && barHome && bar.parentElement !== barHome) barHome.appendChild(bar);
-        if (toggleBtn && toggleHome && toggleBtn.parentElement !== toggleHome) {
-          toggleHome.appendChild(toggleBtn);
+        if (vistasBox && vistasHome && vistasBox.parentElement !== vistasHome) {
+          vistasHome.appendChild(vistasBox);
         }
       }
     }
@@ -453,11 +477,13 @@ const pad = (n: number) => String(n).padStart(2, '0');
       const grilla = viewMode === 'grilla';
       toggleBtn.setAttribute('aria-pressed', String(grilla));
       toggleBtn.classList.toggle('is-grid', grilla);
-      if (toggleTxt) toggleTxt.textContent = grilla ? 'Volver al giro' : 'Ver todos';
+      // el texto nombra A DÓNDE lleva. Con la grilla de entrada, "volver al
+      // giro" no se entiende: nadie estuvo ahí todavía.
+      if (toggleTxt) toggleTxt.textContent = grilla ? 'Recorrer en 3D' : 'Ver todos';
       toggleBtn.setAttribute(
         'aria-label',
         grilla
-          ? 'Volver a la vista giratoria de proyectos'
+          ? 'Recorrer los proyectos en la vista giratoria'
           : 'Ver todos los proyectos en una grilla',
       );
     }
@@ -677,16 +703,14 @@ const pad = (n: number) => String(n).padStart(2, '0');
     });
 
     // ---- arranque: 3D si hay motion permitido y lugar; si no, grilla accesible ----
+    // La vista de ENTRADA es la grilla, no el cilindro (decisión del
+    // 2026-11-10). El recorrido helicoidal se lleva casi 7 pantallas de scroll
+    // —medido: el 49% del alto del sitio— y para quien entra por segunda vez
+    // eso es peaje. La grilla muestra las diez obras de una, y el cilindro
+    // queda a un click para quien quiera recorrerlo.
     let capable3d = canSpin();
-    if (capable3d) {
-      section.classList.add('is-toggleable');
-      viewMode = 'cilindro';
-      syncToggle();
-      enter3DInitial();
-    } else {
-      viewMode = 'grilla';
-      section.dataset.vista = viewMode;
-    }
+    if (capable3d) section.classList.add('is-toggleable');
+    grillaSinAnimacion();
 
     // Responder si cambia la preferencia de movimiento O el lugar disponible
     // (girar el teléfono, arrastrar el borde de la ventana): el cilindro se
@@ -711,11 +735,11 @@ const pad = (n: number) => String(n).padStart(2, '0');
         viewMode = 'grilla';
         section!.dataset.vista = viewMode;
       } else {
-        // vuelve a haber lugar y movimiento → reactivar cilindro y toggle
+        // vuelve a haber lugar y movimiento → se puede volver a ofrecer el
+        // cilindro, pero NO se entra solo: la vista de entrada es la grilla y
+        // cambiarla bajo los pies de quien está leyendo sería peor
         section!.classList.add('is-toggleable');
-        viewMode = 'cilindro';
         syncToggle();
-        enter3DInitial();
       }
     };
     // ---- volver con "atrás" desde la ficha de una card ----------------------
@@ -730,6 +754,13 @@ const pad = (n: number) => String(n).padStart(2, '0');
     if (rest?.slug) {
       if (rest.filtro && filterBtns.some((b) => b.dataset.filter === rest.filtro)) applyFilter(rest.filtro);
       if (rest.vista === 'grilla' && viewMode === 'cilindro') grillaSinAnimacion();
+      // se pregunta por la clase y no por `viewMode`: el análisis de tipos no
+      // ve las asignaciones que pasan adentro de grillaSinAnimacion()
+      if (rest.vista === 'cilindro' && !is3d() && capable3d) {
+        viewMode = 'cilindro';
+        syncToggle();
+        enter3DInitial();
+      }
       const idx = active.findIndex((c) => c.el.dataset.slug === rest.slug);
       if (idx >= 0) {
         if (is3d()) {

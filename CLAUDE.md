@@ -499,8 +499,14 @@ dos secciones se pisen — **identidad acá, modelo allá**.
 - **Título: "Estudio 21"** (sin "Arquitectos" — así no repite el lockup del logo del
   navbar), con eyebrow "Quiénes somos".
 - **Los tres párrafos bajan de intensidad** (el primero en `--ink-soft`, los otros dos
-  en `--concrete`). El copy es el texto del sitio viejo de WordPress, **verbatim**
-  (decisión del 2026-08-18): no tocar la redacción sin que lo pida el estudio.
+  en `--concrete`). ⚠ **El copy de esta sección se reescribe**: hasta ahora era el
+  texto del sitio viejo de WordPress tal cual, y decía que Estudio 21 es un estudio
+  de arquitectura que trabaja "en colaboración con nuestros clientes" — o sea, un
+  estudio de servicios. Dos secciones más abajo, "Cómo operamos" dice lo contrario:
+  que NO se trabaja a honorarios para terceros. Son dos negocios distintos en la
+  misma página, y el que se lee primero es el que no es. La redacción nueva tiene
+  que hablar en clave de **desarrolladora**, igual que el resto del sitio (el lead
+  de "Nuestro equipo" arrastra el mismo problema: también habla de "clientes").
 - **Cierra con las cifras de trayectoria** (`.pres-cifras`, +10 / +15 / 06) como banda
   horizontal de 3 columnas bajo una línea `--ink`, igual que la grilla de fases. La
   primera celda va sin `padding-left` para que el número alinee con el borde del
@@ -687,10 +693,23 @@ dibujo se edita el modelo, no un SVG.
   N. Si pasás a un estado con **menos** proyectos y tu posición queda más allá del final,
   se **rebobina al arranque del helicoidal** (`offsetTop + headOffset`) con salto
   instantáneo (ver nota `behavior:'instant'` abajo).
-- **Toggle "Ver todos" ⇄ "Volver al giro"** (`#phViewToggle`; la sección lleva
-  `.is-toggleable` cuando el 3D está activo): alterna el cilindro por una **grilla estática
-  con todos los proyectos a la vista** (salida rápida para quien no quiere recorrer todo el
-  scroll). No es un fade — las cards **viajan** entre estados: desenrollar (cilindro→grilla)
+- **La vista de ENTRADA es la grilla, no el cilindro** (2026-11-10). El recorrido
+  helicoidal se lleva **6.084 px de scroll — 6,8 pantallas, el 49% del alto del
+  sitio** (medido a 1440×900); para quien entra por segunda vez eso es peaje. Con
+  la grilla de entrada la sección mide **2.802 px (3,1 pantallas)** y la home baja
+  de 12.418 a 9.136 px. ⚠ En el teléfono esto no cambia nada: por debajo de 760px
+  el cilindro nunca se montó, así que esas 7 pantallas de mobile son otra cosa —
+  diez cards apiladas en una columna— y se arreglan por otro lado.
+- **Los dos botones de vista viven en una caja** (`.ph-vistas`, `#phVistas`): el
+  toggle del cilindro y un segundo botón **deshabilitado a propósito** ("Vista
+  nueva") que marca dónde iría una tercera vista todavía sin construir. La caja es
+  lo que se muestra, se esconde y **viaja al panel sticky** en 3D: si se movieran
+  de a uno, el segundo se quedaría en el header.
+- **Toggle "Recorrer en 3D" ⇄ "Ver todos"** (`#phViewToggle`; la sección lleva
+  `.is-toggleable` cuando el 3D está activo): alterna la grilla por el cilindro.
+  El texto nombra **a dónde lleva**, no de dónde se vuelve: con la grilla de
+  entrada, "volver al giro" no se entiende porque nadie estuvo ahí todavía.
+  La grilla es **una grilla estática con todos los proyectos a la vista**. No es un fade — las cards **viajan** entre estados: desenrollar (cilindro→grilla)
   usa **FLIP** (se mide el rect de cada card en el cilindro y se la suelta en su celda con
   traslación+escala+fade, cascada leve por índice); reensamblar (grilla→cilindro) hace un
   **bloom** (nacen chicas/translúcidas en su lugar del anillo) y reposiciona el scroll al
@@ -1047,13 +1066,29 @@ sin recuadro ni filete, igual que la axonometría de "Quiénes somos".
   pantalla sin tocar el SVG; y al no quedar rótulos chicos no hay con qué
   chocar (el anti-colisión se resolvió en el build, a 8 px).
 
-**La ficha no lleva bloque de cierre** (decisión del 2026-11-04): ni CTA de
-consulta, ni línea de contexto, ni una frase de remate por proyecto. Se probó
-un cierre con una línea propia de cada obra y botones de WhatsApp/mail, y se
-descartó: la ficha muestra la obra y nada más. El canal de contacto en esta
-página sigue siendo el botón flotante de WhatsApp, que ya está en todo el
-sitio. Lo único que se sumó después del contenido es **navegación**, no venta:
-las flechas Anterior / Siguiente (2026-11-06, ver abajo).
+**La ficha no lleva bloque de cierre** (decisión del 2026-11-04): ni línea de
+contexto ni frase de remate por proyecto. Se probó un cierre con una línea
+propia de cada obra y botones de WhatsApp/mail, y se descartó: la ficha muestra
+la obra y nada más. Lo que sí hay después del contenido es **navegación**, no
+venta: las flechas Anterior / Siguiente (2026-11-06, ver abajo).
+
+**La única acción de la ficha vive en la cartela del mapa** (`.ubic-cta`,
+2026-11-10): un `.btn--primary` que dice "Quiero información sobre este
+proyecto" y abre WhatsApp **con el nombre de la obra ya escrito en el mensaje**,
+así el estudio sabe por qué le escriben antes de abrir el chat. Va ahí y no en
+un bloque nuevo al pie porque ese hueco —a la derecha del plano, bajo las tres
+líneas de la cartela— estaba vacío, y porque es el único lugar de la página con
+aire para una acción sin inventar una sección. El link lo arma `linkWhatsApp()`
+(`data/site.ts`), que acepta un mensaje propio; si algún día no hay número
+cargado cae a un `mailto:` con el asunto puesto, en vez de pintar un botón roto.
+⚠ **Un proyecto sin `coords` no tiene mapa y, por lo tanto, tampoco botón**:
+hoy los diez tienen coordenadas, pero si se agrega uno sin ellas hay que
+acordarse de esto. En ≤620px el botón toma el ancho de la cartela, parte en dos
+renglones y pierde la flecha; su regla va con el padre delante
+(`.ubic-datos .ubic-cta`) porque sola **empata en especificidad con `.btn`**,
+que es `white-space: nowrap`, y el orden en que Astro junta las hojas no está
+garantizado — sin eso el botón no parte, estira la columna y la ficha se corre
+de costado en pantallas chicas.
 
 ### Anterior / Siguiente
 `src/styles/proyecto-nav.css` + el `<nav class="proj-nav">` al pie de

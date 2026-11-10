@@ -35,8 +35,14 @@
    y una sombra al pasar el mouse que lo despega de las cards que giran
    detrás. Los selectores van con `.ph` delante para ganarle a `.btn` sin
    depender del orden en que Astro junte las hojas. */
-.ph .ph-viewtoggle{display:none;flex:0 0 auto}
-.ph.is-toggleable .ph-viewtoggle{display:inline-flex}
+/* Las dos vistas van juntas en una caja: es la que se muestra, se esconde y
+   viaja al panel sticky. Si se movieran de a una, la segunda se quedaba atrás. */
+.ph .ph-vistas{display:none;flex:0 0 auto;gap:.5rem}
+.ph.is-toggleable .ph-vistas{display:flex}
+.ph .ph-viewtoggle{flex:0 0 auto}
+/* la tercera vista todavía no existe: el botón está para ubicarla, no para usarla */
+.ph .ph-viewnew{background:var(--paper-2);border-color:var(--line);color:var(--concrete)}
+.ph .ph-viewnew[disabled]{opacity:.5;cursor:not-allowed}
 .ph .ph-viewtoggle{
   background:var(--paper-2);border-color:var(--line);color:var(--ink);
   transition:background-color .25s ease,border-color .25s ease,color .25s ease,box-shadow .25s ease;
@@ -248,9 +254,11 @@
 /* En 3D el toggle se relocaliza (vía script) dentro del panel sticky: queda
    pineado arriba a la derecha, como un conmutador de vista, mientras se recorre
    el cilindro. Un velo de papel + blur lo despega del escenario sin taparlo. */
-.ph.is-3d .ph-sticky > .ph-viewtoggle{
+.ph.is-3d .ph-sticky > .ph-vistas{
   position:absolute;z-index:7;
   top:clamp(4.8rem,11vh,7rem);right:clamp(1rem,4vw,3.4rem);
+}
+.ph.is-3d .ph-sticky > .ph-vistas > .btn{
   background:var(--paper);
   background:color-mix(in srgb,var(--paper) 84%,transparent);
   backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);
@@ -300,7 +308,7 @@
   .ph.is-3d .filters{flex-direction:row;flex-wrap:wrap;align-items:center;gap:.45rem}
   .ph.is-3d .filters button{width:auto;justify-content:center}
   .ph.is-3d .ph-counter{justify-content:flex-start;margin-top:0}
-  .ph.is-3d .ph-sticky > .ph-viewtoggle{
+  .ph.is-3d .ph-sticky > .ph-vistas{
     top:var(--ph-toolbar-top);
     right:clamp(1rem,4vw,3.4rem);
   }
@@ -401,8 +409,10 @@
   /* en mobile la barra de filtros ocupa el tope: el toggle baja a una esquina
      inferior (queda sobre el hint, que va centrado). Va a la IZQUIERDA para no
      chocar con el botón flotante de WhatsApp (fijo abajo a la derecha). */
-  .ph.is-3d .ph-sticky > .ph-viewtoggle{
+  .ph.is-3d .ph-sticky > .ph-vistas{
     top:auto;bottom:clamp(1rem,4vh,1.8rem);right:auto;left:1rem;
+  }
+  .ph.is-3d .ph-sticky > .ph-vistas > .btn{
     font-size:.68rem;padding:.5rem .75rem;
   }
 }
