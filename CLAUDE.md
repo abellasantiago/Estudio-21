@@ -855,12 +855,40 @@ Orden de la página: **título · (portada | descripción) · ficha técnica · 
   la proporción de cada portada, no al revés. Así una portada más ancha que 6/7
   (ver `portadaAspecto` abajo) ensancha su propia columna en vez de perder alto
   para seguir midiendo 480px — **todas las fichas comparten la misma banda
-  vertical**, sea cual sea su proporción. Con el ancho fijo (6/7, 77 a 151
-  palabras según el proyecto) la descripción queda colgando en el aire; lo que
-  sobra va al texto, topado en 62ch. En ≤900px se apila y vuelve al modelo de
-  ancho fijo (`--cover-h:auto`, portada centrada en `min(100%, 440px)`) — con
-  una sola columna, alto fijo no tiene sentido: una cuadrada se vería tan ancha
-  como una vertical, pegada al ancho completo.
+  vertical**, sea cual sea su proporción. Lo que sobra va al texto, topado en
+  62ch. En **≤1100px se apila** y vuelve al modelo de ancho fijo
+  (`--cover-h:auto`, portada centrada en `min(100%, 440px)`) — con una sola
+  columna, alto fijo no tiene sentido: una cuadrada se vería tan ancha como una
+  vertical, pegada al ancho completo. ⚠ Ese corte es **1100 y no 900** como el
+  resto de la página: ver "El cuerpo de cada proyecto" acá abajo.
+- **El cuerpo de cada proyecto es un párrafo y después las características en
+  viñetas** (2026-11-10). Antes eran dos párrafos de prosa: el primero decía
+  dónde está la obra y el segundo enumeraba unidades, amenities, estructura y
+  régimen **escritos como una oración con comas**, que es justo lo que un
+  inversor no lee. Hoy el segundo párrafo es una lista (`.proj-desc ul`), con
+  la etiqueta de cada línea en tinta y el dato en el gris del cuerpo.
+  - **No lleva título.** Un "Características" entre el párrafo y la lista
+    agregaba un escalón de lectura sin decir nada que no se viera.
+  - **Sin esquema fijo, pero con lógica común**: cada proyecto usa sólo las
+    etiquetas que le corresponden —Villa Platero cinco, Patios Maldonado dos—
+    pero cuando dos proyectos tienen el mismo dato se llama igual y va en el
+    mismo orden: Tipologías · Niveles · Espacio exterior · Cocheras · Amenities ·
+    Servicios · Gastos comunes · Régimen · Beneficios fiscales · Preexistencia.
+    Sushi WOK, que es un local, usa las suyas (Programa · Estructura ·
+    Terminaciones). Así dos fichas se comparan leyendo en paralelo.
+  - **"Unidades" NO es una etiqueta de la lista**: el número ya está en la ficha
+    técnica. La línea se llama "Tipologías" y lleva el desglose, no el total.
+  - ⚠ **La lista no puede pasar el alto de la portada.** Si a un proyecto hay
+    que sumarle un dato y ya no entra, se saca el de menos peso para un
+    inversor antes que dejar crecer la columna; el orden de importancia es el
+    de la lista de arriba, de más a menos. Medido en la ficha más larga (Villa
+    Platero, 5 viñetas): a 1440 la foto mide 560 y el texto 491 —sobran 69—; a
+    1101, 488 contra 422. **Por eso el bloque se apila en 1100px y no en 900**:
+    entre 900 y 1080 la foto baja con el ancho de la ventana (44,33vw) pero el
+    texto, con menos columna, parte en más renglones, y a 1040 el texto ya mide
+    472 contra 461 de foto. Subir la curva de `--cover-h` no lo arregla: una
+    foto más alta es también más ancha, le roba ancho al texto y el texto
+    vuelve a crecer.
 - **La portada va en 6/7 por defecto** (vertical suave, más ancha que un 4/5),
   igual en la mayoría de los proyectos. Las fotos reales van de 0.75 a 1.50, así
   que cada una se encuadra a mano desde el frontmatter: **`portadaFoco`** (`--pf`,
@@ -1310,6 +1338,10 @@ de ancho (y en alturas de 390 a 1440), en la home y en la ficha de proyecto.
   en `mapa.css` — ahí el mapa de la ficha oculta los rótulos de referencia y
   agranda el de la cruz. Y un tercero, de ALTO otra vez, en `proyecto-nav.css`.
   Comparten número por casualidad.)
+- **1100px** → la ficha de proyecto apila portada y texto (`project-page.css`).
+  Es geométrico y está explicado en "Página de proyecto": por debajo de eso la
+  lista de características pasa el alto de la foto y las dos columnas quedan
+  disparejas.
 - **1000px + `hover: hover` + `pointer: fine`** → las flechas Anterior /
   Siguiente pasan de banda al pie a pastilla flotante en los bordes
   (`proyecto-nav.css`). Es el único corte del sitio que **no** es geométrico:

@@ -74,8 +74,29 @@ html.vt-sin-portada .proj-cover{view-transition-name:none}
 .proj-desc{max-width:62ch;margin-top:clamp(.4rem,1.2vw,.9rem)}
 .proj-desc :is(p){font-size:clamp(1.06rem,1.35vw,1.22rem);color:var(--ink-soft);margin-bottom:1.1rem}
 .proj-desc :is(h2,h3){font-family:var(--font-display);font-weight:500;letter-spacing:-.01em;margin:2rem 0 .8rem}
-.proj-desc :is(ul,ol){margin:0 0 1.1rem 1.2rem;color:var(--ink-soft)}
-.proj-desc li{margin-bottom:.4rem}
+/* ---------- las características del proyecto ----------
+   El cuerpo de cada .md es un párrafo de contexto y debajo las características
+   en viñetas. No llevan título: el párrafo ya dice de qué se habla y un
+   "Características" en el medio sólo agregaba un escalón más de lectura.
+   La viñeta es una rayita petróleo —el mismo gesto del eyebrow— en vez del
+   punto del navegador, y la etiqueta de cada línea va en tinta para que el ojo
+   pueda saltar de etiqueta en etiqueta sin leer el renglón entero.
+   ⚠ La lista está pensada para NO pasar el alto de la portada (--cover-h, 560px
+   en escritorio). Si a un proyecto hay que sumarle un dato y ya no entra, se
+   saca el de menos peso para un inversor antes que dejar que la columna crezca:
+   el orden de importancia es tipologías, régimen y gastos comunes, cocheras,
+   amenities, espacio exterior y al final estructura y terminaciones. */
+.proj-desc ul{list-style:none;margin:clamp(1.1rem,2vw,1.5rem) 0 0;padding:0;
+  display:flex;flex-direction:column;gap:.72rem}
+.proj-desc ul li{position:relative;padding-left:1.45rem;margin:0;
+  font-size:clamp(.94rem,1.1vw,1rem);line-height:1.55;color:var(--ink-soft)}
+.proj-desc ul li::before{content:"";position:absolute;left:0;top:.7em;
+  width:.62rem;height:1px;background:var(--petrol)}
+.proj-desc ul li strong{font-weight:500;color:var(--ink)}
+/* una lista numerada, si alguna vez hace falta, se queda con el formato del
+   navegador: esto es sólo para la de características */
+.proj-desc ol{margin:0 0 1.1rem 1.2rem;color:var(--ink-soft)}
+.proj-desc ol li{margin-bottom:.4rem}
 
 /* ficha técnica: banda horizontal de 5 columnas al pie del bloque */
 .ficha{margin-top:clamp(3rem,6vw,5rem);border-top:1px solid var(--ink);display:grid;grid-template-columns:repeat(5,1fr)}
@@ -104,7 +125,17 @@ html.vt-sin-portada .proj-cover{view-transition-name:none}
 
 /* una sola columna: la portada arriba y la descripción debajo. Se topa el ancho
    de la portada para que en tablet no se coma una pantalla entera de alto. */
-@media(max-width:900px){
+/* ⚠ El bloque portada+texto se apila en **1100px**, no en 900 como el resto
+   de la página. Es por el alto: `--cover-h` baja con el ancho de la ventana
+   (44,33vw) pero el texto, al tener menos columna, parte en más renglones, así
+   que entre 900 y 1080px la lista de características **pasa el alto de la
+   foto** y las dos columnas quedan disparejas. Medido en la ficha más larga
+   (Villa Platero): a 1100 la foto mide 488 y el texto 446 —sobran 42—; a 1040
+   la foto mide 461 y el texto 472, y ya se pasa. Apilado el problema no existe
+   porque no hay con qué comparar. Subir la curva de --cover-h no alcanza: una
+   foto más alta es también más ancha, le saca ancho al texto y el texto vuelve
+   a crecer. */
+@media(max-width:1100px){
   .proj-top{grid-template-columns:minmax(0,1fr);gap:clamp(1.6rem,4vw,2.4rem)}
   /* apilado: vuelve al modelo de ancho fijo (el de arriba es a propósito para
      el desktop en dos columnas, acá el alto fijo no tiene sentido — una
