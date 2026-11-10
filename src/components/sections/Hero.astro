@@ -1,7 +1,6 @@
 ---
 import '../../styles/hero.css';
 import HeroWireframe from '../HeroWireframe.astro';
-import { site } from '../../data/site';
 
 // "21" extruido: capas apiladas en Z (de lejos → al frente). El giro (rotateY)
 // las muestra como un bloque con grosor en vez de texto plano. Material grafito
@@ -77,8 +76,6 @@ const wordLayers = Array.from({ length: WORD_LAYERS }, (_, i) => {
           <span class="sr-only">Estudio 21</span>
         </h1>
       </div>
-
-      <div class="hero-dim" data-depth="0.7">{site.direccion.calle}</div>
     </div>
   </div>
 

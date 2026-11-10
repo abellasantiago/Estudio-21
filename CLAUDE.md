@@ -318,7 +318,7 @@ leería como "ya visto" y nunca dibujaría en la primera carga).
     extruido) en cada frame; ahora va en `.ht-shadow`, su única consumidora.
     `--hero-fade` iba en `:root` e invalidaba el documento ENTERO (~840 nodos); ahora
     va en `.hero` y `.living-bg`, que contienen a todos sus consumidores
-    (`.hero-stage::before`, `.hero-eyebrow`, `.hero-dim`, `.hero-wireframe`,
+    (`.hero-stage::before`, `.hero-eyebrow`, `.hero-wireframe`,
     `.lbg-note`). Si se agrega un consumidor fuera de esos dos, hay que sumarlo ahí.
   - **Geometría cacheada** (`measure`): las posiciones son invariantes al scroll, así
     que se miden al cargar, en `resize` y cuando cambia el alto del documento (un
@@ -448,12 +448,23 @@ leería como "ya visto" y nunca dibujaría en la primera carga).
   limpieza junto con `hero-blueprints.css`. Era un plano a la izquierda del "21" que se
   descubría con el mouse. Si se quiere retomar, está entero en git: los archivos viven
   en el commit `51a539c` (`git show 51a539c:src/components/HeroBlueprints.astro`).
+- **En el hero NO va la dirección del estudio.** Hubo una línea mono
+  **"21 de Setiembre 3024"** bajo el "21" (`.hero-dim`) y se sacó (2026-11-09):
+  arriba de todo el visitante no está ubicando el estudio en un mapa, está
+  tratando de entender qué hace. La dirección sigue donde sirve, en Contacto y
+  en el JSON-LD.
+- **Debajo del "21" no va ninguna frase.** Se probó subir el claim al hero —el
+  propio "Desarrollamos, no solo proyectamos." de "Cómo operamos"— en una línea
+  display bajo el lockup, y se descartó (2026-11-09, decisión del estudio): el
+  hero se queda con el eyebrow, el "21" y nada más. Si alguna vez se retoma,
+  dos cosas que ya se aprendieron: el claim tiene que ir FUERA del elemento con
+  `data-immersive-title` (es el que gira en 3D) y, si se lo mete en el `<h1>`,
+  el lockup tiene que salir de ahí —son 25 capas con el mismo texto y el título
+  le llega a Google como "Estudio Estudio Estudio… 21 21 21…".
 - **`--hero-fade`** (seteado por `immersive.ts` según el scroll) desvanece al dejar el
-  hero y trae de vuelta al subir: las notas mono del fondo vivo,
+  hero y trae de vuelta al subir: las notas mono del fondo vivo y
   el eyebrow **"Arquitectura que trasciende"** (combinado con su reveal-on-scroll inicial
-  vía una custom property `--reveal`, no pisa la transición de `.reveal`) y la línea
-  **"21 de Setiembre 3024"** (`.hero-dim`). El texto/marca se corren a la izquierda con
-  el token `--hero-shift` (se anula en pantallas chicas).
+  vía una custom property `--reveal`, no pisa la transición de `.reveal`).
   **Sin motor** (touch, reduced-motion, sin JS) nadie escribe `--hero-fade`, y las
   notas mono —que son `position:fixed`— quedaban a 0,5 sobre toda la página: pasaban
   por detrás de la axonometría de "Quiénes somos", que va sin recuadro. Ahí las

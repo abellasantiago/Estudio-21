@@ -79,7 +79,7 @@ export function initImmersive(): void {
   // property se hereda: escribirlo en el <html> invalidaba el estilo del
   // documento ENTERO (~840 nodos) en cada frame del scroll. Sus consumidores
   // reales viven todos dentro de estos dos (.hero-stage::before, .hero-eyebrow,
-  // .hero-dim, .hero-wireframe y .lbg-note).
+  // .hero-wireframe y .lbg-note).
   const heroEl = document.querySelector<HTMLElement>('.hero');
   const bgEl = document.querySelector<HTMLElement>('.living-bg');
   // La aparición del header la resuelve el scroll siempre-activo de BaseLayout
