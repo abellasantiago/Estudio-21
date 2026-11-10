@@ -729,6 +729,17 @@ dibujo se edita el modelo, no un SVG.
   que entre columnas. El `sizes` de la `<Image>` declara **el mayor de las dos vistas** por
   breakpoint (grilla 1/2/3 columnas vs. card fija de 376px del cilindro, maquetada a 2×):
   ninguna de las dos queda blanda.
+- **En el cilindro la card tiene su propia escala de letra chica** (`.ph.is-3d
+  .ph-loc` y `.ph.is-3d .status`), más grande que en la grilla porque la card se
+  proyecta reducida casi todo el recorrido. Pero tiene un techo: estuvo en
+  0,95rem y 16px y **en la card del frente eso llegaba a 14,7 y 15,5 px de
+  pantalla** —más que la letra del cuerpo del sitio—, y como el renglón de datos
+  va con `white-space: nowrap`, el más largo ("Brazo Oriental · 2028 · 10
+  unidades", 35 caracteres) **no entraba en los 326 px de la card y se cortaba**.
+  Hoy están en **0,8rem y 12px** (12,3 y 11,5 px de pantalla al frente). ⚠ Si se
+  vuelven a tocar, la cuenta del ancho es: IBM Plex Mono avanza 0,6 em por glifo
+  y el renglón lleva 0,03 em de tracking, así que 35 caracteres piden
+  `35 × 0,63 × cuerpo` px — a 15,2 son 335 y no entran; a 12,8 son 282 y sobran 44.
 - **Cards limpias:** sin cartelito `E21·NN`, sin nombre gigante de fondo, sin grilla
   blueprint; el fondo del panel es parallax multicapa (fantasma "21" + marcas de registro).
   El CTA "Ver proyecto" aparece **sólo en hover de la card al frente**.
