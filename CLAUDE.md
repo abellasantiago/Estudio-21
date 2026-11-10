@@ -873,17 +873,49 @@ Orden de la página: **título · (portada | descripción) · ficha técnica · 
     etiquetas que le corresponden —Villa Platero cinco, Patios Maldonado dos—
     pero cuando dos proyectos tienen el mismo dato se llama igual y va en el
     mismo orden: Tipologías · Niveles · Espacio exterior · Cocheras · Amenities ·
-    Servicios · Gastos comunes · Régimen · Beneficios fiscales · Preexistencia.
-    Sushi WOK, que es un local, usa las suyas (Programa · Estructura ·
-    Terminaciones). Así dos fichas se comparan leyendo en paralelo.
+    Servicios · Estructura · Régimen · Beneficios fiscales · Preexistencia.
+    Sushi WOK, que es un local, usa las suyas (Programa · Estructura). Así dos
+    fichas se comparan leyendo en paralelo.
   - **"Unidades" NO es una etiqueta de la lista**: el número ya está en la ficha
     técnica. La línea se llama "Tipologías" y lleva el desglose, no el total.
+  - **Cada viñeta tiene que ser un dato, no una promesa** (2026-11-10). Se
+    sacaron las cuatro que decían **"Gastos comunes: bajos"** (Patios del
+    Regimiento, Terrazas de Cajal, Terrazas de Italia y Vila Rodona) y el
+    "Terminaciones: pensadas para el uso comercial" de Sushi WOK: un inversor
+    lee "bajos" y no sabe cuánto es, y la memoria del estudio tampoco da la
+    cifra ni el motivo. Si alguna vez llega el número —o la razón concreta, por
+    ejemplo que no hay ascensor ni portería—, la viñeta vuelve con el dato; sin
+    eso, no va. Misma vara para cualquier viñeta nueva.
+  - **Puntuación: la viñeta que termina en palabras cierra con punto; la que es
+    sólo una cifra, no.** "Cocheras: 26, en subsuelo." lleva punto porque es una
+    frase; "Cocheras: 10" no, porque es una celda de dato, como las de la ficha
+    técnica. Hoy la única sin punto es la de Terrazas de Cajal.
+  - **Números: palabras hasta nueve, cifras de 10 para arriba, y una sola
+    familia por enumeración.** Por eso Chana I, Villa Platero y Terrazas de
+    Cajal llevan la línea de tipologías en cifras (tienen un 25, un 12, un 15) y
+    Cavas de Haedo, Patios del Vitraux y Patios Maldonado en palabras (ninguna
+    pasa de seis). Mezclar "cinco monoambientes" con "25 unidades" en el mismo
+    renglón es lo que hay que evitar.
+  - **"Dormitorios" se escribe en el primer miembro de la enumeración y en el
+    último; los del medio lo eliden.** "8 unidades de un dormitorio, 12 de dos y
+    4 dúplex de tres dormitorios." Terminar en "y cinco de dos" deja la frase
+    colgada y se lee informal, que es como estaba hasta el 2026-11-10.
+  - **El régimen se nombra siempre igual: "Ley de Vivienda Promovida N.º
+    18.795"**, y los beneficios van en su propia viñeta ("exoneración de ITP, de
+    IRPF/IRAE sobre los alquileres y del Impuesto al Patrimonio"), no colgados
+    del régimen. Antes convivían tres redacciones distintas ("Ley de Vivienda
+    Promovida", "Vivienda Promovida (ANV)" y la larga con los beneficios
+    adentro) y dos fichas del mismo régimen no se podían comparar de un vistazo.
+  - ⚠ **Hay un dato que el estudio todavía no precisó**: en Patios Maldonado la
+    memoria dice que "varias" unidades de planta alta son dúplex, sin decir
+    cuántas, y la viñeta "Niveles" arrastra ese "parte de". Si el estudio da el
+    número, se escribe.
   - ⚠ **La lista no puede pasar el alto de la portada.** Si a un proyecto hay
     que sumarle un dato y ya no entra, se saca el de menos peso para un
     inversor antes que dejar crecer la columna; el orden de importancia es el
     de la lista de arriba, de más a menos. Medido en la ficha más larga (Villa
-    Platero, 5 viñetas): a 1440 la foto mide 560 y el texto 491 —sobran 69—; a
-    1101, 488 contra 422. **Por eso el bloque se apila en 1100px y no en 900**:
+    Platero, 5 viñetas): a 1440 la foto mide 560 y el texto 451 —sobran 109—; a
+    1101, 488 contra 418 —sobran 70, el margen más chico de las diez—. **Por eso el bloque se apila en 1100px y no en 900**:
     entre 900 y 1080 la foto baja con el ancho de la ventana (44,33vw) pero el
     texto, con menos columna, parte en más renglones, y a 1040 el texto ya mide
     472 contra 461 de foto. Subir la curva de `--cover-h` no lo arregla: una

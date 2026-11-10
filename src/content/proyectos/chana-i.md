@@ -13,16 +13,15 @@ portadaFoco: "70% 50%"
 portadaZoom: 1
 ---
 
-Chana I es un edificio de viviendas en Chaná 2033, en el barrio Cordón, una zona
-urbana en constante evolución, a pasos de universidades, centros culturales,
-comercios y una oferta gastronómica vibrante. Se desarrolla en subsuelo, planta
-baja y tres niveles.
+Chana I es un edificio de viviendas en Chaná 2033, en el barrio Cordón, a pasos
+de universidades, centros culturales y de la oferta comercial y gastronómica de
+la zona. Se desarrolla en subsuelo, planta baja y tres niveles.
 
-- **Tipologías:** cinco monoambientes, veinticinco unidades de un dormitorio y
-  cinco de dos
-- **Espacio exterior:** balcón o terraza privada en todas las unidades
-- **Cocheras:** 14, en subsuelo
-- **Amenities:** jardines, salón de usos múltiples con barbacoa y coworking, en
-  el último piso
-- **Estructura:** hormigón armado con muros de hormigón celular
-- **Régimen:** Ley de Vivienda Promovida
+- **Tipologías:** 5 monoambientes, 25 unidades de un dormitorio y 5 de dos
+  dormitorios.
+- **Espacio exterior:** balcón o terraza privada en todas las unidades.
+- **Cocheras:** 14, en subsuelo.
+- **Amenities:** jardines y, en el último piso, salón de usos múltiples con
+  barbacoa y coworking.
+- **Estructura:** hormigón armado con muros de hormigón celular.
+- **Régimen:** Ley de Vivienda Promovida N.º 18.795.

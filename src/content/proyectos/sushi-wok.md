@@ -13,13 +13,13 @@ portadaFoco: "50% 50%"
 portadaZoom: 1
 ---
 
-Sushi WOK Perú es la nueva casa en Carrasco de la propuesta gastronómica que
-combina sushi y cocina peruana, un segundo local que se suma al ya consolidado
-en Pocitos. En Boston 6208, Estudio 21 reformó por completo una construcción
-existente de dos niveles para alojarlo.
+Sushi WOK Perú es el segundo local de la propuesta gastronómica que combina sushi
+y cocina peruana: suma a su casa de Pocitos una sede en Carrasco. Estudio 21
+reformó por completo una construcción existente de dos niveles en Boston 6208
+para alojarla.
 
 - **Programa:** salón gastronómico con cocina, baños y parrillero en planta
   baja; vivienda de un dormitorio con living-comedor y cocina nuevos en planta
-  alta
-- **Estructura:** hormigón armado con refuerzos metálicos sobre la preexistencia
-- **Terminaciones:** pensadas para el uso comercial
+  alta.
+- **Estructura:** hormigón armado con refuerzos metálicos sobre la
+  preexistencia.

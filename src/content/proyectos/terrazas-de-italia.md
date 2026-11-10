@@ -13,14 +13,13 @@ portadaFoco: "50% 50%"
 portadaZoom: 1
 ---
 
-Terrazas de Italia es un edificio de viviendas en La Blanqueada, a metros de una
-de las principales vías de acceso a Montevideo desde el este, con excelente
-conectividad y a pocos minutos de los principales centros de salud del país,
-shoppings e hipermercados.
+Terrazas de Italia es un edificio de viviendas en Ignacio Núñez 2127, en La
+Blanqueada, a metros de Av. Italia —una de las principales vías de acceso a
+Montevideo desde el este— y a pocos minutos de los principales centros de salud
+del país, shoppings e hipermercados.
 
 - **Tipologías:** apartamentos de un dormitorio y dúplex de dos y tres
-  dormitorios con dos baños
-- **Espacio exterior:** terraza, patio o azotea y parrillero propio en todas
-- **Estructura:** sistema constructivo tradicional con estructura de hormigón
-  armado
-- **Gastos comunes:** bajos
+  dormitorios con dos baños.
+- **Espacio exterior:** terraza, patio o azotea y parrillero propio en todas las
+  unidades.
+- **Estructura:** hormigón armado, con sistema constructivo tradicional.

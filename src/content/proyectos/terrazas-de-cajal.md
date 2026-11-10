@@ -13,14 +13,13 @@ portadaFoco: "50% 50%"
 portadaZoom: 1
 ---
 
-Terrazas de Cajal es un edificio de cinco plantas en Ramón y Cajal 2462, en una
-zona residencial consolidada y de gran conectividad de La Blanqueada, a pocos
-metros de Av. Luis Alberto de Herrera y Av. Rivera, con fácil acceso a centros
-educativos, al Montevideo Shopping y al Parque Batlle.
+Terrazas de Cajal es un edificio de cinco plantas en Ramón y Cajal 2462, en La
+Blanqueada: una zona residencial consolidada, a pocos metros de Av. Luis Alberto
+de Herrera y Av. Rivera, con fácil acceso a centros educativos, al Montevideo
+Shopping y al Parque Batlle.
 
-- **Tipologías:** quince unidades de un dormitorio —diez con parrillero
-  individual— y cinco de dos
+- **Tipologías:** 15 unidades de un dormitorio —10 de ellas con parrillero
+  individual— y 5 de dos dormitorios.
 - **Cocheras:** 10
-- **Amenities:** barbacoa con terraza, cowork y laundry
-- **Gastos comunes:** bajos
-- **Régimen:** Ley de Vivienda Promovida N.º 18.795
+- **Amenities:** barbacoa con terraza, coworking y laundry.
+- **Régimen:** Ley de Vivienda Promovida N.º 18.795.

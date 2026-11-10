@@ -14,12 +14,12 @@ portadaZoom: 1
 ---
 
 Cavas de Haedo es el reciclaje de una vivienda de principios del siglo pasado en
-Diego Lamas 1388, una zona residencial con historia y un entorno urbano
-consolidado. Una intervención cuidadosa la convierte en seis unidades
-funcionales sin perder el carácter patrimonial de la propiedad.
+Diego Lamas 1388, en Pocitos, un barrio residencial consolidado y con historia.
+La intervención la subdivide en seis unidades sin alterar su carácter
+patrimonial.
 
 - **Tipologías:** tres unidades de un dormitorio en planta baja; en planta alta,
-  dos de dos dormitorios y una de tres
-- **Cocheras:** para dos vehículos, en el retiro frontal
+  dos de dos y una de tres dormitorios.
+- **Cocheras:** dos, en el retiro frontal.
 - **Preexistencia:** se conservan la estructura, los techos y los entrepisos
-  originales
+  originales.
