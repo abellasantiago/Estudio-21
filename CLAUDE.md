@@ -1066,29 +1066,22 @@ sin recuadro ni filete, igual que la axonometría de "Quiénes somos".
   pantalla sin tocar el SVG; y al no quedar rótulos chicos no hay con qué
   chocar (el anti-colisión se resolvió en el build, a 8 px).
 
-**La ficha no lleva bloque de cierre** (decisión del 2026-11-04): ni línea de
-contexto ni frase de remate por proyecto. Se probó un cierre con una línea
-propia de cada obra y botones de WhatsApp/mail, y se descartó: la ficha muestra
-la obra y nada más. Lo que sí hay después del contenido es **navegación**, no
-venta: las flechas Anterior / Siguiente (2026-11-06, ver abajo).
-
-**La única acción de la ficha vive en la cartela del mapa** (`.ubic-cta`,
-2026-11-10): un `.btn--primary` que dice "Quiero información sobre este
-proyecto" y abre WhatsApp **con el nombre de la obra ya escrito en el mensaje**,
-así el estudio sabe por qué le escriben antes de abrir el chat. Va ahí y no en
-un bloque nuevo al pie porque ese hueco —a la derecha del plano, bajo las tres
-líneas de la cartela— estaba vacío, y porque es el único lugar de la página con
-aire para una acción sin inventar una sección. El link lo arma `linkWhatsApp()`
-(`data/site.ts`), que acepta un mensaje propio; si algún día no hay número
-cargado cae a un `mailto:` con el asunto puesto, en vez de pintar un botón roto.
-⚠ **Un proyecto sin `coords` no tiene mapa y, por lo tanto, tampoco botón**:
-hoy los diez tienen coordenadas, pero si se agrega uno sin ellas hay que
-acordarse de esto. En ≤620px el botón toma el ancho de la cartela, parte en dos
-renglones y pierde la flecha; su regla va con el padre delante
-(`.ubic-datos .ubic-cta`) porque sola **empata en especificidad con `.btn`**,
-que es `white-space: nowrap`, y el orden en que Astro junta las hojas no está
-garantizado — sin eso el botón no parte, estira la columna y la ficha se corre
-de costado en pantallas chicas.
+**La ficha no lleva ninguna acción de venta** (decisión del 2026-11-04,
+reafirmada el 2026-11-10): ni CTA de consulta, ni línea de contexto, ni una
+frase de remate por proyecto. Se probó **dos veces** y se descartó las dos:
+primero un bloque de cierre al pie con una línea propia de cada obra y botones
+de WhatsApp/mail; después un botón "Quiero información sobre este proyecto" en
+la cartela del mapa, que abría WhatsApp con el nombre de la obra ya escrito.
+Las dos quedaron andando y las dos se sacaron: la ficha muestra la obra y nada
+más. El canal de contacto en esta página sigue siendo el botón flotante de
+WhatsApp, que ya está en todo el sitio. Lo único que se sumó después del
+contenido es **navegación**, no venta: las flechas Anterior / Siguiente
+(2026-11-06, ver abajo). ⚠ Si alguna vez se vuelve a intentar, dos cosas ya
+aprendidas: el texto del botón mide ~33 caracteres y `.btn` es
+`white-space: nowrap`, así que en un teléfono se sale de pantalla y estira la
+columna de la cartela; y la regla que lo arregla necesita el padre delante
+(`.ubic-datos .ubic-cta`), porque sola empata en especificidad con `.btn` y el
+orden en que Astro junta las hojas no está garantizado.
 
 ### Anterior / Siguiente
 `src/styles/proyecto-nav.css` + el `<nav class="proj-nav">` al pie de

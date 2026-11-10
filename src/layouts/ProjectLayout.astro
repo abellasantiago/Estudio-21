@@ -7,7 +7,7 @@ import Galeria from '../components/Galeria.astro';
 import Mapa from '../components/Mapa.astro';
 import { getPortada, getGaleria } from '../lib/images';
 import { vecinos } from '../lib/proyectos';
-import { site, linkWhatsApp } from '../data/site';
+import { site } from '../data/site';
 import '../styles/project-page.css';
 import '../styles/proyecto-nav.css';
 
@@ -35,13 +35,6 @@ const {
 
 const { Content } = await render(proyecto);
 const portada = getPortada(slug);
-/* La consulta por ESTA obra: el mensaje ya lleva el nombre del proyecto, así el
-   estudio sabe por qué le escriben antes de abrir el chat. Si algún día no hay
-   número cargado, cae al mail con el asunto puesto en vez de desaparecer. */
-const consultaMsg = `Hola, Estudio 21. Quería información sobre ${nombre}.`;
-const consultaHref =
-  linkWhatsApp(consultaMsg) ??
-  `mailto:${site.email}?subject=${encodeURIComponent(`Consulta por ${nombre}`)}`;
 const galeria = getGaleria(slug);
 const estadoLabels = {
   proximamente: 'Próximamente',
@@ -214,13 +207,7 @@ const ficha = [
           plano es ese dato desplegado. Por eso va pegado abajo y sin título de
           sección. Un proyecto sin `coords` simplemente no lo muestra. */}
       {coords && barrio && (
-        <Mapa
-          coords={coords}
-          barrio={barrio}
-          direccion={direccion}
-          ubicacion={ubicacion}
-          consultaHref={consultaHref}
-        />
+        <Mapa coords={coords} barrio={barrio} direccion={direccion} ubicacion={ubicacion} />
       )}
 
       <Galeria fotos={galeria} nombre={nombre} slug={slug} />

@@ -34,20 +34,13 @@ export const site = {
   ogImage: '/og-default.png',
 } as const;
 
-/** El saludo por defecto: el que usan el botón flotante y la fila de Contacto. */
-const SALUDO = 'Hola, Estudio 21. Quería hacerles una consulta.';
-
 /**
- * Link de WhatsApp con el mensaje ya escrito. Sin argumento da el saludo
- * genérico; la ficha de cada proyecto le pasa el suyo, con el nombre de la obra
- * adentro, para que el estudio sepa por qué le escriben antes de contestar.
- * Devuelve `null` si todavía no hay número cargado, así quien lo use decide el
- * reemplazo (un `mailto:`) en vez de pintar un botón roto.
+ * Link de WhatsApp con el mensaje ya escrito. Lo usan el botón flotante y la
+ * fila de Contacto: con el texto en un solo lugar, los dos abren el mismo chat
+ * y no hay forma de que uno quede con un saludo viejo.
  */
-export function linkWhatsApp(mensaje: string = SALUDO): string | null {
-  return site.whatsapp
-    ? `https://wa.me/${site.whatsapp}?text=${encodeURIComponent(mensaje)}`
-    : null;
-}
-
-export const whatsappHref = linkWhatsApp();
+export const whatsappHref = site.whatsapp
+  ? `https://wa.me/${site.whatsapp}?text=${encodeURIComponent(
+      'Hola, Estudio 21. Quería hacerles una consulta.',
+    )}`
+  : null;

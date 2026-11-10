@@ -19,14 +19,9 @@ interface Props {
   barrio: string;
   direccion?: string;
   ubicacion: string;
-  /* Link de la consulta por esta obra. Va en la cartela, bajo el barrio: ese
-     hueco estaba vacío y es el único lugar de la ficha donde hay aire para una
-     acción sin inventar un bloque nuevo. ⚠ Si un proyecto no tiene `coords` no
-     hay mapa, y entonces tampoco hay botón: ver ProjectLayout. */
-  consultaHref?: string;
 }
 
-const { coords, barrio, direccion, ubicacion, consultaHref } = Astro.props;
+const { coords, barrio, direccion, ubicacion } = Astro.props;
 const svg = mapaSVG({ lon: coords[0], lat: coords[1], barrio });
 ---
 
@@ -41,16 +36,5 @@ const svg = mapaSVG({ lon: coords[0], lat: coords[1], barrio });
     <p class="eyebrow" id="ubic-tit">Ubicación</p>
     {direccion && <p class="ubic-dir">{direccion}</p>}
     <p class="ubic-zona">{barrio} · {ubicacion}</p>
-    {consultaHref && (
-      <a
-        class="btn btn--primary ubic-cta"
-        href={consultaHref}
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        <span>Quiero información sobre este proyecto</span>
-        <span class="btn-arrow" aria-hidden="true">→</span>
-      </a>
-    )}
   </div>
 </section>

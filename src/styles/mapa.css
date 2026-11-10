@@ -39,37 +39,6 @@
   margin-top: 0.75rem;
 }
 
-/* La única acción de la ficha. Vive en la cartela del mapa —el hueco que
-   quedaba vacío a la derecha del plano— y no en un bloque de cierre: la ficha
-   muestra la obra, no vende. El aire es el mismo salto que hay entre la
-   dirección y el barrio, en grande. */
-.ubic-cta {
-  margin-top: clamp(1.5rem, 2.6vw, 2.1rem);
-  align-self: start;
-}
-/* El texto del botón mide ~33 caracteres y `.btn` es `white-space: nowrap`:
-   en un teléfono se salía de pantalla por la derecha. Acá toma el ancho de la
-   cartela y, si hace falta, parte en dos renglones centrados. */
-/* ⚠ va con el padre delante: `.ubic-cta` sola empata en especificidad con
-   `.btn` (que es `white-space: nowrap`) y el orden en que Astro junta las
-   hojas no está garantizado. Sin esto el botón no parte, su ancho mínimo
-   estira la columna y la ficha se puede correr de costado. */
-@media (max-width: 620px) {
-  .ubic-datos .ubic-cta {
-    width: 100%;
-    white-space: normal;
-    text-align: center;
-    line-height: 1.35;
-    padding-block: 0.9rem;
-  }
-  /* la flechita es un gesto de hover y en el teléfono no hay hover; además,
-     al lado de un texto de dos renglones queda flotando. Mismo criterio que
-     las filas de Contacto, que la ocultan en pantallas chicas. */
-  .ubic-datos .ubic-cta .btn-arrow {
-    display: none;
-  }
-}
-
 /* ---------- el dibujo ---------- */
 .mapa {
   display: block;
