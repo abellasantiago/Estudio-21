@@ -3,17 +3,28 @@
 .contact .ghost21{color:rgba(255,255,255,.04);right:-2vw;bottom:-8vw;top:auto}
 .contact .eyebrow{color:var(--concrete-soft)}
 .contact .eyebrow::before{background:var(--petrol-bright)}
-.contact h2{font-family:var(--font-display);font-weight:500;font-size:clamp(2rem,4.2vw,3.4rem);line-height:1.02;letter-spacing:-.02em;margin-top:1.2rem;max-width:20ch}
-.contact .ctext{color:rgba(242,241,236,.72);max-width:46ch;margin-top:1.5rem;font-size:1.05rem}
-.contact-rows{margin-top:clamp(2.6rem,5vw,4rem);border-top:1px solid rgba(255,255,255,.16);position:relative;z-index:2}
-.crow{display:grid;grid-template-columns:11rem 1fr auto;gap:1rem;align-items:center;padding:1.4rem 0;border-bottom:1px solid rgba(255,255,255,.12)}
+.contact h2{font-family:var(--font-display);font-weight:500;font-size:clamp(1.9rem,3.3vw,2.9rem);line-height:1.02;letter-spacing:-.02em;margin-top:1.2rem;max-width:15ch}
+.contact .ctext{color:rgba(242,241,236,.72);max-width:34ch;margin-top:1.5rem;font-size:1.05rem}
+
+/* La lámina del formulario ocupa la columna derecha entera; a la izquierda, el
+   texto arriba y los canales directos abajo. En una columna el orden pasa a
+   texto → formulario → canales: en el teléfono la acción tiene que venir antes
+   que los datos, y los canales son justamente la alternativa para el que NO
+   quiere llenar un formulario. */
+.contact-grid{display:grid;grid-template-columns:1fr .92fr;gap:clamp(2.5rem,6vw,5rem);grid-template-areas:"texto form" "canales form";align-items:start;position:relative;z-index:2}
+.contact-texto{grid-area:texto}
+.contact-canales{grid-area:canales;margin-top:clamp(2.6rem,5vw,3.4rem)}
+
+/* ---------- canales directos ---------- */
+.contact-rows{border-top:1px solid rgba(255,255,255,.16);position:relative;z-index:2}
+.crow{display:grid;grid-template-columns:9rem 1fr auto;gap:1rem;align-items:center;padding:1.15rem 0;border-bottom:1px solid rgba(255,255,255,.12)}
 /* la etiqueta de cada fila ("Escribinos", "Dónde estamos") va sobre el fondo
    TINTA de la sección: ahí --concrete-soft sí pasa AA (5,0:1), al revés que
    sobre papel */
 .crow .ck{font-family:var(--font-mono);font-size:var(--mono-dato);letter-spacing:.1em;text-transform:uppercase;color:var(--concrete-soft)}
 /* min-width:0 evita que el track 1fr de la grilla se estire con el mail/dirección;
    overflow-wrap parte esos textos largos antes que desbordar en pantallas chicas. */
-.crow .cv{font-family:var(--font-display);font-size:clamp(1.1rem,2vw,1.5rem);font-weight:500;letter-spacing:-.01em;min-width:0;overflow-wrap:anywhere}
+.crow .cv{font-family:var(--font-display);font-size:clamp(1rem,1.5vw,1.2rem);font-weight:500;letter-spacing:-.01em;min-width:0;overflow-wrap:anywhere}
 .crow .cv a{transition:color .25s}
 .crow .cv a:hover{color:var(--petrol-bright)}
 .crow .arrow{font-family:var(--font-mono);color:var(--concrete-soft);font-size:1.1rem;transition:transform .3s}
@@ -21,7 +32,96 @@
   .crow:hover .arrow{transform:translateX(5px);color:var(--paper-2)}
 }
 
+/* ---------- el formulario ----------
+   No es una hoja de papel: es la misma tinta de la sección, un escalón más
+   clara y más cálida. Lo que la separa del fondo son TRES cosas chicas
+   sumadas —el escalón de valor, el filete de un píxel y la sombra—, ninguna
+   fuerte por sí sola; con una sola de las tres habría que exagerarla y la
+   caja dejaría de ser sutil. Los tres valores viven acá y no en global.css
+   porque no se usan en ningún otro lado del sitio. */
+.contact-form{
+  --panel:#26231D;
+  --panel-borde:rgba(255,255,255,.13);
+  --panel-filete:rgba(255,255,255,.24);
+  grid-area:form;position:relative;
+  background:var(--panel);color:var(--paper-2);
+  border:1px solid var(--panel-borde);
+  padding:clamp(1.6rem,3vw,2.8rem);
+  box-shadow:0 26px 70px rgba(0,0,0,.45);
+}
+/* el mismo grano del papel del sitio: sin esto la lámina se lee como un
+   rectángulo plano de CSS y no como material */
+.contact-form::after{
+  content:"";position:absolute;inset:0;pointer-events:none;mix-blend-mode:overlay;opacity:.14;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='.5'/%3E%3C/svg%3E");
+}
+/* ...menos las marcas de registro, que son `position:absolute` y se miden
+   contra la lámina: si se vuelven relativas, las cuatro cruces se apilan en
+   una esquina. */
+.contact-form > *:not(.marks){position:relative;z-index:1}
+.contact-form .marks{inset:12px}
+
+.cf-cab{display:flex;align-items:baseline;justify-content:space-between;gap:1rem;padding-bottom:1.3rem;margin-bottom:clamp(1.5rem,2.6vw,2rem);border-bottom:1px solid rgba(242,241,236,.55)}
+.cf-cab h3{font-family:var(--font-display);font-weight:500;font-size:1.3rem;letter-spacing:-.01em;color:var(--paper-2)}
+.cf-cab span{font-family:var(--font-mono);font-size:var(--mono-fino);letter-spacing:.1em;text-transform:uppercase;color:rgba(242,241,236,.58)}
+
+.cf-campos{display:grid;gap:clamp(1.3rem,2.4vw,1.8rem)}
+/* los campos son <p> y el grupo de radios un <fieldset>: los dos van sin los
+   márgenes y el recuadro que trae el navegador */
+.cf-campo{display:flex;flex-direction:column;gap:.5rem;margin:0;border:0;padding:0;min-width:0}
+.cf-campo label,.cf-grupo legend{font-family:var(--font-mono);font-size:var(--mono-dato);letter-spacing:.1em;text-transform:uppercase;color:rgba(242,241,236,.62);padding:0}
+.cf-campo input,.cf-campo textarea{
+  font-family:var(--font-display);font-weight:500;font-size:1.05rem;letter-spacing:-.01em;
+  color:var(--paper-2);background:none;border:0;border-bottom:1px solid var(--panel-filete);
+  padding:.45rem 0 .6rem;width:100%;resize:none;transition:border-color .25s ease;
+}
+.cf-campo textarea{line-height:1.5}
+.cf-campo input:focus,.cf-campo textarea:focus{outline:none;border-bottom-color:var(--petrol-bright)}
+/* el autocompletado de Chrome pinta el campo de celeste y el texto de negro;
+   la sombra interior lo tapa con el color de la lámina y sigue legible */
+.cf-campo input:-webkit-autofill{-webkit-text-fill-color:var(--paper-2);-webkit-box-shadow:0 0 0 60px var(--panel) inset;box-shadow:0 0 0 60px var(--panel) inset}
+
+/* las opciones son radios de verdad, estilados como los chips del sitio:
+   andan sin JS, se recorren con las flechas y el estado lo lleva :checked */
+.cf-chips{display:flex;flex-wrap:wrap;gap:.55rem}
+.cf-chip{display:inline-flex}
+.cf-chip label{
+  display:inline-flex;align-items:center;font-family:var(--font-mono);font-size:var(--mono-fino);
+  letter-spacing:.09em;text-transform:uppercase;line-height:1;padding:.6rem .95rem;min-height:36px;
+  border:1px solid var(--panel-filete);border-radius:2px;color:rgba(242,241,236,.76);cursor:pointer;
+  transition:background-color .25s ease,border-color .25s ease,color .25s ease;
+}
+.cf-chip input:checked+label{background:var(--paper-2);border-color:var(--paper-2);color:var(--ink)}
+.cf-chip input:focus-visible+label{outline:2px solid var(--petrol-bright);outline-offset:2px}
+@media(hover:hover){
+  .cf-chip label:hover{border-color:rgba(255,255,255,.45);color:var(--paper-2)}
+}
+
+/* el campo trampa: fuera de la pantalla pero NO con display:none, que algunos
+   robots detectan. No se tabula (tabindex="-1") ni se lee (aria-hidden). */
+.cf-trampa{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden;margin:0}
+
+.cf-pie{display:flex;align-items:center;gap:1.1rem;margin-top:clamp(1.7rem,3vw,2.2rem);flex-wrap:wrap}
+/* sobre un fondo oscuro el primario se invierte a papel: el petróleo contra la
+   tinta da 1,5:1 y prácticamente desaparece (ver "Botón" en CLAUDE.md) */
+.contact-form .btn--primary{background:var(--paper-2);border-color:var(--paper-2);color:var(--ink)}
+.contact-form .btn--primary:disabled{opacity:.55;cursor:progress}
+@media(hover:hover){
+  .contact-form .btn--primary:not(:disabled):hover{background:#fff;border-color:#fff}
+}
+.cf-nota{font-family:var(--font-mono);font-size:var(--mono-fino);letter-spacing:.06em;color:rgba(242,241,236,.56);line-height:1.5}
+
+/* El aviso de resultado se oculta SOLO cuando está vacío (`:empty`) y no con
+   una clase: así la región viva existe desde el principio y el lector de
+   pantalla anuncia el cambio en cuanto se le escribe el texto. */
+.cf-estado{margin:clamp(1.3rem,2.4vw,1.7rem) 0 0;padding-left:.85rem;border-left:2px solid var(--petrol-bright);font-size:.95rem;line-height:1.5;color:rgba(242,241,236,.86)}
+.cf-estado:empty{display:none}
+.cf-estado.es-error{border-left-color:var(--paper-2)}
+.contact-form.es-enviado .cf-cuerpo{display:none}
+
 @media(max-width:900px){
+  .contact-grid{grid-template-columns:1fr;gap:clamp(2.4rem,7vw,3rem);grid-template-areas:"texto" "form" "canales"}
+  .contact-canales{margin-top:0}
   .crow{grid-template-columns:8rem 1fr auto}
 }
 @media(max-width:600px){
@@ -32,4 +132,6 @@
      línea. Acá se achica lo justo para que entre entero. Sólo ≤600px: de ahí
      para arriba el tamaño queda como estaba. */
   .crow .cv{font-size:clamp(.95rem,4.4vw,1.1rem)}
+  .cf-pie{flex-direction:column;align-items:stretch;gap:.85rem}
+  .cf-pie .btn{width:100%}
 }

@@ -28,6 +28,16 @@ export const site = {
   whatsapp: '59899421576' as string | null, // sin +, para wa.me
   // PENDIENTE: completar si querés sumarlo al sitio.
   instagram: null as string | null, // ej. 'https://instagram.com/...'
+  // A dónde manda el formulario de Contacto. El sitio es estático (GitHub
+  // Pages): no hay servidor propio que reciba un POST, así que lo recibe un
+  // servicio que lo reenvía por mail — Formspree (50 consultas al mes gratis)
+  // o Web3Forms (250). Se crea la cuenta con `email` de acá arriba y se pega
+  // la URL que dan, de la forma 'https://formspree.io/f/XXXXXXX'.
+  // MIENTRAS SEA null el formulario NO se rompe: arma el correo con los datos
+  // ya escritos y lo abre en el cliente de mail del visitante. Eso es un
+  // respaldo, no un envío (puede no haber cliente configurado), así que es lo
+  // primero a completar antes de publicar.
+  formEndpoint: null as string | null,
   // Imagen por defecto para compartir (Open Graph / Twitter).
   // Banner de marca 1920×1080 (negro + tagline). Para proyectos con portada,
   // cada página usa su propia portada como imagen OG (ver ProjectLayout).

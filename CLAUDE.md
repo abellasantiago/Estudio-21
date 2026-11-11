@@ -839,7 +839,63 @@ dibujo se edita el modelo, no un SVG.
   **retrato**, no `.person`: la ficha es una celda del cuadro y **sus bordes son las
   líneas de la retícula** — moverla entera correría esas líneas y se rompería la
   grilla.
-- **Contacto:** tres filas, en este orden — **Escribinos** (el mail real
+- **Contacto: un formulario y, al lado, los canales directos** (2026-11-11).
+  Hasta ahora la sección eran tres filas y nada más: las tres sacaban al
+  visitante del sitio, y no había **un solo `<form>`** en todo el código. El
+  que miraba de noche desde el teléfono tenía que abrir el mail y redactar de
+  cero; ahí se perdía (era el B1 de la lista de mejoras, el único crítico).
+  - **Dos columnas** (`.contact-grid`, áreas `"texto form" "canales form"`): a
+    la izquierda lo que la sección dice y abajo los canales; a la derecha el
+    formulario, que ocupa la columna entera. **En ≤900px el orden pasa a texto
+    → formulario → canales**, no al revés: en el teléfono la acción va primero
+    y los canales son la alternativa para el que NO quiere llenar nada.
+  - **Cuatro campos y ninguno de más**: nombre, email, qué te interesa y un
+    mensaje opcional. Cada campo que se agrega es gente que abandona, y el
+    mensaje va opcional justamente para que el que no quiere escribir igual
+    deje el dato.
+  - **Las opciones de "qué te interesa" son `radio` de verdad**, estilados como
+    los chips del sitio (`.cf-chip input:checked+label`). Con botones y un
+    campo oculto habría que sostener el estado con JS; así el grupo anda sin
+    JavaScript, se recorre con las flechas y lo anuncia solo el lector de
+    pantalla.
+  - **La lámina es oscura, no de papel**: la misma tinta de la sección un
+    escalón más clara y más cálida (`--panel: #26231D`, local a
+    `.contact-form`). Lo que la separa del fondo son **tres cosas chicas
+    sumadas** —el escalón de valor, el filete de un píxel y la sombra— más el
+    grano del papel del sitio en `overlay`; con una sola de las tres habría que
+    exagerarla y la caja dejaría de ser sutil. Se probó también en papel y en
+    petróleo profundo; la elección fue ésta (decisión del estudio).
+  - **El botón va relleno en papel, no en petróleo**: sobre la tinta el
+    petróleo da 1,5:1 y desaparece (ver "Botón"). Medido con el auditor: el
+    mono de la lámina pasa AA cómodo (chips 8,6:1, "24 h hábiles" 5,6:1, la
+    nota 5,3:1).
+  - ⚠ **A dónde se manda: `formEndpoint` en `src/data/site.ts`, hoy en
+    `null`.** El sitio es estático (GitHub Pages): no hay servidor propio que
+    reciba un POST, así que lo recibe un servicio que lo reenvía por mail
+    (Formspree, 50 consultas al mes gratis; Web3Forms, 250). **Mientras sea
+    `null` el formulario no se rompe**: arma el correo con los datos ya
+    escritos y lo abre en el cliente de mail del visitante. Eso es un respaldo,
+    no un envío —puede no haber cliente configurado—, así que es lo primero a
+    completar antes de publicar.
+  - **Sin JS se manda igual**: con servicio, el `action` es el POST de siempre
+    y se ve la página de gracias del servicio; sin servicio, el `action` es un
+    `mailto:` con `enctype="text/plain"`. **Con JS no se sale nunca de la
+    página**: se manda por `fetch` y la respuesta se escribe en la misma
+    lámina, que se reemplaza por "Listo, <nombre>. Te respondemos a <mail>…".
+    Si falla, el aviso da el mail y el botón vuelve a habilitarse con los
+    campos intactos.
+  - **Contra el spam, un campo trampa** (`_gotcha`, fuera de pantalla, sin
+    tabulación ni lectura), **no un CAPTCHA**: resolver un cuadriculado de
+    semáforos para mandar cuatro campos es exactamente lo que un sitio premium
+    no hace, y además los dos servicios ya lo soportan. Va con `position`
+    fuera de pantalla y NO con `display:none`, que algunos robots detectan.
+  - El aviso de resultado se oculta con **`:empty`** y no con una clase: así la
+    región viva (`role="status"`) existe desde el principio y el lector de
+    pantalla anuncia el cambio apenas se le escribe el texto.
+  - ⚠ **"Te respondemos en 24 horas hábiles" es una promesa del estudio**, no
+    una decisión de diseño: si no se contesta en ese plazo, el formulario es
+    peor que no tenerlo. Confirmarla antes de publicar o sacar la línea.
+- **Los canales directos**, debajo del texto: tres filas, en este orden — **Escribinos** (el mail real
   `estudiodearquitectos21@gmail.com`), **WhatsApp** (`099 421 576`) y **Dónde
   estamos** (la dirección del estudio). El mail va primero porque la lista es
   el ÚNICO lugar del sitio donde existe, mientras que WhatsApp además tiene su
@@ -1507,8 +1563,18 @@ marcando lo que no llega a AA (4,5:1 para texto normal) y lo que mide menos de
   al 13% y van a dar "no pasa" siempre. Son el efecto 3D, no un problema —
   lo que hay que mirar es la card del frente.
 
-Medido así, hoy **no hay un solo texto que no pase AA** en la home, en la ficha
-de proyecto ni en la 404, a 1440 y a 390px de ancho.
+⚠ **Hay que medir con la página ASENTADA.** El panel del navbar entra con una
+transición de 0,45 s y los `.reveal` con otra de 0,7 s: midiendo antes, el
+auditor lee el texto del header contra la sección que todavía se ve a través
+del panel a medio pintar y reporta fallas que no existen (pasó con el link de
+Contacto en petróleo: 1,66:1 a mitad de transición, 7,7:1 cuando terminó). El
+scroll previo tiene que ser `behavior:'instant'` y hay que esperar un par de
+segundos antes de leer.
+
+Medido así, hoy **el único texto que no pasa AA** en la home, en la ficha de
+proyecto ni en la 404, a 1440 y a 390px de ancho, es el botón **deshabilitado**
+"Vista nueva" (2,03:1) — y es a propósito: está en `opacity:.5` porque todavía
+no hace nada.
 
 ## Verificar menú y navegación
 
@@ -1535,6 +1601,9 @@ en la card correcta, sin telón entre páginas.
   otros proyectos), no es dato oficial. Es el único que queda estimado: los
   años y los m² de Villa Platero, Vila Rodona y Chana I los dio el estudio
   (los tres entregan en 2028).
+- **`formEndpoint`** en `src/data/site.ts` (hoy `null`): sin eso el formulario
+  de Contacto abre el cliente de mail del visitante en vez de mandarse solo.
+  Es lo primero de esta lista. Ver "Contacto".
 - **Instagram** en `src/data/site.ts` (hoy `null`): si se completa, aparece solo como una fila más de Contacto.
 - **Confirmar con el estudio que las direcciones exactas se publican**: la ficha
   muestra calle y número bajo el mapa (`direccion` en el frontmatter). Si para

@@ -1,43 +1,208 @@
 ---
+/*
+ * Contacto — el único lugar del sitio donde se puede escribir sin salir.
+ *
+ * Dos mitades: a la izquierda lo que el estudio dice y los canales directos
+ * (mail, WhatsApp, dirección); a la derecha el formulario, en una lámina
+ * oscura apoyada sobre la tinta de la sección. En una columna el orden pasa a
+ * texto → formulario → canales: en el teléfono la acción va antes que los datos.
+ *
+ * A DÓNDE SE MANDA: ver `formEndpoint` en src/data/site.ts. Mientras no haya
+ * servicio contratado, el formulario arma el correo y lo abre en el cliente de
+ * mail del visitante — que no es lo mismo que mandarlo, pero tampoco es la
+ * página en blanco de antes.
+ */
 import '../../styles/contacto.css';
 import { site, whatsappHref } from '../../data/site';
+
+// Las tres respuestas posibles a "qué te interesa". Son radios de verdad (no
+// botones con JS): así el grupo anda sin JavaScript, se recorre con las
+// flechas y lo anuncia solo el lector de pantalla.
+const INTERESES = ['Invertir', 'Un proyecto', 'Otra consulta'] as const;
+
+const endpoint = site.formEndpoint;
 ---
 
 <section class="contact" id="contacto">
   <span class="ghost21" aria-hidden="true" data-depth="0.18">21</span>
   <div class="wrap">
-    <span class="eyebrow reveal">Contacto</span>
-    <h2 class="reveal" data-d="1">El próximo proyecto empieza con una conversación.</h2>
-    <p class="ctext reveal" data-d="2">
-      Si te interesa invertir con nosotros o conocer lo que estamos
-      desarrollando, contactanos.
-    </p>
+    <div class="contact-grid">
+      <div class="contact-texto">
+        <span class="eyebrow reveal">Contacto</span>
+        <h2 class="reveal" data-d="1">El próximo proyecto empieza con una conversación.</h2>
+        <p class="ctext reveal" data-d="2">
+          Contanos qué estás buscando y te mandamos la información completa:
+          unidades disponibles, valores y plan de pagos.
+        </p>
+      </div>
 
-    <div class="contact-rows reveal" data-d="3">
-      <a class="crow" href={`mailto:${site.email}`}>
-        <span class="ck">Escribinos</span>
-        <span class="cv">{site.email}</span>
-        <span class="arrow">→</span>
-      </a>
-      {whatsappHref && (
-        <a class="crow" href={whatsappHref} target="_blank" rel="noopener">
-          <span class="ck">WhatsApp</span>
-          <span class="cv">{site.telefonoVisible}</span>
-          <span class="arrow">↗</span>
-        </a>
-      )}
-      {site.instagram && (
-        <a class="crow" href={site.instagram} target="_blank" rel="noopener">
-          <span class="ck">Instagram</span>
-          <span class="cv">@estudio21</span>
-          <span class="arrow">↗</span>
-        </a>
-      )}
-      <a class="crow" href={site.mapsUrl} target="_blank" rel="noopener">
-        <span class="ck">Dónde estamos</span>
-        <span class="cv">{site.direccion.calle}, {site.direccion.ciudad}</span>
-        <span class="arrow">↗</span>
-      </a>
+      <form
+        class="contact-form reveal"
+        data-d="2"
+        id="formContacto"
+        method="POST"
+        action={endpoint ?? `mailto:${site.email}`}
+        enctype={endpoint ? undefined : 'text/plain'}
+        data-endpoint={endpoint ?? undefined}
+        data-correo={site.email}
+      >
+        <span class="marks" aria-hidden="true">
+          <span class="tl"></span><span class="tr"></span>
+          <span class="bl"></span><span class="br"></span>
+        </span>
+
+        <div class="cf-cab">
+          <h3>Dejanos tus datos</h3>
+          <span>24 h hábiles</span>
+        </div>
+
+        <div class="cf-cuerpo">
+          <div class="cf-campos">
+            <p class="cf-campo">
+              <label for="cf-nombre">Nombre</label>
+              <input id="cf-nombre" name="nombre" type="text" autocomplete="name" required />
+            </p>
+            <p class="cf-campo">
+              <label for="cf-mail">Email</label>
+              <input id="cf-mail" name="email" type="email" autocomplete="email" required />
+            </p>
+            <fieldset class="cf-campo cf-grupo">
+              <legend>Qué te interesa</legend>
+              <div class="cf-chips">
+                {INTERESES.map((op, i) => (
+                  <span class="cf-chip">
+                    <input class="sr-only" type="radio" name="interes" id={`cf-i${i}`} value={op} />
+                    <label for={`cf-i${i}`}>{op}</label>
+                  </span>
+                ))}
+              </div>
+            </fieldset>
+            <p class="cf-campo">
+              <label for="cf-msg">Mensaje (opcional)</label>
+              <textarea id="cf-msg" name="mensaje" rows="2"></textarea>
+            </p>
+          </div>
+
+          {/* Trampa para robots: un campo que una persona nunca ve ni tabula.
+              Si viene lleno, la consulta se descarta. Es lo que evita tener
+              que ponerle un CAPTCHA a un formulario de cuatro campos. */}
+          <p class="cf-trampa" aria-hidden="true">
+            <label for="cf-sitio">No completar</label>
+            <input id="cf-sitio" name="_gotcha" type="text" tabindex="-1" autocomplete="off" />
+          </p>
+
+          <div class="cf-pie">
+            <button class="btn btn--primary" type="submit">
+              Enviar consulta <span class="btn-arrow" aria-hidden="true">→</span>
+            </button>
+            <span class="cf-nota">No compartimos tus datos.</span>
+          </div>
+        </div>
+
+        <p class="cf-estado" id="cfEstado" role="status" aria-live="polite"></p>
+      </form>
+
+      <div class="contact-canales reveal" data-d="3">
+        <div class="contact-rows">
+          <a class="crow" href={`mailto:${site.email}`}>
+            <span class="ck">Escribinos</span>
+            <span class="cv">{site.email}</span>
+            <span class="arrow">→</span>
+          </a>
+          {whatsappHref && (
+            <a class="crow" href={whatsappHref} target="_blank" rel="noopener">
+              <span class="ck">WhatsApp</span>
+              <span class="cv">{site.telefonoVisible}</span>
+              <span class="arrow">↗</span>
+            </a>
+          )}
+          {site.instagram && (
+            <a class="crow" href={site.instagram} target="_blank" rel="noopener">
+              <span class="ck">Instagram</span>
+              <span class="cv">@estudio21</span>
+              <span class="arrow">↗</span>
+            </a>
+          )}
+          <a class="crow" href={site.mapsUrl} target="_blank" rel="noopener">
+            <span class="ck">Dónde estamos</span>
+            <span class="cv">{site.direccion.calle}, {site.direccion.ciudad}</span>
+            <span class="arrow">↗</span>
+          </a>
+        </div>
+      </div>
     </div>
   </div>
 </section>
+
+<script>
+  /*
+   * Capa de mejora del formulario. Sin JS el <form> se manda igual: con
+   * servicio contratado hace el POST de siempre (y el visitante ve la página
+   * de gracias del servicio), y sin servicio el `action` es un mailto.
+   * Con JS no se sale nunca de la página: o se manda por fetch y la respuesta
+   * se escribe acá mismo, o se arma un correo legible en vez del volcado de
+   * campos que genera `enctype="text/plain"`.
+   */
+  const form = document.getElementById('formContacto');
+
+  if (form instanceof HTMLFormElement) {
+    const estado = form.querySelector<HTMLElement>('#cfEstado');
+    const boton = form.querySelector<HTMLButtonElement>('button[type="submit"]');
+    const endpoint = form.dataset.endpoint ?? '';
+    const correo = form.dataset.correo ?? '';
+
+    const campo = (n: string) => String(new FormData(form).get(n) ?? '').trim();
+
+    const decir = (txt: string, falla = false) => {
+      if (!estado) return;
+      estado.textContent = txt;
+      estado.classList.toggle('es-error', falla);
+    };
+
+    // Sin servicio: se abre el cliente de correo con la consulta ya escrita.
+    // No es un envío —puede no haber cliente configurado—, así que el
+    // formulario NO se da por mandado: queda en pantalla con el aviso.
+    const abrirCorreo = () => {
+      const asunto = `Consulta desde el sitio — ${campo('nombre')}`;
+      const cuerpo = [
+        `Nombre: ${campo('nombre')}`,
+        `Email: ${campo('email')}`,
+        campo('interes') ? `Interés: ${campo('interes')}` : '',
+        '',
+        campo('mensaje') || '(sin mensaje)',
+      ]
+        .filter((l, i) => l !== '' || i === 3)
+        .join('\n');
+      window.location.href =
+        `mailto:${correo}?subject=${encodeURIComponent(asunto)}` +
+        `&body=${encodeURIComponent(cuerpo)}`;
+      decir(`Te abrimos el correo con la consulta escrita. Si no se abrió, escribinos a ${correo}.`);
+    };
+
+    const enviar = async () => {
+      if (boton) boton.disabled = true;
+      decir('Enviando…');
+      try {
+        const r = await fetch(endpoint, {
+          method: 'POST',
+          body: new FormData(form),
+          headers: { Accept: 'application/json' },
+        });
+        if (!r.ok) throw new Error(String(r.status));
+        const nombre = campo('nombre').split(' ')[0];
+        form.classList.add('es-enviado');
+        decir(`Listo${nombre ? `, ${nombre}` : ''}. Te respondemos a ${campo('email')} dentro de las 24 horas hábiles.`);
+      } catch {
+        if (boton) boton.disabled = false;
+        decir(`No pudimos enviarlo. Escribinos a ${correo} o por WhatsApp.`, true);
+      }
+    };
+
+    form.addEventListener('submit', (ev) => {
+      // El navegador ya frenó los campos inválidos: acá sólo llega lo válido.
+      ev.preventDefault();
+      if (endpoint) void enviar();
+      else abrirCorreo();
+    });
+  }
+</script>
