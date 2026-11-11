@@ -537,8 +537,17 @@ dos secciones se pisen — **identidad acá, modelo allá**.
     "Desarrollamos por cuenta propia", "Tomamos la iniciativa"…) y ganó no poner
     ninguno. Y el remate es **"respondemos por el proyecto y por la obra"**, no
     "son nuestras": al inversor le importa quién se hace cargo, no de quién es.
-  - ⚠ **El lead de "Nuestro equipo" (`Estudio.astro`) sigue con el problema viejo**:
-    habla de "las necesidades de nuestros clientes". Es lo próximo a tocar.
+  - **El lead de "Nuestro equipo" (`Estudio.astro`) se corrigió en la misma
+    tanda** (2026-11-11): era la última frase del sitio que presentaba al
+    estudio como proveedor de servicios ("foco en las necesidades de nuestros
+    clientes"). Conserva el molde de siempre —"Nuestro equipo está formado
+    por… que comparten un mismo objetivo: …"— porque el registro cálido de esa
+    sección es deliberado; lo que cambió es el final, que ahora habla de la
+    obra: "que cada obra llegue a término con la calidad con la que fue
+    pensada". ⚠ **No cerrarlo con "espacios que mejoren la vida de quienes los
+    habitan"**, por tentador que suene: es casi textual el remate del tercer
+    párrafo de "Quiénes somos" y quedarían dos secciones de la misma página
+    terminando igual.
 - **Cierra con las cifras de trayectoria** (`.pres-cifras`, +10 / +15 / 06) como banda
   horizontal de 3 columnas bajo una línea `--ink`, igual que la grilla de fases. La
   primera celda va sin `padding-left` para que el número alinee con el borde del
