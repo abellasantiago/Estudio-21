@@ -505,14 +505,40 @@ dos secciones se pisen — **identidad acá, modelo allá**.
 - **Título: "Estudio 21"** (sin "Arquitectos" — así no repite el lockup del logo del
   navbar), con eyebrow "Quiénes somos".
 - **Los tres párrafos bajan de intensidad** (el primero en `--ink-soft`, los otros dos
-  en `--concrete`). ⚠ **El copy de esta sección se reescribe**: hasta ahora era el
-  texto del sitio viejo de WordPress tal cual, y decía que Estudio 21 es un estudio
-  de arquitectura que trabaja "en colaboración con nuestros clientes" — o sea, un
-  estudio de servicios. Dos secciones más abajo, "Cómo operamos" dice lo contrario:
-  que NO se trabaja a honorarios para terceros. Son dos negocios distintos en la
-  misma página, y el que se lee primero es el que no es. La redacción nueva tiene
-  que hablar en clave de **desarrolladora**, igual que el resto del sitio (el lead
-  de "Nuestro equipo" arrastra el mismo problema: también habla de "clientes").
+  en `--concrete`). El copy **se reescribió entero** (2026-11-11): era el texto del
+  WordPress viejo tal cual, que presentaba a Estudio 21 como un estudio de
+  arquitectura que trabaja "en colaboración con nuestros clientes" —o sea, un
+  estudio de servicios—, declaraba obra "residencial, comercial e industrial"
+  (de industrial no hay ninguna) y no traía un solo dato verificable.
+  - ⚠ **EL ESTUDIO TRABAJA DE DOS MANERAS, Y LAS DOS VAN EN EL COPY.** (a) Origina
+    sus propios desarrollos: consigue el terreno o la propiedad a reciclar, dibuja
+    el proyecto, lo arma como negocio y después sale a buscar a los inversores que
+    lo financian — **es la modalidad más frecuente**. (b) Toma encargos de terceros
+    que ya tienen el inmueble y contratan al estudio para proyectar y dirigir la
+    obra (Patios del Regimiento y Sushi WOK, confirmados por el estudio). Ningún
+    texto del sitio puede negar la segunda ni presentarla como el modelo central.
+    El lead de "Cómo operamos" **afirmaba** *"Estudio 21 no trabaja a honorarios
+    para terceros"*, que además de ser falso le cerraba la puerta a quien llega con
+    su propio terreno; hoy abre con la originación y cierra con *"Cuando el inmueble
+    es de un tercero, asumimos el mismo recorrido para él"*, que deja válidas las
+    cuatro fases de abajo (describen la modalidad (a)).
+  - **La división de trabajo entre las dos secciones se mantiene**: acá va la
+    identidad —qué es el estudio y cómo llega a cada obra—, y en "Cómo operamos"
+    el modelo paso a paso. El segundo párrafo nombra las dos modalidades sin
+    explicar el mecanismo, que es trabajo de la otra sección.
+  - **El texto dice lo que las cifras no pueden.** Abajo ya están +10 años, +15
+    proyectos y 06 profesionales: repetir esos números gasta renglones.
+  - **Sin atenuantes.** Se descartaron "la mayoría de las veces" y "la mayoría de
+    nuestros proyectos" (decisión del estudio): la jerarquía entre las dos
+    modalidades la da **el orden de las frases** —primero la propia, después
+    "También…"—, no un adverbio que suena a que el estudio se está midiendo. Por la
+    misma razón el segundo párrafo arranca directo con los verbos, sin frase que lo
+    presente: se probaron cinco arranques ("Originamos nuestros desarrollos",
+    "Desarrollamos por cuenta propia", "Tomamos la iniciativa"…) y ganó no poner
+    ninguno. Y el remate es **"respondemos por el proyecto y por la obra"**, no
+    "son nuestras": al inversor le importa quién se hace cargo, no de quién es.
+  - ⚠ **El lead de "Nuestro equipo" (`Estudio.astro`) sigue con el problema viejo**:
+    habla de "las necesidades de nuestros clientes". Es lo próximo a tocar.
 - **Cierra con las cifras de trayectoria** (`.pres-cifras`, +10 / +15 / 06) como banda
   horizontal de 3 columnas bajo una línea `--ink`, igual que la grilla de fases. La
   primera celda va sin `padding-left` para que el número alinee con el borde del
