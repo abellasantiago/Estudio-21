@@ -55,6 +55,17 @@ header.scrolled{border-bottom-color:var(--line);background:var(--paper);backgrou
   transition:transform .5s cubic-bezier(.65,.05,.25,1),transform-origin 0s .5s;
 }
 .nav-links a:hover{color:var(--ink)}
+/* B4 · "Contacto" es la acción del sitio y hasta ahora se veía igual que
+   "Inicio". No lleva recuadro —un botón relleno en una barra de 58px rompe la
+   línea de mono y pelea con el logo— sino el PETRÓLEO, que ya es el color de
+   acción en el resto del sitio (el botón primario, el de WhatsApp). Medido:
+   7,7:1 sobre el papel, bastante más que los 9,4:1 de los otros links pero muy
+   por encima de AA. El subrayado lo acompaña, si no el hover lo devolvía al
+   gris del resto. No cambia de color al pasar el mouse: el petróleo ya es el
+   estado marcado, y oscurecerlo más lo acercaba al negro de los demás. */
+.nav-links a.nav-contacto{color:var(--petrol)}
+.nav-links a.nav-contacto::after{background:var(--petrol)}
+.nav-links a.nav-contacto:hover{color:var(--petrol)}
 .nav-links a:hover::after,
 .nav-links a:focus-visible::after{transform:scaleX(1);transform-origin:right center}
 /* ---------- desplegable de "Proyectos" (submenú anidado) ----------

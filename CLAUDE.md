@@ -140,8 +140,14 @@ distancia del bloque de arriba. Si se vuelven a igualar, el título se despega o
 vez de la línea.
 
 Navbar fina (58px) con el logo `banner_negro.png` ("ESTUDIO 21 ARQUITECTOS"); links
-**Inicio · Nosotros · Proyectos · Equipo · Contacto** ("Contacto" es un link normal,
-no CTA con recuadro). **"Proyectos" abre un desplegable anidado** (`Header.astro` +
+**Inicio · Nosotros · Proyectos · Equipo · Contacto**. **"Contacto" va en petróleo**
+(`.nav-contacto`, 2026-11-11) y el resto en `--ink-soft`: es la acción del sitio y
+hasta ahora se veía igual que "Inicio". **No lleva recuadro** —un botón relleno en una
+barra de 58px rompe la línea de mono y pelea con el logo—; el color alcanza, y es el
+mismo petróleo que ya significa "acción" en el botón primario y en el de WhatsApp.
+Medido: 7,7:1 sobre el papel. El subrayado del hover lo acompaña en petróleo (si no,
+al pasar el mouse volvía al negro de los demás) y **el color no cambia en hover**: el
+petróleo ya es el estado marcado. **"Proyectos" abre un desplegable anidado** (`Header.astro` +
 `header.css`): panel con los tres estados —En proceso · Próximamente · Terminados— y,
 dentro de cada uno, un **submenú con sus proyectos** (nombre + año) que linkea directo
 a la ficha. Los datos salen de la content collection, con el
@@ -740,6 +746,13 @@ dibujo se edita el modelo, no un SVG.
   vuelven a tocar, la cuenta del ancho es: IBM Plex Mono avanza 0,6 em por glifo
   y el renglón lleva 0,03 em de tracking, así que 35 caracteres piden
   `35 × 0,63 × cuerpo` px — a 15,2 son 335 y no entran; a 12,8 son 282 y sobran 44.
+- **El renglón de datos de la card es `barrio · año · N unidades`, y una obra que
+  no se cuenta en unidades pone ahí QUÉ ES** (`tipoObra` en el frontmatter;
+  2026-11-11). Hoy sólo Sushi WOK, que dice "Restaurant" — sin eso su card se
+  quedaba en "Carrasco · 2026" y se leía más pobre que las otras nueve. El campo
+  **sólo se usa cuando no hay `unidades`**: el número manda. En la ficha técnica
+  no cambia nada: ahí la celda se llama "Unidades" y la respuesta correcta sigue
+  siendo "No aplica" (ver "Página de proyecto").
 - **Cards limpias:** sin cartelito `E21·NN`, sin nombre gigante de fondo, sin grilla
   blueprint; el fondo del panel es parallax multicapa (fantasma "21" + marcas de registro).
   El CTA "Ver proyecto" aparece **sólo en hover de la card al frente**.

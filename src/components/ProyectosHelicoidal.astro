@@ -141,7 +141,7 @@ const pad = (n: number) => String(n).padStart(2, '0');
                 <span class="ph-meta">
                   <span class="ph-name">{it.nombre}</span>
                   <span class="ph-sub">
-                    <span class="ph-loc">{it.barrio ?? it.ubicacion} · {it.anio}{it.unidades != null ? ` · ${it.unidades} unidades` : ''}</span>
+                    <span class="ph-loc">{it.barrio ?? it.ubicacion} · {it.anio}{it.unidades != null ? ` · ${it.unidades} unidades` : it.tipoObra ? ` · ${it.tipoObra}` : ''}</span>
                     <span class={`status ${it.estado}`}><span class="pip"></span>{estadoLabels[it.estado]}</span>
                   </span>
                 </span>

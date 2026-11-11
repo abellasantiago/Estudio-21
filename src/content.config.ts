@@ -35,6 +35,13 @@ const proyectos = defineCollection({
     // reforma). Ahí la ficha dice "No aplica", que NO es lo mismo que
     // "Pendiente": uno es un dato que no corresponde, el otro uno que falta.
     sinUnidades: z.boolean().optional(),
+    // Qué ES la obra, para la card de "Proyectos". La card muestra
+    // "barrio · año · N unidades"; en una obra sin unidades ese tercer dato
+    // queda vacío y la card se lee más pobre que las otras nueve. Acá va lo
+    // que ocupa ese lugar ("Restaurant"). Sólo se usa cuando no hay unidades:
+    // el número manda. En la ficha técnica no cambia nada — ahí la celda se
+    // llama "Unidades" y la respuesta correcta sigue siendo "No aplica".
+    tipoObra: z.string().optional(),
     metros: z.number().optional(), // m² — PENDIENTE
     orden: z.number().optional(), // override manual del orden en la grilla
     portada: z.string().optional(), // override opcional del nombre de archivo

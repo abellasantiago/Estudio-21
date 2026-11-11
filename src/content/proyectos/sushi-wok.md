@@ -9,6 +9,7 @@ coords: [-56.06518, -34.89312]
 anio: 2026 # finalizado en octubre de 2026
 metros: 253 # área afectada a la obra (memoria BPS)
 sinUnidades: true # es un local gastronómico, no un desarrollo de viviendas
+tipoObra: Restaurant # ocupa en la card el lugar de la cantidad de unidades
 portadaFoco: "50% 50%"
 portadaZoom: 1
 ---
