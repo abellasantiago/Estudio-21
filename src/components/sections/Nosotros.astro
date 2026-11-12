@@ -25,12 +25,12 @@ const fases = [
 ];
 ---
 
-{/* El ancla `#nosotros` la tiene ahora Presentacion.astro: al hacer click en
-    "Nosotros" se entra por la presentación del estudio y se sigue hacia acá. */}
-<section class="block alt" id="como-operamos">
-  <span class="marks" aria-hidden="true">
-    <span class="tl"></span><span class="tr"></span><span class="bl"></span><span class="br"></span>
-  </span>
+{/* El ancla `#nosotros` la tiene Presentacion.astro: al hacer click en
+    "Nosotros" se entra por la presentación del estudio. Esta sección va DESPUÉS
+    de Proyectos (el proceso, una vez vista la obra) y no lleva fondo propio:
+    con el `--paper-2` de `.alt` quedaba pegada a Equipo, que tiene el mismo
+    tono, y las dos se leían como un solo bloque. */}
+<section class="block" id="como-operamos">
   <div class="wrap">
     <div class="sec-head">
       <span class="eyebrow reveal">Cómo operamos</span>

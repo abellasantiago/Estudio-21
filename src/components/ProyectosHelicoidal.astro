@@ -110,11 +110,12 @@ const pad = (n: number) => String(n).padStart(2, '0');
     </div>
   </div>
 
+  {/* Sin "21" fantasma ni marcas de registro propias: Proyectos va sobre el
+      papel abierto, igual que Quiénes somos y Cómo operamos, y esas capas las
+      pone el fondo vivo de la home (LivingBackground), en todas las pantallas.
+      Las propias quedaban duplicadas en celular y, con la grilla convertida en
+      carrusel, se dibujaban encima de la card que asoma por el borde. */}
   <div class="ph-sticky">
-    <span class="ghost21" aria-hidden="true">21</span>
-    <span class="marks" aria-hidden="true">
-      <span class="tl"></span><span class="tr"></span><span class="bl"></span><span class="br"></span>
-    </span>
 
     <div class="wrap ph-shell">
       <div class="ph-stage">
@@ -141,7 +142,7 @@ const pad = (n: number) => String(n).padStart(2, '0');
                 <span class="ph-meta">
                   <span class="ph-name">{it.nombre}</span>
                   <span class="ph-sub">
-                    <span class="ph-loc">{it.barrio ?? it.ubicacion} · {it.anio}{it.unidades != null ? ` · ${it.unidades} unidades` : it.tipoObra ? ` · ${it.tipoObra}` : ''}</span>
+                    <span class="ph-loc">{it.barrio ?? it.ubicacion} · {it.anio}{it.unidades != null ? <>{' · '}<span class="ph-nw">{it.unidades} unidades</span></> : it.tipoObra ? ` · ${it.tipoObra}` : ''}</span>
                     <span class={`status ${it.estado}`}><span class="pip"></span>{estadoLabels[it.estado]}</span>
                   </span>
                 </span>
@@ -149,6 +150,15 @@ const pad = (n: number) => String(n).padStart(2, '0');
             </li>
           ))}
         </ul>
+      </div>
+
+      {/* Indicador del carrusel de celular (≤600px, ver la CSS): una barra que
+          avanza con el deslizamiento y la card actual sobre el total. Sólo se
+          muestra donde la grilla es un carrusel; decorativo para el lector de
+          pantalla, que recorre los links de la lista igual que siempre. */}
+      <div class="ph-desliza" aria-hidden="true">
+        <span class="ph-desliza-pista"><span class="ph-desliza-barra"></span></span>
+        <span class="ph-desliza-n"><b data-desliza-n>01</b><span class="ph-sep">/</span><span data-desliza-t>{pad(total)}</span></span>
       </div>
 
       <p class="ph-hint" aria-hidden="true">Scrolleá para recorrer la obra</p>
@@ -168,11 +178,6 @@ const pad = (n: number) => String(n).padStart(2, '0');
     const filterBtns = Array.from(section.querySelectorAll<HTMLButtonElement>('#phFilters button'));
     const counterCur = section.querySelector<HTMLElement>('[data-ph-current]');
     const counterTot = section.querySelector<HTMLElement>('[data-ph-total]');
-    // capas de fondo del panel sticky que reciben parallax vertical a distintas
-    // velocidades (multicapa = sensación de profundidad). El header
-    // (título/filtros/contador) ya no está acá: vive fuera del sticky y scrollea.
-    const ghost21 = section.querySelector<HTMLElement>('.ghost21');
-    const marksEl = section.querySelector<HTMLElement>('.marks');
     // barra de filtros: en 3D se relocaliza al panel sticky (riel pineado); en
     // grilla/fallback se queda en el header. Guardamos su lugar original.
     const bar = section.querySelector<HTMLElement>('.ph-bar');
@@ -259,6 +264,43 @@ const pad = (n: number) => String(n).padStart(2, '0');
     const pad = (n: number) => String(n).padStart(2, '0');
     const calcRadius = () => (window.innerWidth < 680 ? 300 : 540);
 
+    // ---- celular: la grilla es un carrusel ----------------------------------
+    // En ≤600px la CSS convierte la lista en una tira que se desliza de costado
+    // (ver proyectos-helicoidal.css). Acá sólo se pinta el indicador: cuánto de
+    // la tira se ve, por dónde va, y qué card está alineada al borde. Todo
+    // derivado del scroll de la tira, sin estado propio: con la grilla de
+    // escritorio el indicador está oculto y esto no hace nada visible.
+    const desliza = section.querySelector<HTMLElement>('.ph-desliza');
+    const deslizaN = desliza?.querySelector<HTMLElement>('[data-desliza-n]') ?? null;
+    const deslizaT = desliza?.querySelector<HTMLElement>('[data-desliza-t]') ?? null;
+    let deslizaRaf = 0;
+    function pintarDesliza() {
+      deslizaRaf = 0;
+      if (!axis || !desliza) return;
+      const max = axis.scrollWidth - axis.clientWidth;
+      const frac = axis.scrollWidth > 0 ? axis.clientWidth / axis.scrollWidth : 1;
+      const pos = max > 0 ? axis.scrollLeft / max : 0;
+      desliza.style.setProperty('--frac', String(clamp(frac, 0.05, 1)));
+      desliza.style.setProperty('--pos', String(clamp(pos, 0, 1)));
+      // card actual = la alineada al borde izquierdo; al tope, la última (con
+      // el snap la última nunca llega a alinearse a la izquierda)
+      const n = active.length;
+      let i = 0;
+      if (max > 0 && axis.scrollLeft >= max - 2) i = n - 1;
+      else if (n > 1) {
+        const paso = active[1].el.offsetLeft - active[0].el.offsetLeft;
+        if (paso > 0) i = Math.round(axis.scrollLeft / paso);
+      }
+      if (deslizaN) deslizaN.textContent = pad(clamp(i + 1, 1, Math.max(n, 1)));
+      if (deslizaT) deslizaT.textContent = pad(Math.max(n, 1));
+    }
+    function pedirDesliza() {
+      if (!deslizaRaf) deslizaRaf = requestAnimationFrame(pintarDesliza);
+    }
+    axis?.addEventListener('scroll', pedirDesliza, { passive: true });
+    window.addEventListener('resize', pedirDesliza);
+    pedirDesliza();
+
     // ---- posicionar el cilindro para el subconjunto visible ----
     function layout() {
       RADIUS = calcRadius();
@@ -302,13 +344,6 @@ const pad = (n: number) => String(n).padStart(2, '0');
       const rotY = -scroll * step;
       const transY = -scroll * VERT_STEP;
       if (axis) axis.style.transform = `rotateY(${rotY}deg) translateY(${transY}px)`;
-
-      // Parallax MULTICAPA: el cilindro baja scroll*VERT_STEP px; las capas de
-      // fondo suben a fracciones distintas de esa velocidad → cada una a su
-      // "profundidad" (fantasma lejos/lento, marcas medio).
-      const bgParallax = scroll * VERT_STEP * 0.35;
-      if (ghost21) ghost21.style.transform = `translateY(${-bgParallax * 0.55}px)`;
-      if (marksEl) marksEl.style.transform = `translateY(${-bgParallax * 0.85}px)`;
 
       active.forEach((c) => {
         const eff = (((c.baseAngle + rotY) % 360) + 360) % 360; // ángulo efectivo (0 = frente)
@@ -392,6 +427,9 @@ const pad = (n: number) => String(n).padStart(2, '0');
         c.el.style.display = show ? '' : 'none';
         if (!show) c.el.classList.remove('is-active');
       });
+      // carrusel de celular: otro subconjunto arranca desde su primera card
+      if (axis) axis.scrollLeft = 0;
+      pedirDesliza();
       if (section!.classList.contains('is-3d')) {
         lastActiveIdx = -1;
         // Alto del NUEVO recorrido según --ph-total = N (ver min-height en el CSS:
@@ -459,7 +497,6 @@ const pad = (n: number) => String(n).padStart(2, '0');
     // luego se vuelve a mostrar, no debe arrastrar transform/opacidad del cilindro.
     function clearCylinderStyles() {
       if (axis) axis.style.transform = '';
-      [ghost21, marksEl].forEach((el) => { if (el) el.style.transform = ''; });
       cards.forEach((c) => {
         c.el.style.transform = '';
         c.el.style.opacity = '';
@@ -770,6 +807,15 @@ const pad = (n: number) => String(n).padStart(2, '0');
           lastActiveIdx = -1;
           render();
         } else {
+          // carrusel de celular: primero se trae la card a la vista DENTRO de
+          // la tira (si no, quedaba fuera de pantalla a la derecha y la foto
+          // que vuelve de la ficha no tenía dónde aterrizar)
+          if (axis && axis.scrollWidth > axis.clientWidth + 1) {
+            const pad0 = parseFloat(getComputedStyle(axis).scrollPaddingLeft) || 0;
+            const dx = active[idx].el.getBoundingClientRect().left - axis.getBoundingClientRect().left;
+            axis.scrollLeft += dx - pad0;
+            pintarDesliza();
+          }
           // grilla: la card centrada en la pantalla
           const r = active[idx].el.getBoundingClientRect();
           const top = r.top + window.scrollY - (window.innerHeight - r.height) / 2;

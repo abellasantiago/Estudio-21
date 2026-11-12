@@ -280,19 +280,13 @@ html.is-immersive #header:not(.past-hero) .nav-links {
   pointer-events: auto;
 }
 
-/* ---------- secciones del inicio transparentes → fondo continuo ---------- */
-html.is-immersive #nosotros,
-html.is-immersive #como-operamos,
-html.is-immersive #proyectos.ph {
-  background: transparent;
-}
-/* el fondo vivo ya aporta fantasma + marcas: evitamos duplicar los internos */
-html.is-immersive #nosotros > .marks,
-html.is-immersive #como-operamos > .marks,
-html.is-immersive #proyectos .ph-sticky > .ghost21,
-html.is-immersive #proyectos .ph-sticky > .marks {
-  display: none;
-}
+/* ---------- el papel abierto ----------
+   Quiénes somos, Proyectos y Cómo operamos no pintan fondo, ni "21" fantasma,
+   ni marcas propias: el fondo vivo pone todo eso, en este modo y fuera de él.
+   Acá había dos parches que los volvían transparentes y escondían sus capas
+   sólo en la home inmersiva; se sacaron de raíz en cada componente, así el
+   celular y la tablet ven lo mismo. Equipo es la primera sección que tapa el
+   fondo vivo (y es la que usa el motor para apagarlo, ver immersive.ts). */
 /* ---------- capas [data-depth]: base para el paralaje ---------- */
 /* el motor les setea transform inline; acá sólo el hint de compositing */
 html.is-immersive [data-depth] {

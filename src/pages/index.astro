@@ -15,21 +15,29 @@ const description = site.descripcion;
 ---
 
 <BaseLayout title={title} description={description} immersive>
-  <!-- fondo vivo continuo (hero → nosotros → proyectos = un mismo espacio) -->
+  <!-- fondo vivo continuo (hero → quiénes somos → proyectos → cómo operamos =
+       un mismo espacio, hasta que Equipo lo tapa) -->
   <LivingBackground />
   <ProgressRail />
 
+  {/* El orden responde las preguntas de quien llega, en el orden en que se las
+      hace: qué es esto (Quiénes somos), qué hicieron (Proyectos), cómo se
+      trabaja con ellos (Cómo operamos), quiénes son (Equipo) y cómo los
+      contacto. La prueba va ANTES que el proceso: leídas después de diez obras,
+      las cuatro fases explican cómo se hicieron; leídas antes, son una promesa.
+      Ver "Home — secciones" en CLAUDE.md. */}
   <Hero />
   <Presentacion />
-  {/* En la home inmersiva las dos secciones son transparentes (el fondo vivo se
-      ve a través de las dos), así que sin esto "Quiénes somos" y "Cómo operamos"
-      se leen como un solo bloque continuo. La regla las delimita sin agregar
-      contenido: va entre las dos, o sea centrada en el aire que dejan sus
-      padding-block. */}
-  <div class="wrap"><hr class="section-rule" /></div>
-  <Nosotros />
+  {/* Quiénes somos, Proyectos y Cómo operamos van las tres sobre el papel —en la
+      home inmersiva son transparentes y se ve el fondo vivo; sin el motor,
+      ninguna tiene fondo propio—, así que sin estas reglas se leerían como un
+      solo bloque continuo. La regla las delimita sin agregar contenido: va
+      entre dos secciones, centrada en el aire que dejan sus padding-block.
+      Entre Cómo operamos y Equipo no hace falta: ahí cambia el tono del papel. */}
   <div class="wrap"><hr class="section-rule" /></div>
   <ProyectosHelicoidal />
+  <div class="wrap"><hr class="section-rule" /></div>
+  <Nosotros />
   <Estudio />
   <Contacto />
 </BaseLayout>

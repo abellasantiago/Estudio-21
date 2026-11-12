@@ -120,17 +120,40 @@ Pages queda como preview/staging gratis y no hace falta tocar nada de esto.
 
 ## Home — secciones
 
-Orden: **Hero · El estudio · Cómo operamos · Proyectos · Equipo · Contacto**
-(`src/pages/index.astro`). Ojo con los anclajes: **`#nosotros` es la sección de
-presentación** (`Presentacion.astro`) — el link "Nosotros" del navbar entra por ahí,
-que es donde se dice quiénes son; la sección del modelo de trabajo
-(`Nosotros.astro`, la de las cuatro fases) quedó con `id="como-operamos"`.
-Entre **Quiénes somos / Cómo operamos** y entre **Cómo operamos / Proyectos** van
+Orden: **Hero · Quiénes somos · Proyectos · Cómo operamos · Equipo · Contacto**
+(`src/pages/index.astro`, desde el 2026-11-12). **El orden responde las preguntas
+de quien llega, en el orden en que se las hace**: qué es esto, qué hicieron, cómo
+se trabaja con ellos, quiénes son, cómo los contacto. Hasta esa fecha "Cómo
+operamos" iba ANTES que Proyectos, o sea que se explicaba el proceso antes de
+mostrar la prueba: leídas sin haber visto un edificio, las cuatro fases son una
+promesa que puede escribir cualquiera; leídas después de diez obras, explican cómo
+se hicieron. Y la primera foto de arquitectura aparecía en la pantalla 4,8 de 10
+(medido a 1440×900): ahora aparece en la 3,9, y en el celular en la 2,3. El
+navbar ya decía "Inicio · Nosotros · Proyectos · Equipo · Contacto"; la página es
+la que ahora lo cumple. Proyectos **no** va pegado al hero: el hero no dice qué hace
+el estudio, y unas cards sin contexto no se sabe si son obras propias, encargos o
+fotos de referencia — Quiénes somos lo aclara en una pantalla.
+Ojo con los anclajes: **`#nosotros` es la sección de presentación**
+(`Presentacion.astro`) — el link "Nosotros" del navbar entra por ahí, que es donde
+se dice quiénes son; la sección del modelo de trabajo (`Nosotros.astro`, la de las
+cuatro fases) tiene `id="como-operamos"`.
+
+**Las tres primeras secciones van sobre el papel abierto**: Quiénes somos,
+Proyectos y Cómo operamos no pintan fondo, ni "21" fantasma, ni marcas de registro
+propias — todo eso lo pone el fondo vivo (`LivingBackground`), con el motor y sin
+él. Antes había parches en `immersive.css` que las volvían transparentes sólo en la
+home inmersiva; fuera de ella (celular, tablet) Proyectos tenía un `--paper` opaco
+y Cómo operamos el `--paper-2` de `.alt`, y se armaba un sándwich de papeles. Se
+sacó de raíz en cada componente, así todas las pantallas ven lo mismo. **Equipo es
+la primera sección que tapa el fondo** (`section.alt`, `--paper-2`) y es la que usa
+el motor para apagarlo (ver "Zonas" en el presupuesto del motor).
+Entre **Quiénes somos / Proyectos** y entre **Proyectos / Cómo operamos** van
 **reglas divisorias** (`hr.section-rule`, sueltas en `index.astro` entre los
-`<section>`): en la home inmersiva las secciones son transparentes y sin eso se leían
-como un bloque continuo. Al ir sueltas entre medio quedan en el aire que dejan los
-`padding-block` y, dentro de un `.wrap`, alineadas con la línea de las cifras y la del
-cuadro del equipo.
+`<section>`): sobre el mismo papel, sin eso se leen como un bloque continuo. Al ir
+sueltas entre medio quedan en el aire que dejan los `padding-block` y, dentro de un
+`.wrap`, alineadas con la línea de las cifras y la del cuadro del equipo. **Entre
+Cómo operamos y Equipo no va regla**: ahí cambia el tono del papel, y ese cambio ya
+es la división.
 
 El aire vertical de las secciones es **asimétrico a propósito** (tokens
 `--sec-pad-top` / `--sec-pad-bottom` en `global.css`, usados por `section.block` y por
@@ -313,7 +336,7 @@ leería como "ya visto" y nunca dibujaría en la primera carga).
   - **Zonas.** Cada bloque corre sólo si lo que anima está a la vista. El bloque del
     "21" (transform sobre un `preserve-3d` de 25 capas + la sombra) se saltea entero
     fuera del tramo del hero, y el fondo vivo cuando la primera sección OPACA
-    (`#estudio`, `section.alt`) llega al tope y lo tapa — es `position:fixed`, así que
+    (`#estudio`, Equipo, `section.alt`) llega al tope y lo tapa — es `position:fixed`, así que
     el corte es `scrollY < opaqueTop`, no un rect. Medido: pasadas las secciones
     opacas el motor hace **0 frames** (antes seguía a 60fps hasta el pie de página).
   - **Escribir sólo si cambió** (`put`). Tocar el DOM dispara recálculo de estilo
@@ -738,9 +761,37 @@ dibujo se edita el modelo, no un SVG.
   helicoidal se lleva **6.084 px de scroll — 6,8 pantallas, el 49% del alto del
   sitio** (medido a 1440×900); para quien entra por segunda vez eso es peaje. Con
   la grilla de entrada la sección mide **2.802 px (3,1 pantallas)** y la home baja
-  de 12.418 a 9.136 px. ⚠ En el teléfono esto no cambia nada: por debajo de 760px
-  el cilindro nunca se montó, así que esas 7 pantallas de mobile son otra cosa —
-  diez cards apiladas en una columna— y se arreglan por otro lado.
+  de 12.418 a 9.136 px. En el teléfono el cilindro nunca se monta (por debajo de
+  760px), y lo que había eran diez cards apiladas en una columna: 5.925 px, 7
+  pantallas. Eso se resolvió con el carrusel de abajo.
+- **En ≤600px la grilla es un CARRUSEL** (2026-11-12, junto con el cambio de
+  orden: con Proyectos entre Quiénes somos y Cómo operamos, siete pantallas de
+  cards enterraban el modelo de negocio). La lista se desliza de costado con
+  `scroll-snap`; la sección pasó de 5.925 a ~910 px. Es la MISMA lista —mismos
+  links, orden y filtro—: sólo cambia la disposición.
+  - **La tira sangra hasta el borde** (margen negativo = `--gutter`): la primera
+    card arranca alineada con el título y la siguiente **asoma ~50px** por la
+    derecha, que es la señal de que hay más. Por eso la card mide 82% y no 100%,
+    con techo de 340px (en un teléfono grande o acostado llegaba a 470 y se veía
+    una sola, enorme).
+  - **El dato de la card no parte en los teléfonos comunes**: la línea más larga
+    ("BRAZO ORIENTAL · 2028 · 10 UNIDADES") entra entera desde 375px, con el
+    tracking apenas cerrado y el relleno lateral en 1rem. En 320–360 parte, pero
+    **nunca separa el número de "unidades"** (`.ph-nw`, `nowrap`): partía en
+    "… · 20" / "UNIDADES".
+  - **El indicador** (`.ph-desliza`) reemplaza la barra de scroll del sistema,
+    que va oculta: un filete de 1px con una barra de 2px que mide lo que se ve de
+    la tira y avanza con el deslizamiento, y la card actual sobre el total. Lo
+    escribe `pintarDesliza()` con `--frac`/`--pos`, derivado del scroll de la
+    tira sin estado propio. La card actual es la alineada al borde izquierdo, y
+    al tope de la tira la última (con el snap, la última nunca llega a alinearse).
+  - **Filtrar devuelve la tira al principio**; y **volver de una ficha trae la
+    card a la vista DENTRO de la tira** antes de centrarla en la pantalla — si
+    no, quedaba fuera a la derecha y la foto que vuelve de la ficha no tenía dónde
+    aterrizar. Verificado volviendo a la card 9 sin bfcache: aterriza, indicador
+    en 09/10.
+  - El aire del final de la tira va en un `::after` y no en `padding-inline-end`:
+    en Safari viejo el relleno final de un flex con scroll no se cuenta.
 - **Los dos botones de vista viven en una caja** (`.ph-vistas`, `#phVistas`): el
   toggle del cilindro y un segundo botón **deshabilitado a propósito** ("Vista
   nueva") que marca dónde iría una tercera vista todavía sin construir. La caja es
@@ -809,7 +860,10 @@ dibujo se edita el modelo, no un SVG.
 
 ### Cómo operamos / Equipo / Contacto
 - **Cómo operamos** (`Nosotros.astro` / `nosotros.css`, ancla `/#como-operamos`):
-  cabecera simple (eyebrow + título + lead) y los bloques de las cuatro fases.
+  va **después de Proyectos** —el proceso, una vez vista la obra— y desemboca en
+  Equipo: así trabajamos → éstos somos → escribinos. Sin fondo propio (ver "Home —
+  secciones"). Cabecera simple (eyebrow + título + lead) y los bloques de las
+  cuatro fases.
   Las cifras de trayectoria **no** van acá: viven al pie de la sección de
   presentación. La etiqueta de cada bloque es **el número de la fase y su
   nombre** (`1 · Originación`, `2 · Estructura`…): el número lo pone el

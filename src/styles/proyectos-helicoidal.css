@@ -9,7 +9,12 @@
    Sólo usa tokens globales de global.css (paleta/tipografías/medidas).
    ============================================================ */
 
-.ph{position:relative;background:var(--paper)}
+/* Sin fondo propio: Proyectos va sobre el papel abierto, entre Quiénes somos
+   y Cómo operamos, y deja ver el fondo vivo (grano, 21 fantasma, marcas) igual
+   que ellas. Con el `--paper` opaco que tenía, fuera del modo inmersivo
+   (celular, tablet) quedaba un sándwich: grano arriba, papel plano en el medio,
+   grano abajo. En la home inmersiva ya era transparente. */
+.ph{position:relative}
 
 /* Contenedores neutros en modo grilla; se activan recién en .is-3d. */
 .ph-sticky{position:relative}
@@ -156,6 +161,9 @@
    quien está eligiendo. Estaba en 10,5px y en --concrete; sube al piso de la
    capa mono y a --ink-soft, que es el color de lo que lleva información. */
 .ph-loc{font-family:var(--font-mono);font-size:var(--mono-dato);letter-spacing:.06em;text-transform:uppercase;color:var(--ink-soft)}
+/* si la línea no entra, el número no se separa de su unidad: partía en
+   "… · 20" / "UNIDADES" en el carrusel del celular */
+.ph-loc .ph-nw{white-space:nowrap}
 
 /* El chip dentro de la card bajaba a 9px — el texto más chico de todo el
    sitio, y encima en la pieza que más se mira. Ahora acompaña al dato de
@@ -181,6 +189,70 @@
 /* responsive de la grilla (igual breakpoints que la grilla original) */
 @media(max-width:900px){.ph-axis{grid-template-columns:1fr 1fr}}
 @media(max-width:600px){.ph-axis{grid-template-columns:1fr}}
+
+/* ---------- celular: la grilla pasa a CARRUSEL ----------
+   En una columna eran diez cards apiladas: 5.925px, SIETE pantallas de
+   teléfono. Con Proyectos entre "Quiénes somos" y "Cómo operamos", eso
+   enterraba el modelo de negocio detrás de una pila de cards. Acá la lista
+   es una tira que se desliza de costado: la sección baja a ~1,3 pantallas
+   y las diez obras siguen a un gesto de distancia.
+   · Sigue siendo la MISMA lista (mismos links, mismo orden, mismo filtro):
+     sólo cambia la disposición. El cilindro nunca se monta por debajo de
+     760px, así que no hay conflicto con el modo 3D.
+   · La tira SANGRA hasta el borde de la pantalla (margen negativo = el
+     gutter del .wrap): la primera card arranca alineada con el título y la
+     siguiente asoma por el borde derecho. Ese asomo es la señal de que hay
+     más, por eso la card mide 80% y no 100%.
+   · El aire del final va en un ::after y no en `padding-inline-end`: en
+     Safari viejo el relleno final de un flex con scroll no se cuenta y la
+     última card quedaba pegada al borde.
+   · Sin scrollbar del sistema: la reemplaza el indicador de abajo, que habla
+     el mismo idioma que el resto (filete de 1px, mono). */
+.ph-desliza{display:none}
+@media(max-width:600px){
+  .ph:not(.is-3d) .ph-axis{
+    display:flex;gap:.85rem;align-items:stretch;
+    overflow-x:auto;overflow-y:hidden;
+    scroll-snap-type:x mandatory;overscroll-behavior-x:contain;
+    margin-inline:calc(var(--gutter) * -1);
+    padding:.2rem 0 .3rem var(--gutter);
+    scroll-padding-inline:var(--gutter);
+    scrollbar-width:none;
+  }
+  .ph:not(.is-3d) .ph-axis::-webkit-scrollbar{display:none}
+  .ph:not(.is-3d) .ph-axis::after{content:"";flex:0 0 calc(var(--gutter) - .85rem)}
+  /* 82% y no menos: la línea de datos más larga ("BRAZO ORIENTAL · 2028 ·
+     10 UNIDADES", 35 caracteres de mono) entra entera desde 375px de ancho,
+     con el tracking apenas cerrado y el relleno lateral en 1rem. Y deja
+     ~50px de la card siguiente a la vista, que es el aviso de que hay más.
+     Con techo de 340px: en un teléfono grande o acostado la card llegaba a
+     470 y se veía una sola, enorme; así se ven casi dos. */
+  .ph:not(.is-3d) .ph-card{flex:0 0 min(82%,340px);min-width:0;scroll-snap-align:start}
+  .ph:not(.is-3d) .ph-meta{padding-inline:1rem}
+  .ph:not(.is-3d) .ph-loc{letter-spacing:.03em}
+
+  .ph:not(.is-3d) .ph-desliza{
+    display:flex;align-items:center;gap:1.1rem;margin-top:1.3rem;
+  }
+  /* pista: un filete de 1px; la barra encima, de 2px, mide lo que se ve de
+     la tira y se corre con el deslizamiento (--frac y --pos los escribe el
+     script). translateX en % es sobre el ancho de la propia barra, de ahí el
+     (1/frac − 1): es el recorrido libre de la pista medido en barras. */
+  .ph-desliza-pista{
+    position:relative;flex:1 1 auto;height:2px;overflow:hidden;
+    background:linear-gradient(var(--line),var(--line)) center/100% 1px no-repeat;
+  }
+  .ph-desliza-barra{
+    position:absolute;left:0;top:0;bottom:0;background:var(--ink);
+    width:calc(var(--frac,.3) * 100%);
+    transform:translateX(calc(var(--pos,0) * (1 / var(--frac,.3) - 1) * 100%));
+  }
+  .ph-desliza-n{
+    font-family:var(--font-mono);font-size:var(--mono-dato);letter-spacing:.08em;
+    color:var(--concrete);white-space:nowrap;display:inline-flex;gap:.4em;
+  }
+  .ph-desliza-n b{font-weight:400;color:var(--ink)}
+}
 
 /* ============================================================
    MODO 3D — cilindro helicoidal atado al scroll
