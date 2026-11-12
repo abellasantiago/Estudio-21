@@ -61,9 +61,8 @@
 .contact-form > *:not(.marks){position:relative;z-index:1}
 .contact-form .marks{inset:12px}
 
-.cf-cab{display:flex;align-items:baseline;justify-content:space-between;gap:1rem;padding-bottom:1.3rem;margin-bottom:clamp(1.5rem,2.6vw,2rem);border-bottom:1px solid rgba(242,241,236,.55)}
+.cf-cab{padding-bottom:1.3rem;margin-bottom:clamp(1.5rem,2.6vw,2rem);border-bottom:1px solid rgba(242,241,236,.55)}
 .cf-cab h3{font-family:var(--font-display);font-weight:500;font-size:1.3rem;letter-spacing:-.01em;color:var(--paper-2)}
-.cf-cab span{font-family:var(--font-mono);font-size:var(--mono-fino);letter-spacing:.1em;text-transform:uppercase;color:rgba(242,241,236,.58)}
 
 .cf-campos{display:grid;gap:clamp(1.3rem,2.4vw,1.8rem)}
 /* los campos son <p> y el grupo de radios un <fieldset>: los dos van sin los
@@ -75,15 +74,43 @@
   color:var(--paper-2);background:none;border:0;border-bottom:1px solid var(--panel-filete);
   padding:.45rem 0 .6rem;width:100%;resize:none;transition:border-color .25s ease;
 }
-.cf-campo textarea{line-height:1.5}
 .cf-campo input:focus,.cf-campo textarea:focus{outline:none;border-bottom-color:var(--petrol-bright)}
+/* El mensaje lleva los RENGLONES DIBUJADOS, como una hoja pautada: con un
+   solo filete al pie, la primera línea del texto quedaba flotando en el aire
+   sobre una caja vacía. Cada renglón es una franja del mismo alto que el
+   interlineado y el filete va en su último píxel, así que el texto apoya
+   sobre su línea. Tres reglas que lo sostienen:
+   · el interlineado va en rem ENTERO (32px): con un valor fraccionario el
+     degradé que repite cae entre píxeles y unas líneas salen más gruesas.
+     Y no menos de 32: a 28 las letras con descendente (la "p" y la "g" de
+     "pagos", la "y") tocaban la línea; a 32 les quedan ~4px de aire;
+   · padding 0 arriba: el degradé arranca en el borde de la caja, y con
+     relleno el texto bajaría y las líneas no. El aire lo da el margen, y
+     está medido: deja el primer renglón a 47px de la etiqueta, lo mismo
+     que el filete de nombre y email (los chips terminan a 49), así las
+     cuatro líneas de la lámina siguen una sola regla;
+   · `background-attachment: local`: si se escribe más de tres renglones,
+     las líneas se desplazan con el texto en vez de quedarse quietas. */
+.cf-campo textarea{
+  --renglon:2rem;
+  line-height:var(--renglon);height:calc(var(--renglon) * 3);
+  padding:0;margin-top:.45rem;border-bottom:0;
+  background-image:repeating-linear-gradient(to bottom,
+    transparent 0 calc(var(--renglon) - 1px),
+    var(--linea,var(--panel-filete)) calc(var(--renglon) - 1px) var(--renglon));
+  background-attachment:local;
+}
+.cf-campo textarea:focus{--linea:var(--petrol-bright)}
 /* el autocompletado de Chrome pinta el campo de celeste y el texto de negro;
    la sombra interior lo tapa con el color de la lámina y sigue legible */
 .cf-campo input:-webkit-autofill{-webkit-text-fill-color:var(--paper-2);-webkit-box-shadow:0 0 0 60px var(--panel) inset;box-shadow:0 0 0 60px var(--panel) inset}
 
 /* las opciones son radios de verdad, estilados como los chips del sitio:
    andan sin JS, se recorren con las flechas y el estado lo lleva :checked */
-.cf-chips{display:flex;flex-wrap:wrap;gap:.55rem}
+/* El <legend> no participa del flex del fieldset —el navegador lo dibuja en
+   el borde— así que el `gap` que separa etiqueta y campo en los demás no le
+   llega: sin este margen, los chips quedaban pegados al título. */
+.cf-chips{display:flex;flex-wrap:wrap;gap:.55rem;margin-top:.8rem}
 .cf-chip{display:inline-flex}
 .cf-chip label{
   display:inline-flex;align-items:center;font-family:var(--font-mono);font-size:var(--mono-fino);

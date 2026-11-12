@@ -902,8 +902,27 @@ dibujo se edita el modelo, no un SVG.
     petróleo profundo; la elección fue ésta (decisión del estudio).
   - **El botón va relleno en papel, no en petróleo**: sobre la tinta el
     petróleo da 1,5:1 y desaparece (ver "Botón"). Medido con el auditor: el
-    mono de la lámina pasa AA cómodo (chips 8,6:1, "24 h hábiles" 5,6:1, la
-    nota 5,3:1).
+    mono de la lámina pasa AA cómodo (chips 8,6:1, la nota 5,3:1).
+  - **La lámina tiene UNA regla vertical y está medida**: en reposo, lo que
+    se ve de cada campo es su línea, y las cuatro caen a la misma distancia de
+    su etiqueta — 47px el filete de nombre y email, 49 el pie de los chips,
+    47 el primer renglón del mensaje. Entre un campo y el siguiente, 29px.
+    Dos cosas la sostienen y es fácil romperlas:
+    · **el `<legend>` no recibe el `gap`** del fieldset (el navegador lo
+      dibuja en el borde, fuera del flex), así que la separación de los chips
+      va como `margin-top` en `.cf-chips`. Sin eso quedaban pegados al título;
+    · **el mensaje lleva los renglones dibujados** —un degradé que se repite
+      al alto del interlineado, con el filete en el último píxel— para que la
+      primera línea no flote sobre una caja vacía. El interlineado es de
+      **32px exactos**: con un valor fraccionario el degradé cae entre píxeles
+      y unas líneas salen más gruesas, y a 28 las letras con descendente (la
+      "p" o la "g" de "pagos") tocaban la línea. Va sin `padding` arriba —el
+      degradé arranca en el borde de la caja y el texto bajaría sin las
+      líneas— y con `background-attachment: local`, para que si se escribe
+      más de tres renglones las líneas se desplacen con el texto.
+  - **El encabezado de la lámina es sólo "Dejanos tus datos"**: tuvo a la
+    derecha un rótulo mono "24 h hábiles" y se sacó (2026-11-12, decisión del
+    estudio).
   - ⚠ **A dónde se manda: `formEndpoint` en `src/data/site.ts`, hoy en
     `null`.** El sitio es estático (GitHub Pages): no hay servidor propio que
     reciba un POST, así que lo recibe un servicio que lo reenvía por mail
@@ -927,9 +946,11 @@ dibujo se edita el modelo, no un SVG.
   - El aviso de resultado se oculta con **`:empty`** y no con una clase: así la
     región viva (`role="status"`) existe desde el principio y el lector de
     pantalla anuncia el cambio apenas se le escribe el texto.
-  - ⚠ **"Te respondemos en 24 horas hábiles" es una promesa del estudio**, no
-    una decisión de diseño: si no se contesta en ese plazo, el formulario es
-    peor que no tenerlo. Confirmarla antes de publicar o sacar la línea.
+  - ⚠ **El plazo de respuesta sigue en un solo lugar: el aviso de éxito**
+    ("Te respondemos a <mail> dentro de las 24 horas hábiles", en el script
+    de `Contacto.astro`). Es una promesa del estudio, no una decisión de
+    diseño: si no se contesta en ese plazo, el formulario es peor que no
+    tenerlo. Confirmarla antes de publicar o sacarla también de ahí.
 - **Los canales directos**, debajo del texto: tres filas, en este orden — **Escribinos** (el mail real
   `estudiodearquitectos21@gmail.com`), **WhatsApp** (`099 421 576`) y **Dónde
   estamos** (la dirección del estudio). El mail va primero porque la lista es
