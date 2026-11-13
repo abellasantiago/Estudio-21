@@ -132,6 +132,11 @@
    centro de la card). Mismo `<img>` en helicoidal y grilla → un solo ajuste
    vale para las dos vistas. Sin overrides, foco centrado y sin zoom (defaults
    acá, por si algún día se lee el <img> fuera de esta card sin el style inline). */
+/* El <picture> que envuelve a la foto es inline y no tiene medida propia: sin
+   esto, el `height:100%` del <img> se mide contra un contenedor del alto del
+   contenido y la card queda con la foto colapsada. Mismo par que ya llevan
+   .proj-cover, .gal-item y .person .portrait. */
+.ph-thumb picture{display:block;width:100%;height:100%}
 .ph-thumb img{
   width:100%;height:100%;object-fit:cover;object-position:var(--pf,50% 50%);
   transform:scale(var(--pz,1));transform-origin:var(--pf,50% 50%);

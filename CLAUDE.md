@@ -52,7 +52,10 @@ registro), no rediseñar. Todo el copy va en **español rioplatense**.
   navegador lo sintetiza (falso bold) o cae al más cercano — que es lo que pasaba con el
   `font-weight:600` de `.ph-name`, que en realidad se veía 700 (hoy declarado 700).
 - `@astrojs/sitemap`, `sharp`.
-- Imágenes con `<Image>/<Picture>` de Astro (AVIF + WebP + srcset).
+- Imágenes con `<Picture>` de Astro (AVIF + WebP + srcset). **Las fuentes de
+  `src/assets/` son AVIF**, generadas a mano con `scripts/optimizar-fotos.mjs` —
+  ver "Fotos — formato, peso y entrega", que explica por qué AVIF y no WebP, y
+  qué hay que respetar al agregar una foto o un `<Picture>` nuevo.
 - Comandos: `npm install`, `npm run dev` (→ `http://localhost:4321`), `npm run build`
   (→ `dist/`), `npm run preview`, `npm run check` (astro check).
 
@@ -104,8 +107,10 @@ Pages queda como preview/staging gratis y no hace falta tocar nada de esto.
   La columna gráfica de "Quiénes somos" **no** es una foto: es la axonometría que se
   genera en el build (ver "Axonometría de Quiénes somos").
 - **Sushi WOK Perú** está terminado (octubre de 2026). Su carpeta de imágenes
-  conserva `portada.webp` para card, ficha y vista previa del menú, y ocho fotos
-  retocadas en WebP (`galeria-01.webp` a `galeria-08.webp`). Orden: fachada diurna,
+  conserva una portada para card, ficha y vista previa del menú, y ocho fotos
+  retocadas (`galeria-01` a `galeria-08`) — **las ocho siguen en WebP** y no en
+  AVIF, porque salían del retoque tan bien comprimidas que convertirlas no
+  ahorraba nada (ver "Fotos — formato, peso y entrega"). Orden: fachada diurna,
   salón principal, salón con hormigón visto, salón con parquet, detalle de escalera,
   barra, cocina y fachada nocturna. La galería conserva las proporciones de cada
   toma y carga las versiones grandes al abrir el visor.
@@ -117,6 +122,80 @@ Pages queda como preview/staging gratis y no hace falta tocar nada de esto.
   `apple-touch-icon.png` y `og-default.png` **no se editan a mano** — se generan del
   logo real (`src/assets/marca/banner_negro.png`) con la paleta del sitio. Ver
   "Marca" más abajo.
+
+## Fotos — formato, peso y entrega
+
+Dos cosas distintas que conviene no mezclar: **la fuente** que vive en el repo y
+**lo que baja un visitante**, que Astro reencodea en el build. Todo lo de acá
+está medido con SSIM contra el original, en la ruta de entrega más exigente del
+sitio (el visor de la galería, que sirve a `min(ancho,1800)`); los números viven
+en la cabecera de `scripts/optimizar-fotos.mjs` y en los comentarios de cada
+componente.
+
+**Las fuentes son AVIF q80**, y las produce `node scripts/optimizar-fotos.mjs`
+**a mano** (no en el build), igual que el mapa y las piezas de marca. Se corre
+después de tirar fotos nuevas y se puede correr siempre: saltea lo ya convertido.
+Cuatro decisiones que ya se tomaron y no conviene rehacer a ojo:
+- ⚠ **WebP se probó y se descartó para las fuentes.** A la calidad que hace falta
+  los archivos salían **más grandes que el JPEG original** (+15% a +20%) y además
+  más blandos (SSIM −1,3% a −1,7%): su encoder alisa el detalle fino, que en
+  fotos de fachada es justo lo que se mira. En los retratos recortados es peor
+  (SSIM 0,79–0,90 contra 0,99 de AVIF: le arruina el borde del alfa).
+- **No se reescala.** El ancho máximo que el sitio pide es 1800 y las fuentes son
+  de 2000, así que recortarlas parecía gratis: no lo es. La fuente a 1800 obliga
+  al navegador a un segundo remuestreo para llegar al ancho de pantalla, y eso
+  costó hasta −3% de SSIM en las fotos con detalle fino.
+- **El alfa se conserva sólo en `equipo/`**, que son recortes sobre transparencia
+  (ese canal ES el fondo de la foto). En `proyectos/` cualquier alfa es basura de
+  un guardado mal hecho y se aplana contra `--paper`. Tres archivos venían
+  guardados como PNG con extensión `.jpg` —uno de ellos con alfa, 916 KB para
+  0,5 MP— y eran el peor desperdicio del repo.
+- **Nunca se reencodea por menos de un 8% de ahorro** (`MIN_AHORRO`): la
+  conversión cuesta una generación de pérdida y tiene que comprar algo. Por eso
+  **quedan `.jpg` y `.webp` sueltos entre los `.avif` a propósito** (varias de
+  Villa Platero y casi toda la galería de Sushi WOK ya venían bien comprimidas);
+  `src/lib/images.ts` los descubre igual por convención de carpetas.
+
+Del lado de **la entrega**, cuatro cosas que son fáciles de romper:
+- **Las cards de proyecto van con `<Picture>`, no con `<Image>`.** `<Image>` emite
+  UN solo formato y el default de Astro es webp (`DEFAULT_OUTPUT_FORMAT`), así que
+  las diez cards —lo más visible de la home— eran las únicas fotos del sitio que
+  no recibían AVIF. Van en `quality={70}` y no en el default de Astro: a avif q50
+  pesan la mitad pero el SSIM cae un 1,5%, y esa card se agranda a 1,70× al pasar
+  por el frente del cilindro. ⚠ Al envolver una foto en `<Picture>` hay que
+  agregarle la regla `picture{display:block;width:100%;height:100%}` a su CSS: el
+  `<picture>` es inline y sin eso el `height:100%` del `<img>` se mide contra un
+  contenedor del alto del contenido. Lo llevan `.ph-thumb`, `.proj-cover`,
+  `.gal-item` y `.person .portrait`.
+- **El `sizes` de las miniaturas de la galería lleva un `calc(... * 22vh)`**, no
+  un número de píxeles, porque `--gal-h` es `clamp(150px, 22vh, 240px)` y el
+  hueco real cambia con el alto de la ventana. Los dos tramos planos del clamp
+  van como condiciones de media delante. Había un `sizes="252px"` fijo —de un
+  clamp anterior— que declaraba de más casi siempre; declarar el máximo (240) es
+  todavía peor, porque en la ventana de 900px de alto, que es la más común, el
+  hueco mide 198. ⚠ Si cambia el clamp en `galeria.css`, cambian los números de
+  `Galeria.astro`.
+- **El visor de la galería sirve AVIF y cae a WebP**, y la elección la hace el
+  script (`url()`), no un `<picture>`: el visor precarga las dos fotos vecinas con
+  `new Image()` y hay que precargar el mismo archivo que después se muestra. El
+  `href` del `<a>` se queda en webp, que es lo que abre un navegador sin JS.
+  ⚠ El soporte se detecta con una sonda: un AVIF de 1px en base64. **Tiene que ser
+  un AVIF válido de verdad** (generado con sharp): hubo una mal armada y el
+  navegador tiraba `onerror`, así que `avifOk` quedaba en false para siempre y el
+  visor servía webp a todo el mundo, en silencio y sin romperse. Si se toca, hay
+  que verificar en un navegador que el visor baje `.avif`.
+- **El logo del navbar va con `densities`, no con `widths`/`sizes`.** Se muestra a
+  111px de ancho (`.mark-img` lo topa en `height:2rem`) y se pedía a `width={864}`
+  —el ancho del PNG—: 35 KB para pintar 111, en cada página. Con `widths` el `src`
+  de respaldo sigue saliendo al ancho del original y el build emite igual ese
+  archivo; con `densities` el respaldo es el de 111px y el de 864 no existe.
+
+⚠ **El build en frío pasó de 3m58s a 9m18s**: AVIF decodifica bastante más lento
+que JPEG y cada variante vuelve a decodificar la fuente. Localmente no se nota
+(el caché de `node_modules/.astro/assets` deja los builds en ~6s), pero en CI cada
+push arrancaba de cero, así que `deploy.yml` **cachea esa carpeta** (unos 108 MB)
+con `restore-keys`, para que al cambiar una foto se reusen igual las variantes de
+todas las demás.
 
 ## Home — secciones
 
@@ -818,7 +897,7 @@ dibujo se edita el modelo, no un SVG.
   crece con la card y empuja ubicación + chip de estado al pie (`margin-top:auto`) → los
   estados quedan **alineados entre cards** aunque el nombre ocupe dos líneas (clamp 2), y
   el chip abraza su texto (en 3D sigue a ancho de card, sin cambios). Más aire entre filas
-  que entre columnas. El `sizes` de la `<Image>` declara **el mayor de las dos vistas** por
+  que entre columnas. El `sizes` del `<Picture>` declara **el mayor de las dos vistas** por
   breakpoint (grilla 1/2/3 columnas vs. card fija de 376px del cilindro, maquetada a 2×):
   ninguna de las dos queda blanda.
 - **En el cilindro la card tiene su propia escala de letra chica** (`.ph.is-3d
@@ -890,7 +969,7 @@ dibujo se edita el modelo, no un SVG.
   retícula pero la ficha baja de alto (464 contra 559px) y la foto se lee como
   retrato de fichero, no como póster. El tope también ordena mobile, donde en una
   columna el retrato se iba a ~500px. Como el slot mide lo mismo en todos los
-  breakpoints, el `sizes` de la `<Image>` es fijo (`264px`). En ≤600px la ficha va
+  breakpoints, el `sizes` del `<Picture>` es fijo (`264px`). En ≤600px la ficha va
   **sin padding lateral**: en una columna esa sangría no separa de nada y
   desalineaba el retrato respecto del título.
 
@@ -1648,12 +1727,16 @@ fantasmas "21" sangran a propósito; verificado que no se pueda scrollear en x d
 - **`fallbackFormat` en `<Picture>`**: el `<img>` de adentro del `<picture>` (el que
   se usa si ninguna `<source>` sirve) por defecto sale en el formato ORIGINAL, y eso
   obliga a generar cada ancho TAMBIÉN en jpg/png. Eran ~40 MB de un build de 155 MB
-  que ningún navegador llegaba a pedir. Con `fallbackFormat="webp"` el build queda en
-  ~108 MB sin que cambie un solo byte de lo que descarga un visitante.
-- **El build emite igual el original de cada foto** (~30 MB): `images.ts` las importa
+  que ningún navegador llegaba a pedir. Con `fallbackFormat="webp"` el build dejó de
+  generarlos, sin que cambie un solo byte de lo que descarga un visitante.
+- **El build emite igual el original de cada foto**: `images.ts` las importa
   con `import.meta.glob(..., { eager: true })` para que aparezcan solas por
   convención de carpetas, y Vite emite todo lo importado. No lo descarga nadie —es
   peso del artefacto de deploy, no del visitante— y es el precio de esa comodidad.
+- **`dist/` pesa ~149 MB y eso NO es lo que baja un visitante.** Son todas las
+  variantes de todas las fotos (cada ancho en avif y en webp) más los originales
+  emitidos; cada visitante baja una sola variante de cada foto que mira. El número
+  a vigilar es el de "Fotos — formato, peso y entrega", no el de `du -sh dist`.
 
 ## Verificar legibilidad
 

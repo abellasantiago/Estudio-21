@@ -14,7 +14,7 @@
  */
 import '../styles/proyectos-helicoidal.css';
 import { getCollection } from 'astro:content';
-import { Image } from 'astro:assets';
+import { Picture } from 'astro:assets';
 import { getPortada } from '../lib/images';
 import { ordenEditorial } from '../lib/proyectos';
 
@@ -124,13 +124,26 @@ const pad = (n: number) => String(n).padStart(2, '0');
             <li class="ph-card" data-status={it.estado} data-index={i} data-slug={it.slug}>
               <a class="ph-link" href={`${base}/proyectos/${it.slug}/`} aria-label={`${it.nombre} — ver proyecto`}>
                 <span class="ph-thumb">
+                  {/* Va con <Picture> y no con <Image>: `<Image>` emite UN solo
+                      formato y el default de Astro es webp, así que las diez
+                      cards —lo más visible de la home— eran las únicas fotos
+                      del sitio que no recibían avif. Medido en la portada de
+                      Chana I a 1080px: webp q88 daba 160 KB y el avif q70 da
+                      123, un 22% menos y con SSIM apenas mejor (0,9919 contra
+                      0,9896). La calidad va en 70 y no en el default (avif
+                      q50): a q50 son 67 KB pero el SSIM cae un 1,5%, y esta
+                      card se agranda a 1,70× al pasar por el frente del
+                      cilindro. El mismo 70 le toca al webp, que acá es sólo el
+                      fallback de quien no tiene avif. */}
                   {it.portada ? (
-                    <Image
+                    <Picture
                       src={it.portada}
+                      formats={['avif', 'webp']}
+                      fallbackFormat="webp"
                       alt={`Portada del proyecto ${it.nombre}`}
                       widths={[400, 600, 820, 1080]}
                       sizes={PORTADA_SIZES}
-                      quality={88}
+                      quality={70}
                       style={`--pf:${it.portadaFoco ?? '50% 50%'};--pz:${it.portadaZoom ?? 1}`}
                       loading={i < 3 ? 'eager' : 'lazy'}
                     />

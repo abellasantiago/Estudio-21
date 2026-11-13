@@ -30,6 +30,24 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      # Astro guarda en node_modules/.astro/assets cada variante de imagen que
+      # genera (unos 108 MB) y la reusa si la foto y el pedido no cambiaron. Sin
+      # este caché, cada push vuelve a encodear las ~830 variantes desde cero:
+      # medido en 9m18s contra 6s con el caché tibio. Las fuentes son AVIF, que
+      # decodifica bastante más lento que un JPEG, así que el build en frío pasó
+      # a costar más del doble que antes y acá es donde se paga.
+      # Va DESPUÉS de `npm ci`, que borra node_modules entero.
+      # `restore-keys` hace que, al cambiar una foto, se reuse igual el caché
+      # anterior para todas las demás (cada variante se guarda por su propio
+      # hash, así que un caché parcial sirve).
+      - name: Caché de imágenes optimizadas
+        uses: actions/cache@v4
+        with:
+          path: node_modules/.astro/assets
+          key: astro-assets-${{ hashFiles('src/assets/**', 'src/components/**/*.astro', 'src/layouts/**/*.astro') }}
+          restore-keys: |
+            astro-assets-
+
       - name: Build
         run: npm run build
 

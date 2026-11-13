@@ -44,7 +44,29 @@ const PREV_FOTO_W = 208;
 <header id="header">
   <div class="nav">
     <a href={`${base}/`} class="brand" aria-label="Estudio 21 Arquitectos — inicio">
-      <Image src={banner} alt="Estudio 21 Arquitectos" width={864} height={250} class="mark-img" />
+      {/* El lockup se muestra a 111px de ancho (`.mark-img` lo topa en
+          `height:2rem` y el ancho sale de su proporción, 3.456). Antes se pedía
+          a `width={864}` —el ancho del PNG— y el build servía esos 864px: 35 KB
+          para pintar 111, en CADA página del sitio. Ahora son 4,1 KB en 1× y
+          12 KB en 2×.
+          Va con `densities` y no con `widths`/`sizes` porque la medida en
+          pantalla es FIJA: así el srcset sale con descriptores 2x/3x y el `src`
+          de respaldo es el de 111px. Con `widths` el respaldo salía al ancho
+          del PNG y el build emitía igual el archivo de 864px (38 KB) en cada
+          página, aunque ningún navegador con srcset lo pida.
+          La calidad va en 90 y no en el default: es un grafismo de dos tonos
+          con bordes duros, y el logo del estudio no es el lugar para ahorrar
+          los 2 KB que separan 80 de 90. */}
+      <Image
+        src={banner}
+        alt="Estudio 21 Arquitectos"
+        width={111}
+        height={32}
+        densities={[2, 3]}
+        quality={90}
+        loading="eager"
+        class="mark-img"
+      />
     </a>
     <nav class="nav-links" id="menu" aria-label="Navegación principal">
       <a href={`${base}/`}>Inicio</a>

@@ -28,26 +28,78 @@ interface Props {
 
 const { fotos, nombre, slug } = Astro.props;
 
-// Alto de referencia de la tira (ver --gal-h en galeria.css). Con eso y la
-// proporción real de cada foto sabemos el ancho exacto que va a ocupar cada
-// miniatura → se piden justo esos tamaños en vez de un `sizes` genérico.
-const TIRA_H = 168;
+/*
+ * La tira mide `--gal-h` de alto (galeria.css) y de ahí sale el ancho de cada
+ * miniatura: su proporción real × ese alto. Pero `--gal-h` NO es un número
+ * fijo, es `clamp(150px, 22vh, 240px)`: vale 150 hasta 682px de alto de
+ * ventana (150/0,22), 240 desde 1091 (240/0,22), y 22vh en el medio.
+ *
+ * ⚠ Por eso el `sizes` lleva un `calc(... * 22vh)` y no un número de píxeles.
+ * Acá había `TIRA_H = 168` —el valor de un clamp anterior— declarado como
+ * `sizes="252px"` para TODA pantalla: como el hueco real va de 150 a 240, eso
+ * es declarar de más casi siempre, y el navegador bajaba el escalón de 2×
+ * (504px) incluso en una ventana donde el hueco medía 154. Declarar en cambio
+ * el máximo fijo (240) es todavía peor: en la ventana de 900px de alto que es
+ * la más común, el hueco mide 198 y se pediría como si midiera 240.
+ * Con el `calc` el navegador sabe el alto exacto y elige el escalón justo; los
+ * dos tramos planos del clamp van como condiciones de media delante.
+ *
+ * ⚠ Estos números tienen que coincidir con el clamp de `--gal-h` en
+ * galeria.css. Si allá cambia el 22vh o los topes, acá también.
+ */
+const TIRA_H_MIN = 150;
+const TIRA_H_MAX = 240;
+const TIRA_VH_PCT = 22;
+const TIRA_VH_BAJO = Math.round(TIRA_H_MIN / (TIRA_VH_PCT / 100)); // 682
+const TIRA_VH_ALTO = Math.round(TIRA_H_MAX / (TIRA_VH_PCT / 100)); // 1091
+
+/* Los altos que hay que cubrir: los dos topes del clamp en 1×, y el recorrido
+   entero en 2× y 3×. Con estos escalones el navegador siempre encuentra uno
+   que cubre el hueco real sin pasarse mucho. */
+const TIRA_ESCALONES = [TIRA_H_MIN, TIRA_H_MAX, TIRA_H_MIN * 2, TIRA_H_MAX * 2, TIRA_H_MAX * 3];
+
+/* Calidad del avif del visor. Medida contra el webp q82 que ya se servía: a
+   1800px de ancho da 416 KB contra 533, o sea un 22% menos, con SSIM apenas
+   MEJOR (0,9722 contra 0,9713). Bajar a q55 daría un 38% menos pero ahí el
+   SSIM cae un 1,2%, y el visor es justo donde alguien está mirando la obra de
+   cerca: no es el lugar para ahorrar. */
+const VISOR_AVIF_Q = 62;
 
 const items = await Promise.all(
   fotos.map(async (img) => {
     const ar = img.width / img.height;
-    const ancho = Math.max(60, Math.round(TIRA_H * ar));
+    const anchoDe = (alto: number) => Math.max(60, Math.round(alto * ar));
+    const ancho = anchoDe(TIRA_H_MIN);
+    const anchoMax = anchoDe(TIRA_H_MAX);
     return {
       img,
       ar,
       ancho,
-      // versión grande para el visor: se genera en build pero no se descarga
-      // hasta abrirla (el <img> del visor recibe el src recién al abrir).
+      anchoMax,
+      anchos: [...new Set(TIRA_ESCALONES.map((h) => Math.min(anchoDe(h), img.width)))].sort((a, b) => a - b),
+      /*
+       * Versión grande para el visor: se genera en build pero no se descarga
+       * hasta abrirla (el <img> del visor recibe el src recién al abrir).
+       *
+       * Se emiten las DOS: el webp es el `href` del <a> —o sea lo que abre un
+       * navegador sin JS, y el fallback universal— y el avif es lo que el
+       * script le pasa al visor si el navegador lo soporta. A casi resolución
+       * completa esta es la descarga más pesada del sitio, y el avif le saca un
+       * 22%; va aparte y no como `<source>` de un <picture> porque el visor
+       * precarga las dos fotos vecinas con `new Image()`, y hay que precargar
+       * el MISMO archivo que después se va a mostrar.
+       */
       grande: await getImage({
         src: img,
         width: Math.min(img.width, 1800),
         format: 'webp',
         quality: 82,
+      }),
+      grandeAvif: await getImage({
+        src: img,
+        width: Math.min(img.width, 1800),
+        format: 'avif',
+        quality: VISOR_AVIF_Q,
       }),
     };
   }),
@@ -70,6 +122,7 @@ const pad = (n: number) => String(n).padStart(2, '0');
             <a
               class="gal-item"
               href={it.grande.src}
+              data-avif={it.grandeAvif.src}
               style={`--ar:${it.img.width}/${it.img.height}`}
               data-w={it.img.width}
               data-h={it.img.height}
@@ -81,8 +134,8 @@ const pad = (n: number) => String(n).padStart(2, '0');
                 formats={['avif', 'webp']}
                 fallbackFormat="webp"
                 alt={`${nombre} — foto ${i + 1}`}
-                widths={[it.ancho, Math.min(it.ancho * 2, it.img.width)]}
-                sizes={`${it.ancho}px`}
+                widths={it.anchos}
+                sizes={`(max-height: ${TIRA_VH_BAJO}px) ${it.ancho}px, (min-height: ${TIRA_VH_ALTO}px) ${it.anchoMax}px, calc(${it.ar.toFixed(4)} * ${TIRA_VH_PCT}vh)`}
                 loading="lazy"
               />
             </a>
@@ -157,6 +210,36 @@ const pad = (n: number) => String(n).padStart(2, '0');
 
     const pad = (n: number) => String(n).padStart(2, '0');
 
+    /*
+     * El visor muestra avif donde se pueda y webp donde no. El `href` del <a>
+     * se queda en webp (es el fallback universal y lo que abre un navegador sin
+     * JS), así que la elección se hace acá, en un solo lugar: `url()`.
+     *
+     * No alcanza con mirar el `<source type="image/avif">` de un <picture>
+     * porque el visor PRECARGA las vecinas con `new Image()`, y precargar el
+     * webp para después mostrar el avif duplicaría la descarga. La sonda es un
+     * avif de 1px: hasta que carga, `url()` devuelve webp — que es correcto, y
+     * lo único que pasa si alguien hace click en el primer instante es que esa
+     * foto baja en webp.
+     *
+     * ⚠ El base64 es un AVIF de verdad, generado con sharp
+     * (`sharp({create:{width:1,height:1,channels:3}}).avif()`). Acá hubo una
+     * sonda copiada de memoria que era un AVIF MAL ARMADO: el navegador tiraba
+     * `onerror`, `avifOk` se quedaba en false para siempre y el visor servía
+     * webp a todo el mundo, en silencio y sin romperse. Si hay que tocarla,
+     * generar el archivo y verificar en un navegador que el visor baje `.avif`.
+     */
+    let avifOk = false;
+    const sonda = new Image();
+    sonda.onload = () => {
+      avifOk = sonda.width === 1;
+    };
+    sonda.src =
+      'data:image/avif;base64,AAAAHGZ0eXBhdmlmAAAAAGF2aWZtaWYxbWlhZgAAAOptZXRhAAAAAAAAACFoZGxyAAAAAAAAAABwaWN0AAAAAAAAAAAAAAAAAAAAAA5waXRtAAAAAAABAAAAImlsb2MAAAAAREAAAQABAAAAAAEOAAEAAAAAAAAAFwAAACNpaW5mAAAAAAABAAAAFWluZmUCAAAAAAEAAGF2MDEAAAAAamlwcnAAAABLaXBjbwAAABNjb2xybmNseAABAA0ABoAAAAAMYXYxQ4EgAgAAAAAUaXNwZQAAAAAAAAABAAAAAQAAABBwaXhpAAAAAAMICAgAAAAXaXBtYQAAAAAAAAABAAEEAYIDBAAAAB9tZGF0EgAKBzgABhAQ0GkyCh+QP///xAAAr+4=';
+
+    /** La URL que hay que bajar para la foto de este <a>. */
+    const url = (a: HTMLAnchorElement) => (avifOk && a.dataset.avif) || a.href;
+
     let cur = -1;
     let opener: HTMLElement | null = null;
     let hideTimer = 0;
@@ -173,7 +256,7 @@ const pad = (n: number) => String(n).padStart(2, '0');
         // width/height reales → el visor reserva el lugar y la foto no salta
         visor.width = Number(a.dataset.w) || 0;
         visor.height = Number(a.dataset.h) || 0;
-        visor.src = a.href;
+        visor.src = url(a);
         visor.alt = a.querySelector('img')?.alt ?? '';
       }
       if (idxEl) idxEl.textContent = pad(cur + 1);
@@ -181,7 +264,7 @@ const pad = (n: number) => String(n).padStart(2, '0');
       // precargar las vecinas → pasar de foto es instantáneo
       for (const d of [1, -1]) {
         const pre = new Image();
-        pre.src = items[((cur + d) % n + n) % n].href;
+        pre.src = url(items[((cur + d) % n + n) % n]);
       }
 
       // acompañar con la tira: la miniatura de la foto abierta queda a la vista
@@ -244,7 +327,7 @@ const pad = (n: number) => String(n).padStart(2, '0');
         // igual es "en vivo": si tarda más, aparece durante el viaje.
         vtCorriendo = true;
         const pre = new Image();
-        pre.src = items[((i % items.length) + items.length) % items.length].href;
+        pre.src = url(items[((i % items.length) + items.length) % items.length]);
         const lista = pre.decode().catch(() => {});
         Promise.race([lista, new Promise((r) => setTimeout(r, 260))]).then(() => {
           transicion(
