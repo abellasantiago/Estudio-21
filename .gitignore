@@ -24,3 +24,6 @@ desktop.ini
 
 # caché del script del mapa (geometría bajada de OSM / IM)
 .cache/
+
+# material de trabajo de imagen (originales, masters, zips): no es del sitio
+output/
