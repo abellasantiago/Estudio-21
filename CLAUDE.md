@@ -889,11 +889,13 @@ dibujo se edita el modelo, no un SVG.
   y se protege de clicks a mitad de transición (clase `.is-flipping`, que además libera el
   `overflow` para que las cards no se corten al volar). Con `prefers-reduced-motion` o sin JS
   el toggle no aparece (queda la grilla accesible de siempre).
-- **Card en grilla (formato retrato):** la portada va en **`aspect-ratio: 4/5`** (en el
-  cilindro el thumb es `flex:1` y queda ~0.94, casi cuadrado). Motivo: las portadas
-  reales son casi todas cuadradas (1:1) o verticales (0.75–0.80) y el 4/3 apaisado que
-  había antes les recortaba entre un 25% y un 44% de la foto. Con 4/5 las verticales
-  entran enteras y las cuadradas pierden sólo un 20% a los lados. La ficha (`.ph-meta`)
+- **Card en grilla (formato retrato):** la portada va en **`aspect-ratio: 6/7`** —el
+  mismo que la caja de la ficha— (en el cilindro el thumb es `flex:1` y queda ~0.94,
+  casi cuadrado). Motivo: las portadas reales van de 0,75 a 1,50 y el 4/3 apaisado que
+  había antes les recortaba entre un 25% y un 44% de la foto. El 6/7 es un vertical
+  suave: las verticales entran casi enteras y las cuadradas pierden poco a los lados.
+  ⚠ El `portadaAspecto` del frontmatter **no cambia la card**, sólo la caja de la
+  ficha: la card es una celda de la retícula y tiene que medir lo mismo en las diez. La ficha (`.ph-meta`)
   crece con la card y empuja ubicación + chip de estado al pie (`margin-top:auto`) → los
   estados quedan **alineados entre cards** aunque el nombre ocupe dos líneas (clamp 2), y
   el chip abraza su texto (en 3D sigue a ancho de card, sin cambios). Más aire entre filas
@@ -1193,11 +1195,15 @@ Orden de la página: **título · (portada | descripción) · ficha técnica · 
   caja), las cuadradas ~14%, Cavas de Haedo (1.03) ~17%.
   - **La proporción de la caja también se puede overridear por proyecto**, con
     `portadaAspecto` (ej. `"1/1"`) en el frontmatter — para cuando el 6/7 le
-    recorta demasiado a una foto muy apaisada. Patios del Regimiento (1.41, la
-    más apaisada después de Villa Platero) lo usa: en 6/7 perdía ~39%, cuadrada
-    pierde ~29%. Villa Platero (1.50, ~43% en 6/7) y Terrazas de Italia (1.33,
-    ~36%) se quedaron en el 6/7 default — en las tres el edificio está centrado,
-    así que el foco al centro las toma bien sea cual sea la caja.
+    recorta demasiado a una foto muy apaisada. **Lo usan dos**: Patios del
+    Regimiento (1.41 — en 6/7 perdía ~39%, cuadrada ~29%) y Terrazas de Italia
+    (1.33), cuya portada es un render de fachada con la calle entera: en 6/7 se
+    veía el 57% de la foto, apretaba la fachada contra los bordes y cortaba al
+    ciclista por la mitad; cuadrada se ve el 67% y entra el edificio con sus
+    vecinos. Esa ficha es además la que más lugar tiene para ensanchar la
+    columna de la foto —sólo tres viñetas—: medido, al texto le sobran 209px a
+    1440 y 157 a 1101. Villa Platero (1.50, ~43% en 6/7) se queda en el 6/7
+    default: el edificio está centrado y el foco al centro lo toma bien.
   - ⚠ **El `widths`/`sizes` de la portada NO es el ancho de la caja.** Con
     `object-fit:cover`, el navegador escala la foto hasta que su lado más
     exigente llena la caja: como el ALTO es fijo (`COVER_H_MAX = 560`, igual en

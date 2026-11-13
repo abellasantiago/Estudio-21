@@ -11,6 +11,7 @@ unidades: 13
 metros: 973
 portadaFoco: "50% 50%"
 portadaZoom: 1
+portadaAspecto: "1/1" # la foto es apaisada (1.33): en 6/7 el recorte aprieta la fachada y corta al ciclista
 ---
 
 Terrazas de Italia es un edificio de viviendas en Ignacio Núñez 2127, en La
