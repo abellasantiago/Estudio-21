@@ -25,8 +25,8 @@
   --gutter:clamp(1.25rem, 4vw, 3.5rem);
   /* Aire vertical de las secciones. Es ASIMÉTRICO a propósito: el techo es más
      bajo que el piso para que cada sección "suba" y su título quede más cerca
-     de la regla divisoria (hr.section-rule) sin mover la regla, que sigue
-     centrada respecto del bloque de arriba. */
+     del borde donde empieza —el cambio de tono del papel— que del contenido
+     de la sección de arriba. */
   --sec-pad-top:clamp(3.4rem, 7vw, 6.2rem);
   --sec-pad-bottom:clamp(4.5rem, 9vw, 8rem);
   /* tope del retrato del equipo (ver estudio.css) */
@@ -138,13 +138,35 @@ h2.section-title{
 
 /* ---- marco de secciones ---- */
 section.block{padding-block:var(--sec-pad-top) var(--sec-pad-bottom);position:relative}
-section.alt{background:var(--paper-2)}
 .sec-head{margin-bottom:clamp(2.8rem,5vw,4.5rem)}
 
-/* regla divisoria entre dos secciones seguidas. Va suelta ENTRE los <section>
-   (dentro de un .wrap), así queda centrada en el aire que dejan sus padding-block
-   y alineada al mismo ancho de contenido que el resto del sitio. */
-hr.section-rule{border:0;height:1px;background:var(--line);margin:0}
+/* ---- los tres papeles ----
+   Las secciones de la home se separan por el TONO del papel, no por filetes:
+   tres valores a la misma distancia (~8 niveles entre uno y otro) y, al pie,
+   la tinta de Contacto.
+
+     section.mesa   un punto más hondo   ≈ #E1DFD8   Proyectos
+     (sin clase)    el papel abierto       #EAE8E2   Quiénes somos, Cómo operamos
+     section.alt    un punto más claro     #F2F1EC   Equipo
+
+   Con eso no hay dos secciones seguidas en el mismo tono, salvo el hero y
+   Quiénes somos, que son a propósito un mismo espacio.
+
+   La mesa es un TINTE translúcido, no un color plano: deja pasar el fondo
+   vivo de la home (grano, "21" fantasma, marcas de registro), así que sigue
+   siendo el mismo espacio con la luz un punto más baja. Un plano opaco lo
+   cortaba en seco y, además, haría que el motor lo animara sin que se vea
+   (immersive.ts lo apaga recién en la primera sección opaca, Equipo). El
+   marrón del tinte es lo que lo mantiene en la familia del hormigón cálido:
+   uno gris lo enfriaba.
+
+   ⚠ Sobre la mesa el --concrete baja un escalón. El de siempre ahí da 4,35:1
+   y no pasa AA; #605E57 da 4,87, casi lo mismo que el --concrete tiene sobre
+   el papel (4,76). Se redefine el token y no cada regla, así el eyebrow, los
+   filtros, el contador y el indicador del carrusel lo toman solos. Lo que va
+   DENTRO de las cards (papel claro) sólo gana contraste. */
+section.mesa{background:rgba(110,98,78,.07);--concrete:#605E57}
+section.alt{background:var(--paper-2)}
 
 /* ---- reveal on scroll ---- */
 .reveal{opacity:0;transform:translateY(18px);transition:opacity .7s ease, transform .7s cubic-bezier(.2,.7,.3,1)}

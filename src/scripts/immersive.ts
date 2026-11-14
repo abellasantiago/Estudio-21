@@ -73,7 +73,8 @@ export function initImmersive(): void {
   const descentEnd = document.getElementById('proyectos');
   // Primera sección OPACA de la página (#estudio, `section.alt`): de ahí para
   // abajo el fondo vivo —que es position:fixed— queda tapado y no hay nada suyo
-  // que animar. (Contacto, más abajo, también es opaca.)
+  // que animar. (Contacto, más abajo, también es opaca.) La mesa de Proyectos
+  // (`section.mesa`) NO cuenta: es un tinte translúcido y el fondo se ve a través.
   const opaque = document.getElementById('estudio');
   // Contenedores que reciben --hero-fade. Antes iba en :root, pero un custom
   // property se hereda: escribirlo en el <html> invalidaba el estilo del

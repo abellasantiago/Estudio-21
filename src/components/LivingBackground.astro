@@ -10,8 +10,9 @@
  *     registro a pantalla completa, todo con paralaje de mouse/scroll + deriva.
  *
  * El motor (immersive.ts) mueve todo esto; sin JS queda un backdrop estático y
- * sutil. Las secciones del inicio y el helicoidal quedan transparentes (ver
- * immersive.css) para que este fondo se vea de forma continua = un mismo espacio.
+ * sutil. Las secciones del inicio no pintan fondo opaco (ver immersive.css) para
+ * que este fondo se vea de forma continua = un mismo espacio. El helicoidal lleva
+ * encima el tinte translúcido de la mesa (section.mesa), que lo oscurece sin taparlo.
  */
 import '../styles/immersive.css';
 import { site } from '../data/site';

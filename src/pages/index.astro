@@ -26,17 +26,15 @@ const description = site.descripcion;
       contacto. La prueba va ANTES que el proceso: leídas después de diez obras,
       las cuatro fases explican cómo se hicieron; leídas antes, son una promesa.
       Ver "Home — secciones" en CLAUDE.md. */}
+  {/* Cada sección se separa de la siguiente por el TONO del papel (ver "los
+      tres papeles" en global.css): Quiénes somos y Cómo operamos sobre el papel
+      abierto, Proyectos sobre la mesa —un punto más honda— entre las dos,
+      Equipo un punto más claro y Contacto en tinta. Ninguna queda pegada a otra
+      del mismo tono, así que no hacen falta reglas divisorias. El hero y Quiénes
+      somos sí comparten papel: son el mismo espacio. */}
   <Hero />
   <Presentacion />
-  {/* Quiénes somos, Proyectos y Cómo operamos van las tres sobre el papel —en la
-      home inmersiva son transparentes y se ve el fondo vivo; sin el motor,
-      ninguna tiene fondo propio—, así que sin estas reglas se leerían como un
-      solo bloque continuo. La regla las delimita sin agregar contenido: va
-      entre dos secciones, centrada en el aire que dejan sus padding-block.
-      Entre Cómo operamos y Equipo no hace falta: ahí cambia el tono del papel. */}
-  <div class="wrap"><hr class="section-rule" /></div>
   <ProyectosHelicoidal />
-  <div class="wrap"><hr class="section-rule" /></div>
   <Nosotros />
   <Estudio />
   <Contacto />

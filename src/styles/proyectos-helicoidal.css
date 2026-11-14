@@ -9,11 +9,13 @@
    Sólo usa tokens globales de global.css (paleta/tipografías/medidas).
    ============================================================ */
 
-/* Sin fondo propio: Proyectos va sobre el papel abierto, entre Quiénes somos
-   y Cómo operamos, y deja ver el fondo vivo (grano, 21 fantasma, marcas) igual
-   que ellas. Con el `--paper` opaco que tenía, fuera del modo inmersivo
-   (celular, tablet) quedaba un sándwich: grano arriba, papel plano en el medio,
-   grano abajo. En la home inmersiva ya era transparente. */
+/* Sin fondo OPACO: Proyectos va sobre la mesa (`section.mesa`, global.css), un
+   tinte translúcido que lo separa de Quiénes somos y de Cómo operamos —las dos
+   sobre el papel abierto— pero deja ver el fondo vivo (grano, 21 fantasma,
+   marcas). Un plano opaco no sirve acá: el `--paper` que tuvo armaba, fuera
+   del modo inmersivo, un sándwich de grano arriba, papel liso en el medio y
+   grano abajo. Las cards son de papel claro, así que sobre la mesa se
+   despegan solas. */
 .ph{position:relative}
 
 /* Contenedores neutros en modo grilla; se activan recién en .is-3d. */

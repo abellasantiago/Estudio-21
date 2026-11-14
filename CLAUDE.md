@@ -21,8 +21,9 @@ registro), no rediseñar. Todo el copy va en **español rioplatense**.
 - **Astro** (estático) + **TypeScript**, sin frameworks de UI, JS mínimo.
 - **CSS propio** (sin Tailwind): `src/styles/global.css` con tokens + un `.css` por componente.
   Los **helpers compartidos** viven en `global.css` (`.wrap`, `.eyebrow`, `.section-title`,
-  `.lead`, `.marks`, `.ghost21`, `.status`, `.reveal`, `.btn`) y NO tienen componente
-  `.astro`: se usan como clase. Ver "Botón" más abajo antes de maquetar cualquier acción.
+  `.lead`, `.marks`, `.ghost21`, `.status`, `.reveal`, `.btn`, y los tonos de sección
+  `section.mesa` / `section.alt`) y NO tienen componente `.astro`: se usan como clase.
+  Ver "Botón" más abajo antes de maquetar cualquier acción.
 - **La capa mono tiene una escala y una regla de color** (tokens en `global.css`).
   El mono es la letra chica del sitio —eyebrows, chips, datos de las cards,
   etiquetas de la ficha, pie— y es la que más fácil se calibra para la pantalla
@@ -34,6 +35,9 @@ registro), no rediseñar. Todo el copy va en **español rioplatense**.
   **`--concrete-soft`** (2,8:1) **sólo para decoración**: no pasa AA sobre papel
   y nunca puede llevar un dato. ⚠ Sobre el fondo tinta (footer, Contacto) la
   tabla se invierte: ahí `--concrete-soft` sí pasa (5,0:1) y `--concrete` no.
+  Y sobre la **mesa de Proyectos** (`section.mesa`, un punto más honda que el
+  papel) `--concrete` se redefine a `#605E57` para conservar el mismo contraste —
+  ver "los tres papeles" en "Home — secciones".
   Todo esto está medido, no estimado: hay un auditor que recorre cada bloque de
   texto de una página y reporta contraste y tamaño — ver "Verificar legibilidad".
 - **Fuentes locales** (archivos woff2 de Fontsource, subset latin, sin Google Fonts CDN),
@@ -217,29 +221,50 @@ Ojo con los anclajes: **`#nosotros` es la sección de presentación**
 se dice quiénes son; la sección del modelo de trabajo (`Nosotros.astro`, la de las
 cuatro fases) tiene `id="como-operamos"`.
 
-**Las tres primeras secciones van sobre el papel abierto**: Quiénes somos,
-Proyectos y Cómo operamos no pintan fondo, ni "21" fantasma, ni marcas de registro
-propias — todo eso lo pone el fondo vivo (`LivingBackground`), con el motor y sin
-él. Antes había parches en `immersive.css` que las volvían transparentes sólo en la
-home inmersiva; fuera de ella (celular, tablet) Proyectos tenía un `--paper` opaco
-y Cómo operamos el `--paper-2` de `.alt`, y se armaba un sándwich de papeles. Se
-sacó de raíz en cada componente, así todas las pantallas ven lo mismo. **Equipo es
-la primera sección que tapa el fondo** (`section.alt`, `--paper-2`) y es la que usa
-el motor para apagarlo (ver "Zonas" en el presupuesto del motor).
-Entre **Quiénes somos / Proyectos** y entre **Proyectos / Cómo operamos** van
-**reglas divisorias** (`hr.section-rule`, sueltas en `index.astro` entre los
-`<section>`): sobre el mismo papel, sin eso se leen como un bloque continuo. Al ir
-sueltas entre medio quedan en el aire que dejan los `padding-block` y, dentro de un
-`.wrap`, alineadas con la línea de las cifras y la del cuadro del equipo. **Entre
-Cómo operamos y Equipo no va regla**: ahí cambia el tono del papel, y ese cambio ya
-es la división.
+**Las secciones se separan por el tono del papel, no por filetes: "los tres
+papeles"** (2026-11-13, bloque con ese nombre en `global.css`). Tres valores a la
+misma distancia —unos 8 niveles entre uno y otro— y, al pie, la tinta:
+
+| Clase | Tono | Secciones |
+|---|---|---|
+| `section.mesa` | un punto más hondo, ≈ `#E1DFD8` | Proyectos |
+| (sin clase) | el papel abierto, `--paper` `#EAE8E2` | Hero, Quiénes somos, Cómo operamos |
+| `section.alt` | un punto más claro, `--paper-2` `#F2F1EC` | Equipo |
+| `.contact` | `--ink` | Contacto |
+
+Así **ninguna sección queda pegada a otra del mismo tono**, salvo el hero y Quiénes
+somos, que son a propósito un mismo espacio. Con el cambio de orden del 2026-11-12
+Quiénes somos, Proyectos y Cómo operamos habían quedado las tres sobre el mismo
+papel, separadas sólo por dos `hr.section-rule`, y se leían como un bloque
+continuo; las reglas se sacaron (y el helper con ellas) porque ahora el tono es la
+división. Las cards de proyecto son de papel claro: sobre la mesa se despegan
+solas, como láminas apoyadas en la mesa de trabajo.
+- ⚠ **La mesa es un TINTE translúcido** (`rgba(110,98,78,.07)`), no un color
+  plano: deja ver el fondo vivo (grano, "21" fantasma, marcas), así que sigue
+  siendo el mismo espacio con la luz un punto más baja. Un plano opaco lo cortaría
+  en seco y además el motor lo seguiría animando sin que se vea: `immersive.ts` lo
+  apaga recién en la primera sección OPACA, que sigue siendo Equipo. El tinte es
+  marrón y no gris porque un gris enfriaba el papel.
+- ⚠ **Sobre la mesa se redefine `--concrete`** (a `#605E57`, en el mismo
+  `section.mesa`): el de siempre da ahí 4,37:1 y no pasa AA; el nuevo da 4,86,
+  casi lo mismo que el `--concrete` tiene sobre el papel (4,77). Al ser el token,
+  el eyebrow, los filtros, el contador del 3D y el indicador del carrusel lo
+  toman solos. Medido en el sitio.
+
+**Las tres primeras secciones no pintan fondo opaco** —Quiénes somos, Proyectos y
+Cómo operamos—, ni "21" fantasma, ni marcas de registro propias: todo eso lo pone
+el fondo vivo (`LivingBackground`), con el motor y sin él. Antes había parches en
+`immersive.css` que las volvían transparentes sólo en la home inmersiva; fuera de
+ella (celular, tablet) Proyectos tenía un `--paper` opaco y se armaba un sándwich
+de papeles. Se sacó de raíz en cada componente, así todas las pantallas ven lo
+mismo. **Equipo es la primera sección que tapa el fondo** (`section.alt`) y es la
+que usa el motor para apagarlo (ver "Zonas" en el presupuesto del motor).
 
 El aire vertical de las secciones es **asimétrico a propósito** (tokens
 `--sec-pad-top` / `--sec-pad-bottom` en `global.css`, usados por `section.block` y por
 `.contact`): el techo mide ~78% del piso. Así cada sección "sube" y su título queda
-más cerca de la regla divisoria, **sin mover la regla** — que sigue a la misma
-distancia del bloque de arriba. Si se vuelven a igualar, el título se despega otra
-vez de la línea.
+más cerca del borde donde empieza —el cambio de tono— que del contenido de la
+sección de arriba. Si se vuelven a igualar, el título se despega de su sección.
 
 Navbar fina (58px) con el logo `banner_negro.png` ("ESTUDIO 21 ARQUITECTOS"); links
 **Inicio · Nosotros · Proyectos · Equipo · Contacto**. **"Contacto" va en petróleo**
@@ -921,7 +946,9 @@ dibujo se edita el modelo, no un SVG.
   no cambia nada: ahí la celda se llama "Unidades" y la respuesta correcta sigue
   siendo "No aplica" (ver "Página de proyecto").
 - **Cards limpias:** sin cartelito `E21·NN`, sin nombre gigante de fondo, sin grilla
-  blueprint; el fondo del panel es parallax multicapa (fantasma "21" + marcas de registro).
+  blueprint; el fondo del panel es parallax multicapa (fantasma "21" + marcas de registro),
+  visto a través del tinte de la **mesa** (`section.mesa`, ver "Home — secciones"): las
+  cards de papel claro se despegan del fondo un punto más hondo, en grilla y en 3D.
   El CTA "Ver proyecto" aparece **sólo en hover de la card al frente**.
 - **El cilindro pide LUGAR: `(min-width: 760px) and (min-height: 620px)`.** Por debajo
   de eso el componente arranca —y vuelve— a la **grilla**. El corte es geométrico, como
@@ -942,8 +969,9 @@ dibujo se edita el modelo, no un SVG.
 ### Cómo operamos / Equipo / Contacto
 - **Cómo operamos** (`Nosotros.astro` / `nosotros.css`, ancla `/#como-operamos`):
   va **después de Proyectos** —el proceso, una vez vista la obra— y desemboca en
-  Equipo: así trabajamos → éstos somos → escribinos. Sin fondo propio (ver "Home —
-  secciones"). Cabecera simple (eyebrow + título + lead) y los bloques de las
+  Equipo: así trabajamos → éstos somos → escribinos. Sin fondo propio: va sobre el
+  papel abierto, entre la mesa de Proyectos y el papel claro de Equipo, así se
+  despega de las dos (ver "los tres papeles" en "Home — secciones"). Cabecera simple (eyebrow + título + lead) y los bloques de las
   cuatro fases.
   Las cifras de trayectoria **no** van acá: viven al pie de la sección de
   presentación. La etiqueta de cada bloque es **el número de la fase y su
